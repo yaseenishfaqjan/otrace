@@ -49,6 +49,7 @@ import {
   writeCartCookie,
 } from './theme/cart.js';
 import { rawBodyFor } from './theme/form-body.js';
+import { createCheckoutSession } from './checkout-session.js';
 
 const {
   PORT = 3000,
@@ -419,6 +420,58 @@ app.post('/api/theme-preview/cart/update.js', rawBodyFor(), (req, res) => {
   sendCart(req, res, lines);
 });
 
+/**
+ * The theme's cart form posts here.
+ *
+ * Shopify's /cart accepts a POST from the cart form and, when the submit
+ * button is named "checkout", sends the customer on to the payment page. The
+ * form is a plain POST and not fetch(), so the answer has to be a redirect -
+ * returning JSON here leaves the customer looking at raw JSON.
+ */
+const sendThemeHtml = (res, html) => {
+  res.set('Content-Type', 'text/html; charset=utf-8');
+  // A preview must never be indexed while the real pages exist.
+  res.set('X-Robots-Tag', 'noindex, nofollow');
+  res.send(html);
+};
+
+app.get('/api/theme-preview/cart', async (req, res) => {
+  if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
+  try {
+    sendThemeHtml(res, await themeRenderer.renderPage('cart', {
+      cart: cartJson(cartLines(req), { siteUrl: SITE_URL }),
+      title: 'Your cart',
+      page_title: 'Your cart — OTRACE',
+    }));
+  } catch (err) {
+    console.error('[theme] cart render failed:', err.message);
+    res.status(500).send('Theme render failed: ' + err.message);
+  }
+});
+
+app.post('/api/theme-preview/cart', rawBodyFor(), async (req, res) => {
+  const lines = cartLines(req);
+  const wantsCheckout = Object.prototype.hasOwnProperty.call(req.body || {}, 'checkout');
+
+  if (!wantsCheckout) {
+    // An "update cart" submit: apply the quantities and show the cart again.
+    return res.redirect(303, THEME_ROUTES_ROOT + 'cart');
+  }
+
+  try {
+    const { session, error } = await createCheckoutSession(stripe, lines, { siteUrl: SITE_URL });
+    if (error) {
+      console.warn('[theme checkout] refused:', error);
+      return res.status(400).send(error);
+    }
+    console.log(`[theme checkout] session ${session.id} for ${formatMoney(session.amount_total ?? 0)}`);
+    res.redirect(303, session.url);
+  } catch (err) {
+    console.error('[theme checkout] failed:', err.message);
+    res.status(500).send('Checkout could not start. Please try again.');
+  }
+});
+
 app.get('/api/theme-preview/product/:slug', async (req, res) => {
   if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
   const product = findBySlug(req.params.slug);
@@ -440,44 +493,11 @@ app.get('/api/products', (_req, res) => {
 });
 
 app.post('/api/checkout', async (req, res) => {
-  if (!stripe) {
-    return res.status(503).json({ error: 'Payments are not configured yet. Please try again shortly.' });
-  }
-
-  const { lineItems, normalised, errors } = buildLineItems(req.body?.items, { siteUrl: SITE_URL });
-  if (errors.length || lineItems.length === 0) {
-    return res.status(400).json({ error: errors[0] ?? 'Your cart is empty.' });
-  }
-
   try {
-    const session = await stripe.checkout.sessions.create({
-      mode: 'payment',
-      line_items: lineItems,
-      success_url: `${SITE_URL}/order/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${SITE_URL}/cart`,
-      billing_address_collection: 'required',
-      shipping_address_collection: { allowed_countries: ['US'] },
-      phone_number_collection: { enabled: true },
-      shipping_options: [
-        {
-          shipping_rate_data: {
-            type: 'fixed_amount',
-            display_name: SHIPPING.label,
-            fixed_amount: { amount: SHIPPING.amountCents, currency: CURRENCY },
-            delivery_estimate: {
-              minimum: { unit: 'business_day', value: SHIPPING.minDays },
-              maximum: { unit: 'business_day', value: SHIPPING.maxDays },
-            },
-          },
-        },
-      ],
-      // packItems keeps every value inside Stripe's 500-character metadata cap.
-      metadata: {
-        ...packItems(normalised),
-        subtotal_cents: String(subtotalCents(normalised)),
-      },
+    const { session, error, status } = await createCheckoutSession(stripe, req.body?.items, {
+      siteUrl: SITE_URL,
     });
-
+    if (error) return res.status(status).json({ error });
     console.log(`[checkout] session ${session.id} for ${formatMoney(session.amount_total ?? 0)}`);
     res.json({ url: session.url, id: session.id });
   } catch (err) {

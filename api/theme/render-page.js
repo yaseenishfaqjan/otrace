@@ -188,6 +188,32 @@ export function createThemeRenderer({
     }, globals);
   }
 
+  /**
+   * Render any template by name - cart, index, collection, a page.
+   *
+   * `extra` becomes BOTH scope and globals: a template's sections reach their
+   * snippets through {% render %}, which sees globals only, so passing `cart`
+   * as scope alone leaves the cart page rendering an empty basket.
+   */
+  async function renderPage(templateName, extra = {}, pageType = templateName) {
+    // The heading block prints page.title, and the <title> element prints
+    // page_title. They are not the same string: putting the document title in
+    // the heading puts " - OTRACE" in the middle of the page.
+    const title = extra.title ?? 'OTRACE';
+    const globals = withGlobals({
+      ...extra,
+      request: { ...REQUEST, page_type: pageType },
+      template: { name: templateName, suffix: null },
+      // Templates print {{ page.title }} as their heading. With no `page` the
+      // heading renders the literal braces, which reads as a broken page.
+      page: { title, handle: templateName, content: '', url: `/${templateName}` },
+      // The heading block's own default is {{ page_title }}, not page.title.
+      page_title: title,
+    });
+    const content = await renderTemplate(templateName, { ...baseScope(), ...globals }, globals);
+    return wrap(content, { ...globals, page_title: extra.page_title ?? title }, globals);
+  }
+
   /** Drop the sections into layout/theme.liquid. */
   /**
    * What Shopify injects into {{ content_for_header }}.
@@ -220,5 +246,5 @@ export function createThemeRenderer({
     return renderThemeFile(engine, themeRoot, 'layout', 'theme', scope, globals);
   }
 
-  return { engine, renderTemplate, renderProduct, wrap, settings };
+  return { engine, renderTemplate, renderProduct, renderPage, wrap, settings };
 }

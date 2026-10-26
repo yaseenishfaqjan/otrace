@@ -123,6 +123,40 @@ export function cartJson(lines, { siteUrl = '' } = {}) {
       featured_image: image,
       image: image ? image.src : null,
       requires_shipping: true,
+      properties: {},
+      /**
+       * The cart template reads item.variant for inventory and quantity rules.
+       * We do not track stock, so this says "available, no limit" explicitly
+       * rather than leaving the fields undefined for the theme to interpret.
+       */
+      variant: {
+        id,
+        title: `${row.colour} / ${row.size}`,
+        available: true,
+        inventory_management: null,
+        inventory_policy: 'continue',
+        inventory_quantity: 0,
+        quantity_rule: { min: 1, max: null, increment: 1 },
+        price: product.priceCents,
+        compare_at_price: product.listPriceCents,
+      },
+      /**
+       * Liquid reads `item.product.title`, not `item.product_title`, so a cart
+       * row with no nested product renders a blank, unclickable line - the
+       * price and image are there and the customer cannot tell what it is.
+       * Kept to the fields themes actually read rather than the whole product,
+       * which would repeat every variant on every line.
+       */
+      product: {
+        id: product.sku,
+        title: product.name,
+        handle: product.slug,
+        url: `/product/${product.slug}`,
+        vendor: 'OTRACE',
+        type: shaped.type,
+        has_only_default_variant: false,
+        featured_image: image,
+      },
     };
   });
 

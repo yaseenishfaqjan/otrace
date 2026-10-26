@@ -373,14 +373,33 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
         const type = rawBlock && rawBlock.type;
         if (!type) continue;
         placed.add(keyOf(rawBlock));
-        const block = {
-          ...rawBlock,
-          settings: resolveLinkListSettings(
-            readSchema(themeRoot, 'blocks', type),
-            rawBlock.settings,
-            linklists,
-          ),
-        };
+        const blockSchema = readSchema(themeRoot, 'blocks', type);
+        let blockSettings = resolveLinkListSettings(blockSchema, rawBlock.settings, linklists);
+
+        /**
+         * A setting declared `"type": "liquid"` holds a TEMPLATE, and Shopify
+         * renders it. The page heading block is one: its value is literally
+         * "{{ page.title }}", so without this the heading on every cart,
+         * collection and page template reads as those braces.
+         */
+        for (const setting of blockSchema?.settings ?? []) {
+          if (setting?.type !== 'liquid' || !setting.id) continue;
+          const source = blockSettings[setting.id];
+          if (typeof source !== 'string' || !source.includes('{')) continue;
+          try {
+            blockSettings = {
+              ...blockSettings,
+              [setting.id]: yield engine.parseAndRender(source, ctx.getAll(), {
+                globals: ctx.globals,
+              }),
+            };
+          } catch {
+            // A setting we cannot render keeps its raw text rather than
+            // blanking the block.
+          }
+        }
+
+        const block = { ...rawBlock, settings: blockSettings };
         try {
           // theme/blocks is already a search root, so the bare type resolves.
           // 'blocks/<type>' only worked while the theme root was also a root,
