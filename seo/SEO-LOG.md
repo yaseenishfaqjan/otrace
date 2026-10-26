@@ -300,3 +300,37 @@ Images: `detail-fabric.jpg`, `detail-stitch.jpg`, `products/hoodie-onyx-front.jp
 **Before:** no `/llms/pages/` files. **After:** the same markdown is copied to `/llms/pages/` during the build, including the journal notes. `https://otrace.co/llms/pages/index.md` is linked from `llms.txt`. Local file returns 200 on the preview server. Live is still 404 until deploy.
 
 **Commit:** a01bdc4
+
+## [2026-10-26] Lead capture — Klaviyo, popup, waitlist
+
+**Why:** `/api/subscribe` stored an email and stopped. A second signup with a size was dropped. There was no consent line, no phone, and no wholesale type on contact.
+
+**Before:** `POST /api/subscribe` inserted `email` and `source` only. An existing email returned `alreadySubscribed` and wrote nothing else. Contact stored name, email, subject, and message. No popup. No WhatsApp control, because no number is configured.
+
+**After:** The same route (and `POST /api/waitlist`) stores path, product slug, size, colour, phone, form id, marketing consent time and method, and separate SMS and WhatsApp flags. Flags stay off unless the request sends them. Repeat emails update size and colour. MySQL remains the store. If `KLAVIYO_PRIVATE_API_KEY` or `KLAVIYO_LIST_ID` is missing, the API logs `ESP sync skipped` and still keeps the row. With both set, it imports a Klaviyo profile and subscribes that profile to the list. The app does not send the three-email sequence. Paste that copy from `seo/LEAD-CAPTURE.md` into a Klaviyo Flow. The existing SMTP welcome still sends once, and only when SMTP is configured.
+
+The footer, an 8 second popup (off `/cart`, the cart drawer, and `/order/success`), product waitlist, “Email me my size”, and the contact inquiry type (including Wholesale / custom / collab) are in the storefront. Exit intent is on product pages and `/cart`. Dismiss lasts 14 days, with a Fit guide tab. WhatsApp and Instagram render only from env. No number and no profile URL were invented.
+
+**Verified:** `node --test api/leads.test.mjs` → 7 passed, including the skip log and a mocked Klaviyo profile plus list subscribe. No live Klaviyo key was present, so no profile was created. `node seo/verify.mjs --root site/dist/public` → 0 problems. Prerendered cart and order success do not contain the popup. A headless pass submitted the waitlist for size M / Onyx Black.
+
+**Screenshot:** `seo/shots/2026-10-26-footer-consent-375.png`, `seo/shots/2026-10-26-capture-popup-375.png`.
+
+**Commit:** 4704735
+
+**Still blocked on the owner:** `KLAVIYO_PRIVATE_API_KEY`, `KLAVIYO_LIST_ID`, the Flow itself, `VITE_WHATSAPP_NUMBER` or `PUBLIC_WHATSAPP_NUMBER` at storefront build time, `VITE_INSTAGRAM` or `VITE_INSTAGRAM_URL`, and ManyChat (outside this repo).
+
+## [2026-10-26] Product motion — angles, 450 GSM, set switcher, sticky add
+
+**Why:** The product page had a swipe gallery, colour dots, and a mobile buy bar. It did not let someone scrub the existing angles, read the cloth up close, move to the other piece in the same colour, or keep add-to-cart after scrolling on desktop.
+
+**Before:** Hoodie gallery was four photographs (front, back, worn, worn back). Sweatpant gallery was two. Colour switched in place. “Complete the set” was a card grid under the buy column. The desktop add button scrolled away. Mobile already pinned a bar.
+
+**After:** An Angles range and a mouse drag step through those existing photographs. The caption says they are photographs, not a 3D model. No GLB was added. “Feel the 450 GSM” scrubs `/detail-fabric.jpg`, `/detail-stitch.jpg`, and `/detail-drawcord.jpg`, with the same GSM and garment-dye facts already on the site. The set switcher links to the other product and keeps the selected colour. Desktop shows add-to-cart in a bottom bar only after the in-page button has scrolled above the viewport. Nothing new animates when `prefers-reduced-motion: reduce` is set: frame changes are instant, and the sticky bar has no entrance animation.
+
+**Verified:** `node seo/verify.mjs --root site/dist/public` → 0 problems. Headless Chrome at 375px: angle range moves to the worn frame, the cloth range shows the stitch sentence, the set link becomes `?color=warm-cream` after the cream swatch, overflow 0. At 1440px the sticky bar is absent until that scroll, then it shows the product name. Reduced motion still steps the sweatpant from front to worn. Cart had no dialog after 1.5s.
+
+**Screenshot:** `seo/shots/2026-10-26-angle-scrub-375.png`, `seo/shots/2026-10-26-gsm-375.png`, `seo/shots/2026-10-26-sticky-1440.png`.
+
+**Commit:** 4704735
+
+**Live:** not on https://otrace.co until this branch is deployed.
