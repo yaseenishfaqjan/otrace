@@ -25,7 +25,8 @@ export const PRODUCTS = {
     name: 'OTRACE Oversized Hoodie',
     description:
       'Boxy oversized hoodie in 450 GSM garment-dyed heavyweight fleece. Self-lined hood, split kangaroo pocket, metal drawcord tips.',
-    priceCents: 10000,
+    listPriceCents: 10000,
+    priceCents: 8000,
     image: '/products/hoodie-onyx-worn-front.jpg',
     sizes: SIZES,
     colours: COLORWAYS,
@@ -37,7 +38,8 @@ export const PRODUCTS = {
     name: 'OTRACE Wide-Leg Sweatpant',
     description:
       'Wide-leg sweatpant in the same 450 GSM garment-dyed fleece. Drawcord waist with metal tips, ribbed ankle cuff.',
-    priceCents: 10000,
+    listPriceCents: 10000,
+    priceCents: 8000,
     image: '/products/pant-onyx-worn.jpg',
     sizes: SIZES,
     colours: COLORWAYS,
@@ -66,6 +68,30 @@ export const imageUrl = (product, siteUrl) => {
 export const publicProducts = (siteUrl) =>
   Object.values(PRODUCTS).map((p) => ({ ...p, image: imageUrl(p, siteUrl) }));
 
+/**
+ * What a customer actually pays.
+ *
+ * listPriceCents is the price before the offer and is what the strike-through
+ * shows. priceCents is what a single piece is charged at - 20% off. SET_* is
+ * the pair: $200 list, 30% off, so $140 for one of each, which works out at
+ * $70 a piece for the matched units.
+ *
+ * Prices are decided HERE and nowhere else. The browser sends slug, size,
+ * colour and quantity; it never sends a price, so a tampered page cannot
+ * change what Stripe charges.
+ */
+export const SET_LIST_CENTS = 20000;
+export const SET_TOTAL_CENTS = 14000;
+export const SET_UNIT_CENTS = SET_TOTAL_CENTS / 2;
+export const SET_SKUS = ['OT-HOOD', 'OT-PANT'];
+
+/** How many complete sets a basket contains: one of each makes a set. */
+export function setsIn(entries) {
+  const qty = (sku) => entries.filter((e) => e.sku === sku)
+    .reduce((n, e) => n + e.quantity, 0);
+  return Math.min(...SET_SKUS.map(qty));
+}
+
 export const formatMoney = (cents) => `$${(cents / 100).toFixed(2)}`;
 
 /**
@@ -77,6 +103,7 @@ export const formatMoney = (cents) => `$${(cents / 100).toFixed(2)}`;
  */
 export function buildLineItems(rawItems, { siteUrl } = {}) {
   const lineItems = [];
+  const entries = [];
   const normalised = [];
   const errors = [];
 
@@ -112,13 +139,28 @@ export function buildLineItems(rawItems, { siteUrl } = {}) {
       continue;
     }
 
+    entries.push({ product, quantity, size, colour });
+  }
+
+  /**
+   * Price the basket AFTER it is fully validated, because the set rate depends
+   * on what else is in it. Matched units - one hoodie against one sweatpant -
+   * are charged at the set rate and the remainder at the single rate, so two
+   * hoodies and one sweatpant get one set and one single rather than a
+   * discount on everything.
+   */
+  const sets = setsIn(entries.map((e) => ({ sku: e.product.sku, quantity: e.quantity })));
+  const setUnitsLeft = Object.fromEntries(SET_SKUS.map((sku) => [sku, sets]));
+
+  const push = (entry, quantity, unitAmount, inSet) => {
+    const { product, size, colour } = entry;
     lineItems.push({
       quantity,
       price_data: {
         currency: CURRENCY,
-        unit_amount: product.priceCents, // server-side price, always
+        unit_amount: unitAmount, // server-side price, always
         product_data: {
-          name: `${product.name} — ${colour}, ${size}`,
+          name: `${product.name} — ${colour}, ${size}${inSet ? ' (set of two)' : ''}`,
           description: product.preorder
             ? `${product.description} PRE-ORDER — ships in ${product.shipsIn}.`
             : product.description,
@@ -127,23 +169,35 @@ export function buildLineItems(rawItems, { siteUrl } = {}) {
             sku: product.sku,
             size,
             colour,
+            ...(inSet ? { set: 'yes' } : {}),
             ...(product.preorder ? { preorder: 'yes', ships_in: product.shipsIn } : {}),
           },
         },
       },
     });
-
     normalised.push({
       sku: product.sku,
       name: product.name,
       size,
       colour,
       quantity,
+      inSet,
       preorder: Boolean(product.preorder),
       shipsIn: product.preorder ? product.shipsIn : null,
-      unitPriceCents: product.priceCents,
-      lineTotalCents: product.priceCents * quantity,
+      unitPriceCents: unitAmount,
+      lineTotalCents: unitAmount * quantity,
     });
+  };
+
+  for (const entry of entries) {
+    const left = setUnitsLeft[entry.product.sku] ?? 0;
+    const atSet = Math.min(left, entry.quantity);
+    if (atSet) {
+      setUnitsLeft[entry.product.sku] = left - atSet;
+      push(entry, atSet, SET_UNIT_CENTS, true);
+    }
+    const atSingle = entry.quantity - atSet;
+    if (atSingle) push(entry, atSingle, entry.product.priceCents, false);
   }
 
   return { lineItems, normalised, errors };

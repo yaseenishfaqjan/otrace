@@ -30,6 +30,8 @@ export type Product = {
   /** Short descriptor shown under the name on cards. */
   line: string;
   price: number;
+  /** Before the offer. Shown struck through; api/catalog.js is the authority. */
+  listPrice: number;
   category: string;
   categorySlug: string;
   /** One sentence with a point of view, not a spec dump. */
@@ -97,7 +99,8 @@ export const PRODUCTS: Product[] = [
     sku: 'OT-HOOD',
     name: 'Oversized Hoodie',
     line: 'Heavyweight fleece — AW2026',
-    price: 100,
+    price: 80,
+    listPrice: 100,
     category: 'Hoodies',
     categorySlug: 'hoodies',
     tagline:
@@ -137,7 +140,8 @@ export const PRODUCTS: Product[] = [
     sku: 'OT-PANT',
     name: 'Wide-Leg Sweatpant',
     line: 'Heavyweight fleece — AW2026',
-    price: 100,
+    price: 80,
+    listPrice: 100,
     category: 'Bottoms',
     categorySlug: 'bottoms',
     tagline:

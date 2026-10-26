@@ -157,7 +157,11 @@ export default function Product() {
   const colorway = product.colorways[colorIndex];
   const gallery = colorway.images;
   const partner = PRODUCTS.find((item) => item.slug !== product.slug);
-  const setPrice = partner ? product.price + partner.price : product.price;
+  // The set is a fixed offer, not two singles added up: $200 list, 30% off.
+  // api/catalog.js holds the authority and charges the same 14000 cents.
+  const SET_PRICE = 140;
+  const SET_LIST = 200;
+  const setPrice = partner ? SET_PRICE : product.price;
   const singleLabel = `${product.preorder ? 'Pre-order' : 'Add to cart'} — ${money(product.price)}`;
   const buyLabel = addedFlash ? 'Added' : asSet && partner ? `Add the set — ${money(setPrice)}` : singleLabel;
 
