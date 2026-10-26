@@ -23,7 +23,12 @@ import {
 } from './liquid-engine.js';
 import { toShopifyProduct, themeSettings } from './shopify-shape.js';
 
-export function createThemeRenderer({ themeRoot, siteUrl = '', assetBase = '/theme-assets' }) {
+export function createThemeRenderer({
+  themeRoot,
+  siteUrl = '',
+  assetBase = '/theme-assets',
+  routesRoot = '/',
+}) {
   const settings = themeSettings(
     readThemeJson(path.join(themeRoot, 'config', 'settings_data.json')),
     readThemeJson(path.join(themeRoot, 'config', 'settings_schema.json')),
@@ -48,7 +53,7 @@ export function createThemeRenderer({ themeRoot, siteUrl = '', assetBase = '/the
     permanent_domain: 'otrace.co',
   };
   const ROUTES = {
-    root: '/', cart_url: '/cart', cart_add_url: '/cart/add',
+    root: routesRoot, cart_url: `${routesRoot}cart`, cart_add_url: `${routesRoot}cart/add`,
     cart_change_url: '/cart/change', cart_update_url: '/cart/update',
     search_url: '/search', predictive_search_url: '/search/suggest',
     all_products_collection_url: '/shop', account_url: '/account',
@@ -202,7 +207,10 @@ export function createThemeRenderer({ themeRoot, siteUrl = '', assetBase = '/the
       country: 'US',
       theme: { name: 'Kalles', id: 1, role: 'main' },
       designMode: false,
-      routes: { root: '/' },
+      // Every AJAX URL the theme builds is `${Shopify.routes.root}cart/add.js`
+      // and friends, so this one value decides where its cart, product and
+      // search requests land.
+      routes: { root: routesRoot },
     }) +
     ';<\/script>';
 

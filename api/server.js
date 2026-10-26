@@ -38,6 +38,17 @@ import { submitIndexNow } from './indexnow.js';
 import { ensureLeadColumns, handleContact, handleSubscribe, inquiryLabel } from './leads.js';
 import { klaviyoConfig } from './klaviyo.js';
 import { createThemeRenderer } from './theme/render-page.js';
+import { toShopifyProduct } from './theme/shopify-shape.js';
+import {
+  CART_COOKIE,
+  addLine,
+  cartJson,
+  changeLine,
+  decodeVariantId,
+  readCartCookie,
+  writeCartCookie,
+} from './theme/cart.js';
+import { rawBodyFor } from './theme/form-body.js';
 
 const {
   PORT = 3000,
@@ -327,6 +338,9 @@ app.get('/api/health', (_req, res) => {
  */
 const THEME_ROOT = fileURLToPath(new URL('../theme', import.meta.url));
 const THEME_ASSET_BASE = '/api/theme-assets';
+// Everything the theme fetches hangs off this prefix, so the preview needs no
+// nginx change and cannot collide with the live React storefront at '/'.
+const THEME_ROUTES_ROOT = '/api/theme-preview/';
 
 let themeRenderer = null;
 if (fs.existsSync(THEME_ROOT)) {
@@ -335,6 +349,7 @@ if (fs.existsSync(THEME_ROOT)) {
       themeRoot: THEME_ROOT,
       siteUrl: SITE_URL.replace(/\/$/, ''),
       assetBase: THEME_ASSET_BASE,
+      routesRoot: THEME_ROUTES_ROOT,
     });
     app.use(THEME_ASSET_BASE, express.static(path.join(THEME_ROOT, 'assets'), {
       maxAge: '1h',
@@ -345,6 +360,64 @@ if (fs.existsSync(THEME_ROOT)) {
     console.warn('[boot] theme preview unavailable:', err.message);
   }
 }
+
+/* ---- Shopify AJAX endpoints the theme's own JS calls ---- */
+
+/** Parse one cookie without pulling in a dependency for it. */
+const readCookie = (req, name) =>
+  String(req.headers.cookie || '')
+    .split(';')
+    .map((c) => c.trim())
+    .find((c) => c.startsWith(name + '='))
+    ?.slice(name.length + 1);
+
+const sendCart = (req, res, lines) => {
+  res.cookie
+    ? res.cookie(CART_COOKIE, writeCartCookie(lines), { httpOnly: true, sameSite: 'lax', path: '/' })
+    : res.setHeader('Set-Cookie', `${CART_COOKIE}=${writeCartCookie(lines)}; Path=/; HttpOnly; SameSite=Lax`);
+  res.json(cartJson(lines, { siteUrl: SITE_URL }));
+};
+
+const cartLines = (req) => readCartCookie(readCookie(req, CART_COOKIE));
+
+app.get('/api/theme-preview/products/:handle.js', (req, res) => {
+  const product = findBySlug(req.params.handle);
+  if (!product) return res.status(404).json({ error: 'not found' });
+  res.json(toShopifyProduct(product, { siteUrl: SITE_URL }));
+});
+
+app.get('/api/theme-preview/cart.js', (req, res) => {
+  res.json(cartJson(cartLines(req), { siteUrl: SITE_URL }));
+});
+
+app.post('/api/theme-preview/cart/add.js', rawBodyFor(), (req, res) => {
+  const body = req.body || {};
+  // Shopify accepts one item or an items[] array; the theme sends both shapes.
+  const incoming = Array.isArray(body.items) ? body.items : [body];
+  let lines = cartLines(req);
+  for (const item of incoming) {
+    const decoded = decodeVariantId(item.id ?? item.variant_id);
+    if (!decoded) return res.status(422).json({ status: 422, message: 'Cannot find variant' });
+    const quantity = Math.min(10, Math.max(1, Number.parseInt(item.quantity, 10) || 1));
+    lines = addLine(lines, { ...decoded, quantity });
+  }
+  sendCart(req, res, lines);
+});
+
+app.post('/api/theme-preview/cart/change.js', rawBodyFor(), (req, res) => {
+  const body = req.body || {};
+  const quantity = Math.min(10, Math.max(0, Number.parseInt(body.quantity, 10) || 0));
+  sendCart(req, res, changeLine(cartLines(req), body.id ?? body.line, quantity));
+});
+
+app.post('/api/theme-preview/cart/update.js', rawBodyFor(), (req, res) => {
+  const updates = (req.body || {}).updates || {};
+  let lines = cartLines(req);
+  for (const [variantId, qty] of Object.entries(updates)) {
+    lines = changeLine(lines, variantId, Math.min(10, Math.max(0, Number.parseInt(qty, 10) || 0)));
+  }
+  sendCart(req, res, lines);
+});
 
 app.get('/api/theme-preview/product/:slug', async (req, res) => {
   if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
