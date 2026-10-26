@@ -138,7 +138,7 @@ export function cartJson(lines, { siteUrl = '' } = {}) {
         inventory_quantity: 0,
         quantity_rule: { min: 1, max: null, increment: 1 },
         price: product.priceCents,
-        compare_at_price: product.listPriceCents,
+        compare_at_price: product.listPriceCents > product.priceCents ? product.listPriceCents : null,
       },
       /**
        * Liquid reads `item.product.title`, not `item.product_title`, so a cart

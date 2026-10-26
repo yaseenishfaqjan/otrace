@@ -109,7 +109,7 @@ export const PRODUCTS: Product[] = [
       'Boxy oversized body with a dropped shoulder seam',
       'Self-lined double-layer hood',
       'Split kangaroo pocket',
-      'Metal drawcord tips through metal eyelets',
+      'White moulded plastic drawcord tips through metal eyelets',
       'Ribbed cuffs and hem that hold their shape',
       'OTRACE wordmark embroidered at the chest in 40wt matte thread',
     ],
@@ -152,7 +152,7 @@ export const PRODUCTS: Product[] = [
       'Cut wide from the hip and left to break at the ankle. The other half of the set, in the same dye lot.',
     details: [
       'Relaxed wide leg with a high rise',
-      'Drawcord waist with metal tips',
+      'Drawcord waist with white moulded plastic tips',
       'Ribbed ankle cuff built to stack',
       'Side seam pockets',
       'OTRACE monogram embroidered at the thigh',
@@ -199,9 +199,9 @@ export const productsIn = (categorySlug: string) =>
  *
  * NOTE: taken from the AW2026 spec sheet. Four rows in that sheet run
  * backwards at L — chest 48→42, body length 68→66, inseam 77→73 — which would
- * have L smaller than M and drive returns. Those cells are marked `null` here
- * rather than published wrong; the table renders them as "—" until the real
- * numbers are confirmed by the factory.
+ * have L smaller than M and drive returns. Those cells stay `null` here.
+ * The sizing table estimates a single missing cell from the confirmed sizes
+ * on either side and marks it estimated. A missing neighbor stays blank.
  */
 export const SIZE_CHART: { label: string; values: (number | null)[] }[] = [
   { label: 'Chest', values: [40, 44, 48, null, 50, 53, 54] },

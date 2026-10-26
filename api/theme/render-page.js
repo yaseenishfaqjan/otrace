@@ -11,8 +11,8 @@
  * whole shop. The log names the section, which is how the remaining gaps get
  * found.
  */
-import fs from 'node:fs';
-import path from 'node:path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   createEngine,
@@ -20,10 +20,13 @@ import {
   readThemeJson,
   renderThemeFile,
   blockList,
+  imageSetting,
   resolveLinkListSettings,
   wrapSection,
 } from './liquid-engine.js';
 import { toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
+import { PRODUCTS } from '../catalog.js';
+import { POSTS } from '../../site/src/content/posts.mjs';
 
 export function createThemeRenderer({
   themeRoot,
@@ -92,7 +95,118 @@ export function createThemeRenderer({
       handle: 'footer',
       links: [link('Shipping', '/shipping'), link('Sizing', '/sizing'), link('Contact', '/contact'), link('Privacy', '/privacy')],
     },
+    'footer-categories': {
+      title: 'Categories',
+      handle: 'footer-categories',
+      links: [
+        link('Shop', '/shop'),
+        link('Hoodies', '/shop/hoodies'),
+        link('Bottoms', '/shop/bottoms'),
+        link('Lookbook', '/lookbook'),
+      ],
+    },
+    'footer-useful-links': {
+      title: 'Useful links',
+      handle: 'footer-useful-links',
+      links: [
+        link('Blog', '/blog'),
+        link('Garment dyed', '/garment-dyed'),
+        link('Sizing', '/sizing'),
+        link('Contact', '/contact'),
+      ],
+    },
   };
+
+  const journalArticles = POSTS.map((post) => {
+    const excerpt = post.description || post.answer || '';
+    return {
+      id: post.slug,
+      title: post.h1,
+      handle: `journal/${post.slug}`,
+      url: `/blog/${post.slug}`,
+      author: 'OTRACE',
+      published_at: post.date,
+      tags: post.eyebrow ? [post.eyebrow] : [],
+      comments_count: 0,
+      excerpt,
+      content: post.answer || excerpt,
+      image: imageSetting(themeRoot, post.hero?.src, post.hero?.alt || post.h1),
+    };
+  });
+  const journal = {
+    title: 'Journal',
+    handle: 'journal',
+    url: '/blog',
+    articles: journalArticles,
+    all_tags: [],
+  };
+  const BLOGS = { journal, fashion: journal };
+  const both = Object.values(PRODUCTS);
+  const COLLECTIONS = {
+    fashion: toShopifyCollection(
+      { handle: 'fashion', title: 'The collection', products: both },
+      { siteUrl },
+    ),
+    featured: toShopifyCollection(
+      { handle: 'featured', title: 'The set', products: both },
+      { siteUrl },
+    ),
+    hoodies: toShopifyCollection(
+      { handle: 'hoodies', title: 'Hoodies', products: [PRODUCTS['OT-HOOD']] },
+      { siteUrl },
+    ),
+    bottoms: toShopifyCollection(
+      { handle: 'bottoms', title: 'Bottoms', products: [PRODUCTS['OT-PANT']] },
+      { siteUrl },
+    ),
+  };
+  const PRODUCTS_BY_HANDLE = Object.fromEntries(
+    COLLECTIONS.fashion.products.map((product) => [product.handle, product]),
+  );
+  /**
+   * One card per colourway.
+   *
+   * The catalogue is two SKUs. A shop grid of those two shows a single back
+   * view of each and leaves the other colour off the page. The card image is
+   * that colourway's flat front (logo side); the next frame is the back, which
+   * is what the card fades to on hover. The handle and URL stay on the real
+   * product, and the variant ids stay on the real SKU so checkout still
+   * prices the piece the catalogue charges.
+   */
+  const shapeColourway = (product, colorway) => {
+    const slug = colorway.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const shaped = toShopifyProduct(
+      { ...product, images: colorway.images, colours: [colorway.name] },
+      { siteUrl },
+    );
+    shaped.handle = product.slug;
+    shaped.url = `/product/${product.slug}`;
+    shaped.id = `${product.sku}--${slug}`;
+    shaped.title = `${product.name.replace(/^OTRACE\s+/, '')} — ${colorway.name}`;
+    shaped.variants = shaped.variants.filter((variant) => variant.option1 === colorway.name);
+    shaped.first_available_variant = shaped.variants[0] ?? shaped.first_available_variant;
+    shaped.selected_or_first_available_variant = shaped.first_available_variant;
+    return { slug, shaped };
+  };
+  const colourwayCards = (products) => {
+    const cards = [];
+    for (const product of products) {
+      for (const colorway of product.colorways ?? []) {
+        if (!colorway?.images?.length) continue;
+        cards.push(shapeColourway(product, colorway).shaped);
+      }
+    }
+    return cards;
+  };
+  // Homepage "THE SET" looks these up by colourway handle.
+  for (const product of both) {
+    for (const colourName of product.colours ?? []) {
+      const colorway = (product.colorways ?? []).find((c) => c.name === colourName);
+      if (!colorway?.images?.length) continue;
+      const { slug, shaped } = shapeColourway(product, colorway);
+      PRODUCTS_BY_HANDLE[`${product.slug}--${slug}`] = shaped;
+    }
+  }
 
   const GLOBALS = {
     settings,
@@ -101,6 +215,9 @@ export function createThemeRenderer({
     request: REQUEST,
     cart: CART,
     linklists: LINKLISTS,
+    blogs: BLOGS,
+    collections: COLLECTIONS,
+    productsByHandle: PRODUCTS_BY_HANDLE,
     localization: { available_countries: [], available_languages: [] },
     powered_by_link: '',
   };
@@ -122,6 +239,9 @@ export function createThemeRenderer({
     request: REQUEST,
     cart: CART,
     linklists: LINKLISTS,
+    blogs: BLOGS,
+    collections: COLLECTIONS,
+    productsByHandle: PRODUCTS_BY_HANDLE,
     localization: { available_countries: [], available_languages: [] },
     canonical_url: siteUrl,
     powered_by_link: '',
@@ -141,8 +261,10 @@ export function createThemeRenderer({
         ...extra,
         section: {
           id: key,
-          settings: resolveLinkListSettings(schema, sec.settings ?? {}, LINKLISTS),
-          blocks: blockList(sec.blocks),
+          settings: resolveLinkListSettings(
+            schema, sec.settings ?? {}, LINKLISTS, themeRoot, BLOGS, PRODUCTS_BY_HANDLE,
+          ),
+          blocks: blockList(sec.blocks, sec.block_order),
         },
       };
       try {
@@ -216,9 +338,27 @@ export function createThemeRenderer({
     return wrap(content, { ...globals, page_title: extra.page_title ?? title }, globals);
   }
 
-  /** The shop listing. */
+  /** The shop listing. One card per colourway, front flat first. */
   async function renderCollection({ handle, title, description, products }) {
-    const collection = toShopifyCollection({ handle, title, description, products }, { siteUrl });
+    const shaped = colourwayCards(products);
+    const collection = {
+      id: handle,
+      handle,
+      title,
+      name: title,
+      description: description ?? '',
+      url: handle === 'all' ? '/shop' : `/shop/${handle}`,
+      products: shaped,
+      all_products_count: shaped.length,
+      products_count: shaped.length,
+      all_tags: [],
+      tags: [],
+      sort_by: null,
+      default_sort_by: 'manual',
+      featured_image: shaped[0]?.featured_image ?? null,
+      image: shaped[0]?.featured_image ?? null,
+      filters: [],
+    };
     return renderPage(
       'collection',
       { collection, title, page_title: `${title} — OTRACE` },

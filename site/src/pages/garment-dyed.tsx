@@ -41,10 +41,11 @@ export default function GarmentDyed() {
         <p className="text-cream-dim leading-relaxed mt-6">
           AW2026 uses it on two pieces, both 450 GSM cotton fleece: the{' '}
           <Link href="/product/oversized-hoodie" className="text-cream underline underline-offset-4">Oversized Hoodie</Link>
-          {' '}(148 USD) and the{' '}
+          {' '}(80 USD, was 100 USD) and the{' '}
           <Link href="/product/wide-leg-sweatpant" className="text-cream underline underline-offset-4">Wide-Leg Sweatpant</Link>
-          {' '}(128 USD), each in Onyx Black and Warm Cream. Both are in stock and ship
-          within 3–5 business days inside the United States, with free delivery.
+          {' '}(80 USD, was 100 USD), each in Onyx Black and Warm Cream. Together they are 140 USD, was 200 USD. Both are in stock. We ship
+          worldwide. Delivery is free in the United States, and in-stock orders leave
+          in 3–5 business days.
         </p>
 
         <section className="mt-14">

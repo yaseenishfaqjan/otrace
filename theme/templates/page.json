@@ -18,7 +18,7 @@
             "text": "{{ page_title }}",
             "line_height": "",
             "font_family": "hdt-font-1",
-            "text_size": "4xl",
+            "text_size": "2xl",
             "text_color": "hdt-s-text",
             "italic": false,
             "uppercase": false,
@@ -34,13 +34,13 @@
       ],
       "settings": {
         "use_dynamic_source": false,
-        "image": "shopify://shop_images/shop-category.jpg",
+        "image": "",
         "color_scheme": "scheme-77e4ef58-56a9-4631-876a-12098ba7d57d",
-        "bg_overlay": 57,
+        "bg_overlay": 0,
         "space_item": 0,
-        "padding_top": 50,
-        "padding_bottom": 50,
-        "padding_rate": 62
+        "padding_top": 12,
+        "padding_bottom": 0,
+        "padding_rate": 75
       }
     },
     "main": {
@@ -48,8 +48,8 @@
       "settings": {
         "full_width": false,
         "color_scheme": "",
-        "padding_top": 50,
-        "padding_bottom": 60,
+        "padding_top": 8,
+        "padding_bottom": 40,
         "padding_rate": 75
       }
     }

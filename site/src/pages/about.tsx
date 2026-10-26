@@ -68,7 +68,7 @@ export default function About() {
             ['Knit', '450 GSM loopback cotton fleece, brushed on the inside. Heavy enough to hang properly from the shoulder.'],
             ['Cut', 'Boxy body, dropped shoulder, long enough in the hem to sit where it should rather than ride up.'],
             ['Dye', 'Dyed after sewing. The seams take the colour differently, so no two pieces are identical.'],
-            ['Finish', 'Metal eyelets and drawcord tips, self-lined hood, internal branding tag. No plastic anywhere you can feel it.'],
+            ['Finish', 'White moulded plastic drawcord tips through metal eyelets, self-lined hood, internal branding tag.'],
           ].map(([title, body]) => (
             <div key={title} className="py-6 grid sm:grid-cols-[8rem_1fr] gap-2 sm:gap-8">
               <span className="eyebrow text-cream">{title}</span>

@@ -66,7 +66,7 @@ export default function Shop() {
             : 'Two pieces, two colorways, one fleece. Cut oversized and dyed after they are sewn.'}
         </p>
         <p className="text-cream text-sm mt-4 max-w-lg">
-          AW2026 is in stock. Free US delivery, and orders ship in 3&ndash;5 business days.
+          AW2026 is in stock. We ship worldwide. Delivery is free in the United States, and orders ship in 3&ndash;5 business days.
         </p>
 
         <nav aria-label="Categories" className="flex flex-wrap gap-2 mt-9">

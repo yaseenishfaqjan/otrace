@@ -12,10 +12,10 @@ There is no single public standard that grades 450 as a named class such as “u
 ## What this hoodie is made of
 
 The fabric is 450 GSM heavyweight fleece, 100% cotton, pre-shrunk, garment dyed. It is loopback fleece, brushed on the inside. The face is the knit you see. The brush is the soft side against the body.
-It is cut boxy, with a dropped shoulder, a self-lined double-layer hood, a split kangaroo pocket, and metal drawcord tips through metal eyelets. Ribbed cuffs and hem hold the edge. The OTRACE wordmark is embroidered at the chest. Wash it cold, inside out, and tumble dry low. High heat is what shrinks cotton hoodies, even when the cloth was pre-shrunk.
+It is cut boxy, with a dropped shoulder, a self-lined double-layer hood, a split kangaroo pocket, and white moulded plastic drawcord tips through metal eyelets. Ribbed cuffs and hem hold the edge. The OTRACE wordmark is embroidered at the chest. Wash it cold, inside out, and tumble dry low. High heat is what shrinks cotton hoodies, even when the cloth was pre-shrunk.
 
 ## The hoodie that uses it
 
-The [Oversized Hoodie](/product/oversized-hoodie) is sold in Onyx Black and Warm Cream. The catalogue price on 26 October 2026 is 148 USD. Read the product page for the current price and for stock. The page is the source of truth, not this note.
-AW2026 is in stock. Delivery is free inside the United States, and in-stock orders ship in 3–5 business days. International shipping is not available yet. The same fleece is used for the [Wide-Leg Sweatpant](/product/wide-leg-sweatpant).
+The [Oversized Hoodie](/product/oversized-hoodie) is sold in Onyx Black and Warm Cream. The price on 26 October 2026 is 80 USD, reduced from 100 USD. Read the product page for the current price and for stock. The page is the source of truth, not this note.
+AW2026 is in stock. We ship worldwide. Delivery is free inside the United States, and in-stock orders ship in 3–5 business days. The same fleece is used for the [Wide-Leg Sweatpant](/product/wide-leg-sweatpant).
 Fit and the garment-flat measurements are on the [size chart](/sizing). How the dye is done is on [what garment dyed means](/garment-dyed). Both hoodies are in the [hoodies shop](/shop/hoodies).

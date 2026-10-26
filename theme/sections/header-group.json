@@ -18,7 +18,7 @@
           "type": "announcement",
           "settings": {
             "link": "",
-            "text": "Free shipping on every order. <a href=\"/shop\" title=\"Shop AW2026\">Shop AW2026 [icon_arrow]</a>",
+            "text": "We ship worldwide. Free delivery in the United States. <a href=\"/shop\" title=\"Shop AW2026\">Shop AW2026 [icon_arrow]</a>",
             "adding_border": false,
             "countdown": "2025-12-30 15:00:00",
             "txt_day": "days"
@@ -28,7 +28,7 @@
           "type": "announcement",
           "settings": {
             "link": "",
-            "text": "Welcome to our store",
+            "text": "AW2026 is in stock. Each piece $80. The set is $140.",
             "adding_border": false,
             "countdown": "2024-12-30 15:00:00",
             "txt_day": "days"
@@ -253,7 +253,7 @@
         "lazy_mn_mb": true,
         "only_click_icon": false,
         "header_mobile_colors": "",
-        "note_mobile": "<span class=\"hdt-inline-flex\" style=\"margin-bottom: 10px\">Need help ? </span><span class=\"hdt-flex hdt-flex-col hdt-text-sm hdt-text-secondary\" style=\"line-height: 24px;\"><span>Email: <b class=\"hdt-font-medium\">info@fashionshop.com</b></span><span>Phone: <b class=\"hdt-font-medium\">(212) 555-1234</b></span></span>",
+        "note_mobile": "<span class=\"hdt-inline-flex\" style=\"margin-bottom: 10px\">Need help ? </span><span class=\"hdt-flex hdt-flex-col hdt-text-sm hdt-text-secondary\" style=\"line-height: 24px;\"><span>Email: <b class=\"hdt-font-medium\">info@otrace.co</b></span></span>",
         "header_transparent": false,
         "header_transparent_colors": "",
         "sticky_type": "on_scroll_up",
@@ -262,8 +262,6 @@
     }
   },
   "order": [
-    "announcement_bar_QKnWCh",
-    "top_bar_3qfcq8",
     "header_inline_xePFbC"
   ]
 }

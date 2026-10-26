@@ -21,8 +21,8 @@ const FRAMES = [
   {
     src: '/detail-drawcord.jpg',
     label: 'Drawcord',
-    alt: 'Metal drawcord tip through a metal eyelet on the OTRACE hoodie',
-    note: 'Metal tips through metal eyelets.',
+    alt: 'White moulded plastic drawcord tip through a metal eyelet on the OTRACE hoodie',
+    note: 'White moulded plastic tips through metal eyelets.',
   },
 ] as const;
 

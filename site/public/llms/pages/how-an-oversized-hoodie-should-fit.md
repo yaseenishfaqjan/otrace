@@ -18,4 +18,4 @@ The side seam falls straight. There is no waist shaping to pull the hem in. That
 
 Measurements are garment-flat centimetres. Chest is pit to pit. XS chest is 40 cm, which is 15.7 inches. The full table, including body length and shoulder, is on the [size chart](/sizing), with inches converted from those centimetres.
 Size L chest and size L body length are not published. On the factory sheet those cells were smaller than the size below them, so they are left blank rather than printed wrong. Do not invent a number for them.
-The hoodie is unisex, XS to 3XL. It is in stock, in Onyx Black and Warm Cream, with free delivery in the United States and dispatch in 3–5 business days. Price and stock stay on the [product page](/product/oversized-hoodie). The [hoodies shop](/shop/hoodies) lists the piece next to the sweatpant.
+The hoodie is unisex, XS to 3XL. It is in stock, in Onyx Black and Warm Cream. We ship worldwide, with free delivery in the United States and dispatch in 3–5 business days. Price and stock stay on the [product page](/product/oversized-hoodie). The [hoodies shop](/shop/hoodies) lists the piece next to the sweatpant.

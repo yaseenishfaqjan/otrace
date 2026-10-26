@@ -11,6 +11,20 @@
 const handleize = (s) =>
   String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
+/**
+ * Option values have to be string-like AND carry `.available`.
+ *
+ * A plain string has no `.available`, so the variant picker treats every size
+ * and colour as sold out and adds `is-unavailable` plus "Variant sold out".
+ * `new String` prints as the label and still holds the flag.
+ */
+function optionValue(label) {
+  const value = new String(label);
+  value.available = true;
+  value.variant = { available: true };
+  return value;
+}
+
 export function toShopifyProduct(p, { siteUrl = '' } = {}) {
   const colours = p.colours ?? ['Default'];
   const sizes = p.sizes ?? ['One Size'];
@@ -28,6 +42,9 @@ export function toShopifyProduct(p, { siteUrl = '' } = {}) {
         price: p.priceCents,
         compare_at_price: p.listPriceCents > p.priceCents ? p.listPriceCents : null,
         available: true,
+        inventory_management: null,
+        inventory_policy: 'continue',
+        quantity_rule: { min: 1, max: null, increment: 1 },
         sku: `${p.sku}-${size}`,
         featured_image: null,
         requires_shipping: true,
@@ -88,7 +105,7 @@ export function toShopifyProduct(p, { siteUrl = '' } = {}) {
     price_min: p.priceCents,
     price_max: p.priceCents,
     compare_at_price: p.listPriceCents > p.priceCents ? p.listPriceCents : null,
-    compare_at_price_min: p.listPriceCents ?? p.priceCents,
+    compare_at_price_min: p.listPriceCents > p.priceCents ? p.listPriceCents : null,
     available: true,
     tags: [],
     featured_image: images[0] ?? null,
@@ -100,8 +117,8 @@ export function toShopifyProduct(p, { siteUrl = '' } = {}) {
     featured_media: media[0] ?? null,
     options: ['Color', 'Size'],
     options_with_values: [
-      { name: 'Color', position: 1, values: colours },
-      { name: 'Size', position: 2, values: sizes },
+      { name: 'Color', position: 1, values: colours.map(optionValue) },
+      { name: 'Size', position: 2, values: sizes.map(optionValue) },
     ],
     variants,
     first_available_variant: variants[0],

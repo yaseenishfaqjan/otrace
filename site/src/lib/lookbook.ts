@@ -102,7 +102,7 @@ export const LOOKS: Look[] = [
   {
     n: 9,
     src: '/lookbook/look-09.jpg',
-    alt: 'Detail of hands in the kangaroo pocket of the Onyx Black hoodie, metal-tipped drawcords',
+    alt: 'Detail of hands in the kangaroo pocket of the Onyx Black hoodie, white moulded drawcord tips',
     pieces: [{ slug: HOODIE, color: 'Onyx Black' }],
   },
   {

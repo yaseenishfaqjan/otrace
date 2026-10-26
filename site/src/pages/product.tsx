@@ -346,7 +346,7 @@ export default function Product() {
 
           <ul className="mt-8 space-y-2">
             {[
-              'Free delivery on every order',
+              'We ship worldwide. Delivery is free in the United States.',
               product.preorder
                 ? `Ships in ${product.preorder.shipsIn}`
                 : `In stock · ships in ${IN_STOCK_SHIPS_IN}`,
@@ -383,13 +383,13 @@ export default function Product() {
             <Accordion title="Shipping &amp; returns">
               {product.preorder ? (
                 <p>
-                  This piece is made to order. Delivery is free and your order
-                  ships in {product.preorder.shipsIn}, with tracking emailed the
-                  moment it leaves us. Cancel any time before it ships for a full
-                  refund.
+                  This piece is made to order. We ship worldwide. Delivery is free in
+                  the United States, and your order ships in {product.preorder.shipsIn},
+                  with tracking emailed when it leaves. Cancel any time before it ships
+                  for a full refund.
                 </p>
               ) : (
-                <p>Free delivery on every order, shipped within {IN_STOCK_SHIPS_IN} with tracking.</p>
+                <p>We ship worldwide. Delivery is free in the United States, and in-stock orders ship within {IN_STOCK_SHIPS_IN} with tracking.</p>
               )}
               <p>
                 Unworn items with tags can be returned within 30 days. See{' '}

@@ -9,6 +9,7 @@
  */
 import {
   CURRENCY,
+  SHIP_COUNTRIES,
   SHIPPING,
   buildLineItems,
   packItems,
@@ -37,8 +38,11 @@ export async function createCheckoutSession(stripe, items, { siteUrl }) {
     success_url: `${siteUrl}/order/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${siteUrl}/cart`,
     billing_address_collection: 'required',
-    shipping_address_collection: { allowed_countries: ['US'] },
+    shipping_address_collection: { allowed_countries: SHIP_COUNTRIES },
     phone_number_collection: { enabled: true },
+    custom_text: {
+      shipping_address: { message: SHIPPING.note },
+    },
     shipping_options: [
       {
         shipping_rate_data: {

@@ -21,6 +21,9 @@
 .hdt-slide_inner .hdt-heading-block,
 .hdt-slide_inner .hdt-subheading-block,
 .hdt-slide_inner .hdt-text-warry,
+.hdt-banner__item .hdt-heading-block,
+.hdt-banner__item .hdt-subheading-block,
+.hdt-banner__item .hdt-text-warry,
 .hdt-banner-item .hdt-heading-block,
 .hdt-banner-item .hdt-subheading-block,
 .hdt-banner-item .hdt-text-warry {
@@ -29,10 +32,24 @@
 }
 
 /*
+ * The hoodies banner is the cream fleece. White type disappears on it.
+ * The copy sits on the left of the photograph, so the shadow is light.
+ */
+#banner_item_CCbabr .hdt-heading-block,
+#banner_item_CCbabr .hdt-subheading-block,
+#banner_item_CCbabr .hdt-text-warry,
+#banner_item_CCbabr .hdt-content,
+#banner_item_CCbabr .hdt-content p {
+  color: #161513;
+  text-shadow: 0 1px 18px rgba(255, 255, 255, 0.75), 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+/*
  * A scrim behind the copy, not across the whole image: the garment stays
  * readable and the type still has something to sit on.
  */
 .hdt-slide_inner .hdt-slide__content,
+.hdt-banner__item .hdt-content,
 .hdt-banner-item .hdt-banner__content {
   position: relative;
 }
@@ -59,6 +76,10 @@
 .hdt-slide_inner .hdt-text-warry,
 .hdt-slide_inner .hdt-heading-block,
 .hdt-slide_inner .hdt-subheading-block,
+.hdt-banner__item .hdt-content > *,
+.hdt-banner__item .hdt-text-warry,
+.hdt-banner__item .hdt-heading-block,
+.hdt-banner__item .hdt-subheading-block,
 .hdt-banner-item .hdt-content-inner > *,
 .hdt-banner-item .hdt-text-warry,
 .hdt-banner-item .hdt-heading-block,
@@ -93,15 +114,263 @@
 .hdt-size-chart thead th { font-weight: 600; }
 .hdt-size-chart tbody th { font-weight: 500; position: sticky; left: 0; background: inherit; }
 
-/* The lookbook: a simple two-up grid that collapses to one on a phone. */
+/* The lookbook: equal 3:4 cells so a short frame cannot open a white void.
+   Page copy sits in .hdt-rte, whose img rule is height:auto. The photo is
+   taken out of flow so that rule cannot stretch the cell. */
+.hdt-lookbook-lead {
+  margin: 0 0 0.75rem;
+}
 .hdt-lookbook-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 2rem 0;
+  gap: 0.75rem;
+  margin: 0 0 2rem;
 }
-.hdt-lookbook-grid figure { margin: 0; }
-.hdt-lookbook-grid img { display: block; width: 100%; height: auto; }
+.hdt-rte .hdt-lookbook-grid figure,
+.hdt-lookbook-grid figure {
+  margin: 0;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  min-height: 0;
+  position: relative;
+}
+.hdt-rte .hdt-lookbook-grid img,
+.hdt-lookbook-grid img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center 22%;
+  border-radius: 0;
+}
 @media (max-width: 749px) {
   .hdt-lookbook-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Shop has no filter, sort, or column switch. The wrapper still prints. */
+.hdt-shop-control { display: none; }
+
+/*
+ * Info pages. The heading section already sits tight above the body.
+ * These rules keep the story, the charts, and the form inside the column
+ * at 375px, and they keep a reduced-motion preference from running the
+ * dye diagram or the card hover.
+ */
+.hdt-dye,
+.hdt-size-page,
+.hdt-contact-page {
+  max-width: 72rem;
+  overflow-x: clip;
+}
+.hdt-dye-lead,
+.hdt-size-lead,
+.hdt-contact-lead {
+  margin: 0 0 1.25rem;
+  max-width: 40rem;
+  line-height: 1.55;
+}
+.hdt-dye-hero,
+.hdt-dye-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1.25rem 0 1.5rem;
+}
+.hdt-dye-details { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.hdt-rte .hdt-dye figure,
+.hdt-dye figure { margin: 0; min-width: 0; }
+.hdt-rte .hdt-dye img,
+.hdt-dye img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+.hdt-dye figcaption {
+  margin-top: 0.4rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+}
+.hdt-dye-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0.5rem 0 0.25rem;
+  padding: 0;
+}
+.hdt-dye-steps li {
+  border-top: 1px solid currentColor;
+  padding-top: 0.55rem;
+  font-size: 0.95rem;
+  animation: hdt-rise 0.7s ease both;
+}
+.hdt-dye-steps li:nth-child(2) { animation-delay: 0.1s; }
+.hdt-dye-steps li:nth-child(3) { animation-delay: 0.2s; }
+.hdt-dye-steps li:nth-child(4) { animation-delay: 0.3s; }
+.hdt-dye-steps span {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  margin-bottom: 0.25rem;
+}
+.hdt-dye-steps .is-last { font-weight: 600; }
+.hdt-dye-hero figure { animation: hdt-rise 0.8s ease both; }
+.hdt-dye-hero figure:nth-child(2) { animation-delay: 0.12s; }
+.hdt-dye-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 0.25rem 0 1.5rem;
+  overflow: visible;
+}
+.hdt-dye-svg line,
+.hdt-dye-svg circle { fill: none; stroke: currentColor; stroke-width: 1.25; }
+.hdt-dye-svg circle { fill: currentColor; }
+.hdt-dye-svg circle.is-last { fill: none; stroke-width: 1.5; }
+.hdt-dye-svg text {
+  fill: currentColor;
+  font-size: 13px;
+  text-anchor: middle;
+}
+.hdt-dye-line {
+  stroke-dasharray: 568;
+  stroke-dashoffset: 568;
+  animation: hdt-dye-draw 1.6s ease forwards;
+}
+@keyframes hdt-dye-draw { to { stroke-dashoffset: 0; } }
+@keyframes hdt-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.hdt-size-block {
+  display: grid;
+  grid-template-columns: 5.5rem minmax(0, 1fr);
+  column-gap: 1rem;
+  align-items: start;
+  margin: 1.75rem 0;
+}
+.hdt-fit-drawing {
+  grid-row: 1 / span 5;
+  width: 100%;
+  height: auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+}
+.hdt-size-block h2,
+.hdt-size-block > p,
+.hdt-size-block .hdt-size-scroll,
+.hdt-size-block .hdt-size-note { grid-column: 2; }
+.hdt-size-page .hdt-size-chart { white-space: normal; }
+.hdt-size-page .hdt-size-chart th,
+.hdt-size-page .hdt-size-chart td { vertical-align: top; }
+.hdt-size-cm,
+.hdt-size-in,
+.hdt-size-est { display: block; }
+.hdt-size-in,
+.hdt-size-est { font-size: 0.75rem; opacity: 0.7; }
+.hdt-size-chart tbody tr:hover th,
+.hdt-size-chart tbody tr:hover td {
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+.hdt-size-chart td.is-estimated {
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, currentColor 35%, transparent);
+}
+.hdt-size-note { font-size: 0.85rem; margin: 0.25rem 0 0; }
+
+.hdt-contact-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+}
+.hdt-contact-mail,
+.hdt-contact-wa,
+.hdt-contact-form button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: 0.45rem 1.1rem;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  text-decoration: none;
+}
+.hdt-contact-form {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 34rem;
+  margin: 0 0 2rem;
+}
+.hdt-contact-form label { display: grid; gap: 0.3rem; font-size: 0.85rem; }
+.hdt-contact-form input,
+.hdt-contact-form select,
+.hdt-contact-form textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
+  border-radius: 0;
+  padding: 0.65rem 0.75rem;
+}
+.hdt-contact-form button {
+  justify-self: start;
+  background: #161513;
+  color: #fff;
+  cursor: pointer;
+}
+.hdt-help {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 80;
+  width: min(16rem, calc(100vw - 2rem));
+  background: #fff;
+  color: #161513;
+  border: 1px solid #161513;
+  font-size: 0.9rem;
+}
+.hdt-help summary {
+  cursor: pointer;
+  padding: 0.55rem 0.85rem;
+}
+.hdt-help a { display: block; padding: 0.35rem 0.85rem; color: inherit; }
+
+@media (max-width: 749px) {
+  .hdt-dye-hero,
+  .hdt-dye-details,
+  .hdt-dye-steps { grid-template-columns: minmax(0, 1fr); }
+  .hdt-dye-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .hdt-size-block { grid-template-columns: minmax(0, 1fr); }
+  .hdt-fit-drawing { grid-row: auto; width: 4.5rem; margin-bottom: 0.5rem; }
+  .hdt-size-block h2,
+  .hdt-size-block > p,
+  .hdt-size-block .hdt-size-scroll,
+  .hdt-size-block .hdt-size-note { grid-column: 1; }
+  .hdt-help { bottom: 4.75rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hdt-dye-line,
+  .hdt-dye-steps li,
+  .hdt-dye-hero figure {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    stroke-dashoffset: 0;
+  }
+  .hdt-card-product__media--main,
+  .hdt-card-product__media--hover,
+  .hdt-sticky-atc {
+    transition: none !important;
+    animation: none !important;
+  }
 }

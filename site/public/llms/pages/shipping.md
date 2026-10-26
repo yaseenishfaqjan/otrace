@@ -2,9 +2,7 @@
 
 HTML: https://otrace.co/shipping
 
-AW2026 is in stock. Delivery is free on every order, and orders ship within 3–5 business days. Tracking is emailed when the parcel leaves.
-
-United States only for AW2026. International is planned for the next drop.
+AW2026 is in stock. OTRACE ships worldwide to the address entered at checkout, including the United Kingdom. Delivery is free inside the United States, and orders ship within 3–5 business days. Tracking is emailed when the parcel leaves. Checkout does not add an international carrier fee, because none is configured. Free delivery outside the United States is not a published policy.
 
 ## What is your return policy?
 

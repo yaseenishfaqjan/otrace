@@ -1,5 +1,5 @@
 {
-  "_comment": "Garment-flat measurements in centimetres, from the AW2026 spec sheet. site/src/lib/products.ts and the Kalles theme's sizing page BOTH read this file; neither restates it. A null is a measurement the factory has not confirmed and it must render as an em dash, never as a number: four rows in the spec sheet run backwards at L (chest 48->42, body length 68->66, inseam 77->73), which would make L smaller than M and drive returns. Publishing a guess there costs more than leaving the cell blank.",
+  "_comment": "Garment-flat measurements in centimetres, from the AW2026 spec sheet. site/src/lib/products.ts and the Kalles theme's sizing page BOTH read this file; neither restates the confirmed cells. A null stays null here: four rows in the spec sheet run backwards at L (chest 48->42, body length 68->66, inseam 77->73), which would make L smaller than M. The sizing page may estimate a single missing cell from the confirmed sizes on either side and must mark that cell estimated. It must not write the estimate back into this file, and it must leave the cell blank when a neighbor is also missing.",
   "units": "cm",
   "method": "garment-flat",
   "sizes": ["XS", "S", "M", "L", "XL", "2XL", "3XL"],

@@ -421,3 +421,133 @@ retrying by hand when it fails.
 capture stores to MySQL until then, nothing is lost); the WhatsApp number env;
 `VITE_INSTAGRAM` / `VITE_TIKTOK` (footer renders nothing without them);
 currency decision; turntable frames and `hoodie.glb` if ever wanted.
+
+## 2026-10-26 — Homepage chrome, honest catalogue, moulded tips
+
+Owner screenshots of live https://otrace.co, plus the earlier storefront
+leftovers. Work is on `cursor/storefront-cleanup-53e0` off `theme-kalles`.
+Not deployed. Live otrace.co still shows the old page until the steps below.
+
+**Pricing.** Catalogue prices are the hoodie at 14800 cents ($148) and the
+sweatpant at 12800 cents ($128). `listPriceCents` equals `priceCents`, so
+`compare_at_price` is null and the -20% badge does not render. One of each
+is $276, the sum. Checkout charges each SKU its own `priceCents`. The $80 /
+$100 list and the $140 set (commit 617bab2) are removed. `SET_TOTAL_CENTS`
+is that sum, not a discount. Hero files `hero-02-set.jpg` and
+`hero-03-fleece.jpg` stay on disk and are no longer slides.
+
+**Drawcords.** Factory photos: the tips are white moulded plastic. Eyelets
+were not re-verified, so copy still says metal eyelets. The about line “No
+plastic anywhere you can feel it” is removed. Wording is in `api/catalog.js`,
+`site/src/lib/products.ts`, the journal, the about/home/fabric notes, and
+the generated `seo/llms-full.txt` and product/blog mirrors.
+
+**Homepage (`theme/templates/index.json`, `theme/sections/header-group.json`).**
+Header group order is the main nav only. Announcement (“Welcome to our
+store”), the email/phone row, the Location link, and the $140 promo are out
+of the render order. Slideshow is slide 1 only (WORN LOOSE / look-01-wide),
+`dotUI` false, `loop` false, `autoplay` 0. The manual collection strip is
+out of the page order. Featured-collection padding is tightened and the
+grids use the real `fashion` and `featured` collections (two columns).
+HOODIES heading is enabled, left-aligned on `/lookbook/look-02.jpg`, copy
+“HOODIES / Both colourways / 450 GSM”, dark type because the fleece is
+cream. The stairwell frame (`look-08.jpg`) and the tunnel frame
+(`look-10-tall.jpg`) are out of the homepage lookbook carousel. Lookbook
+pins point at `oversized-hoodie` or `wide-leg-sweatpant` instead of Kalles
+demo handles. Journal posts replace the six “Your post's title” cards.
+
+**Why the theme was lying.** `content_for "block"` (double quotes) was
+parsed as `content_for 'blocks'`, so section blocks dumped into the first
+slot and left the white gap. Empty `product_list: []` is truthy in LiquidJS,
+so the collection branch never ran. Option values were plain strings, so
+every size got `is-unavailable` and “Variant sold out” even though
+`available` on the variant was true. Blog handle `fashion` was not a blog,
+so the carousel took the onboarding branch. Image settings were path strings
+with no aspect ratio, so banners fell back to 2:1 and cropped the hoodie.
+
+**Verified locally, not on the live host.** `node --test api/theme/theme.test.mjs`
+15/15. Rendered index and the hoodie product: no fashionshop, 555, Fashion
+Street, “Welcome to our store”, “Your post”, “Variant sold out”,
+`is-unavailable`, `$140`, or `look-08` / `look-10` on the homepage. Hoodie
+page shows $148.00, white moulded plastic tips, and Add to cart. Chrome
+headless screenshots of that render: hero under the nav only, one slide, no
+dots, THE COLLECTION in the first viewport, HOODIES text on the cream image
+(sampled pixels ~rgb(15,15,15) on the cream ground).
+
+**Deploy (no SSH from this run).** From the repo on the VPS, the API image
+build context is the repo root (`api/Dockerfile`), so `theme/` and
+`api/catalog.js` ship together. Rebuild and restart the `api` service in
+`deploy/docker-compose.yml`. Rebuild the site and write the new `dist` into
+the existing web bind mount (`deploy/web/dist` when compose is run from
+`deploy/`; on the host that mount is `/opt/otrace/web/dist` — write into the
+directory, do not replace it). `/`, `/shop`, `/product/`, and `/cart` are
+proxied to the theme by the external nginx snippet
+`deploy/nginx-theme-routes.conf`. This change does not edit nginx. `/blog`
+and `/llms.txt` stay on the static site. Then `sh deploy/after-deploy.sh`
+for IndexNow.
+
+## 2026-10-26 — Lower homepage: the set, the journal, the footer
+
+Same branch, still not deployed. Live otrace.co still shows the old page.
+
+**Removed.** The homepage Accessories carousel (Tech / Design, “Your post's title”, the Shopify “hasn't published any blog posts” line, CONTINUE READING) is gone. Nothing empty was left in its place.
+
+**Replaced.**
+- THE SET is four catalogue cards: Oversized Hoodie in Onyx Black and Warm Cream ($148 each), Wide-Leg Sweatpant in Onyx Black and Warm Cream ($128 each). Photos are the existing flat fronts (`hoodie-onyx-front`, `hoodie-cream-front`, `pant-onyx-front`, `pant-cream-front`). The subtitle names the two colourways and the catalogue price of each piece.
+- FROM THE STUDIO is the three live journal posts — 450 GSM hoodie meaning, Garment dyed vs piece dyed, Oversized hoodie fit — with their real images, dates, and excerpts, linking to `/blog/:slug`. The article card is passed into `{% render %}`, so the image keeps its ratio and the excerpt prints.
+- @OTRACE is the lookbook strip (looks 07, 06, 05, 04, 01, 03). The stairwell and tunnel frames stay off this carousel. Section padding above and below is 28–36px.
+- Footer Categories is Shop, Hoodies, Bottoms, Lookbook. Useful links is Blog, Garment dyed, Sizing, Contact. Information stays Shipping, Sizing, Contact, Privacy. The trust row is unchanged: free US delivery, ships in 3–5 days, 30 day returns, Stripe.
+
+**Verified locally.** `node --test api/theme/theme.test.mjs` 15/15. Rendered homepage has no “Your post”, ACCESSORIES, “hasn't published”, CONTINUE READING, $140, fashionshop, look-08, or look-10. Chrome screenshots at 1440 and 390 show the four colourway photos, the three journal cards, the lookbook frames, and a filled footer.
+
+## 2026-10-26 — Shop and lookbook
+
+Same branch, still not deployed. Live otrace.co still shows two back-view cards, the −20% badge, and the masonry lookbook until this is deployed.
+
+**Shop (`/shop`).** The listing is four colourway cards, in this order, using the flat files in `site/public/products/`:
+
+| Card | Primary | Hover |
+| --- | --- | --- |
+| Oversized Hoodie — Onyx Black | `hoodie-onyx-front.jpg` | `hoodie-onyx-back.jpg` |
+| Oversized Hoodie — Warm Cream | `hoodie-cream-front.jpg` | `hoodie-cream-back.jpg` |
+| Wide-Leg Sweatpant — Onyx Black | `pant-onyx-front.jpg` | `pant-onyx-back.jpg` |
+| Wide-Leg Sweatpant — Warm Cream | `pant-cream-front.jpg` | `pant-cream-back.jpg` |
+
+Prices are the catalogue: hoodie $148, sweatpant $128. `listPriceCents` equals `priceCents`, so there is no compare-at price and no −20% badge. Each card links to the real product (`/product/oversized-hoodie`, `/product/wide-leg-sweatpant`). The column switch, sort, and filter are off, and the empty toolbar is hidden. The AW2026 heading padding is 16px / 4px, and the collection list strip above it is out of the template order, so the four fronts sit under the nav. `/shop/hoodies` and `/shop/bottoms` use the same colourway cards, two each.
+
+**Lookbook (`/lookbook`).** The theme page (the one live otrace.co/lookbook already renders) keeps eight frames in a 3:4 crop, two across:
+
+1. `look-10-tall.jpg` — Onyx hoodie with the Warm Cream sweatpant
+2. `look-06.jpg` — Warm Cream hoodie with the Onyx sweatpant
+3. `look-01-tall.jpg` — Onyx set, corridor
+4. `look-02.jpg` — Warm Cream set, seated
+5. `look-04-tall.jpg` — both colourways
+6. `look-03.jpg` — Onyx set, hood up
+7. `look-09.jpg` — Onyx hoodie, logo
+8. `look-05.jpg` — Warm Cream hoodie, logo
+
+Dropped `look-08.jpg` (stairwell, mostly architecture) and `look-07-tall.jpg` (a second cream-seated frame). The heading is 2xl with 12px of padding. Header announcement, email row, and the $140 line stay out of the render order, same as the homepage. Footer Categories and Useful links are the same filled menus as the homepage.
+
+`deploy/nginx-theme-routes.conf` now documents `/lookbook` → `/api/theme-preview/page/lookbook`. Live already serves the theme lookbook; the snippet had still listed it as a React page. The file is not loaded automatically. Applying it means truncate-write `/opt/scalaro/nginx.conf`, `nginx -t`, then reload.
+
+**Verified locally.** Theme tests 15/15. Rendered `/shop` has the four fronts, hover backs, `$148.00` and `$128.00`, and no −20%, `$100`, `$80`, or layout switch. Rendered `/lookbook` has the eight frames above and neither look-07 nor look-08. Chrome at 1440 and 390: shop cards start under the nav; lookbook rows share one height (about 792px at 1440).
+
+## 2026-10-26 — Info pages and worldwide shipping
+
+Same branch, still not deployed. Live otrace.co still shows the promo bars, the garment-dyed sentence “each $80.00 (was $100.00)”, and the sizing page’s orphan chart headings until this is deployed.
+
+**Shipping.** Checkout now accepts a worldwide address list (United States, United Kingdom, EU, and the other countries in `SHIP_COUNTRIES`). The only Stripe rate on file is still $0, labeled “Free delivery — United States”. Hosted Checkout applies that one rate to every allowed country, so a non-US order also checks out at $0 until a real international tariff is configured. Copy says we ship worldwide and that free delivery is for United States addresses. It does not say free worldwide. JSON-LD `OfferShippingDetails` stays a $0 offer for `addressCountry: US`. `llms.txt` “What We Do Not Do” no longer says international shipping is unavailable.
+
+**Garment dyed.** Theme page uses the catalogue prices ($148 hoodie, $128 sweatpant), the onyx and cream hoodie fronts, and the three detail photos (`detail-fabric.jpg`, `detail-stitch.jpg`, `detail-drawcord.jpg`). A CSS/SVG diagram shows knit → cut → sew → dye. `prefers-reduced-motion` stops that animation.
+
+**Sizing.** One hoodie table (chest, body length, shoulder, sleeve/waist) and one sweatpant table (outseam, inseam, leg opening). Centimetres stay the source. Inches are centimetres ÷ 2.54, to 0.1. Three blank cells are estimated from the confirmed sizes on either side and marked est.: chest L 49 cm, body length L 69 cm, inseam M 76 cm. Those values are not written back into `shared/size-chart.json`. The orphan headings (Oversized hoodie size chart, Wide leg sweatpants size chart, Unisex hoodies size chart) are gone.
+
+**Contact.** The theme page posts JSON to `/api/contact` with name, email, subject, type (order, sizing, wholesale, other), and message. The email button is info@otrace.co. WhatsApp renders only when `WHATSAPP_NUMBER` (or the public/Vite aliases) is 8–15 digits. Crisp or Tawk loads only when its id env is set. A Help panel links to email, sizing, shipping, and garment dyed. It is not a chat agent.
+
+**Chrome.** Header announcement, phone, and location stay out of the render order. Footer Categories and Useful links are filled. Shopify demo social URLs (`facebook.com/shopify` and the rest) are blank, so the footer does not publish them. Page overflow measured 0 at 375px and 1440px on garment-dyed, sizing, and contact. Theme tests 15/15.
+
+**Still needs the owner before it can be turned on:** a GLB, turntable frames, `KLAVIYO_PRIVATE_API_KEY` and `KLAVIYO_LIST_ID`, a WhatsApp number, and Crisp or Tawk ids. None of those are invented here.
+
+## 2026-10-26 — Prices restored to the theme-kalles offer
+
+Each piece is $80, reduced from $100 (`listPriceCents` 10000, `priceCents` 8000 on both OT-HOOD and OT-PANT). One hoodie and one sweatpant together are $140, reduced from $200 (`SET_LIST_CENTS` 20000, `SET_TOTAL_CENTS` 14000, `SET_UNIT_CENTS` 7000). Matched units checkout at the set rate. Strike-through and the set line are that offer. The $148 / $128 / $276 catalogue-only figures from this branch are removed. Moulded drawcord tips, worldwide shipping, and the nav cleanup stay.

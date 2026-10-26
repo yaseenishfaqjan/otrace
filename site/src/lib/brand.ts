@@ -2,7 +2,7 @@
  * Who the shop is, off the page.
  *
  * A store with no address and no accounts reads as a test site — to customers
- * deciding whether to send $148, and to Stripe when they review the account.
+ * deciding whether to send $80, and to Stripe when they review the account.
  * These are set at build time so they can be filled in the moment the domain
  * and the social handles exist:
  *
