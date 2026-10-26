@@ -32,7 +32,12 @@ services:
     networks: [scalaro-net]
 
   api:
-    build: ./api
+    # Built from the repository ROOT so the image can carry shared/ and theme/
+    # beside api/. api/catalog.js reads ../shared/product-media.json at import
+    # time, so an api-only context stops the container booting at all.
+    build:
+      context: .
+      dockerfile: api/Dockerfile
     container_name: otrace-api
     restart: unless-stopped
     depends_on:

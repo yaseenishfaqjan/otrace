@@ -1,0 +1,20 @@
+# The API image builds from the repository root so it can carry shared/ and
+# theme/ alongside api/. Without this file that context is ~470MB of storefront
+# source, generated artwork and node_modules, none of which the API runs.
+.git
+**/node_modules
+
+# The storefront is built separately and served by the web container from a
+# bind mount; its source never belongs in the API image.
+site
+
+# Source artwork and every generated render. The shots the shop actually serves
+# live in site/public and are published with the storefront.
+assets
+
+# Local scratch and docs.
+seo
+docs
+*.md
+.claude
+.vscode
