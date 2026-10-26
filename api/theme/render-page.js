@@ -24,7 +24,7 @@ import {
   resolveLinkListSettings,
   wrapSection,
 } from './liquid-engine.js';
-import { toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
+import { resolveThemeProductSettings, toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
 import { PRODUCTS } from '../catalog.js';
 import { POSTS } from '../../site/src/content/posts.mjs';
 
@@ -207,6 +207,15 @@ export function createThemeRenderer({
       PRODUCTS_BY_HANDLE[`${product.slug}--${slug}`] = shaped;
     }
   }
+
+  // Demo handles in settings.products_suggest are not our catalogue. Resolve
+  // them here, after the colourway handles exist, or the search drawer prints
+  // a card per missing product at the theme's $19.99 placeholder price.
+  resolveThemeProductSettings(
+    settings,
+    readThemeJson(path.join(themeRoot, 'config', 'settings_schema.json')),
+    PRODUCTS_BY_HANDLE,
+  );
 
   const GLOBALS = {
     settings,

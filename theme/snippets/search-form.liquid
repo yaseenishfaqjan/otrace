@@ -122,7 +122,9 @@ endif
 												endcapture
 												if products_suggests != blank
 													for product in products_suggests limit: 5
-														render 'card-product1', card_product: product, class: "hdt-pr-style1", section_id: section.id, sizes: sizes, image_ratio: section.settings.image_ratio, color_list: color_list, size_list: size_list, product_url: product_url, btn_wishlist_code: btn_wishlist_code, show_vendor: settings.predictive_search_show_vendor, show_price: settings.predictive_search_show_price, tooltip_inner: true
+														if product.title != blank
+															render 'card-product1', card_product: product, class: "hdt-pr-style1", section_id: section.id, sizes: sizes, image_ratio: section.settings.image_ratio, color_list: color_list, size_list: size_list, product_url: product_url, btn_wishlist_code: btn_wishlist_code, show_vendor: settings.predictive_search_show_vendor, show_price: settings.predictive_search_show_price, tooltip_inner: true
+														endif
 													endfor
 												endif -%}
 										</div>
@@ -212,7 +214,9 @@ endif
 												{%- liquid
 													 if products_suggests != blank
 														for product in products_suggests limit: 5
-															render 'pr_loop_item', section_id: section.id, product: product, show_vendor: settings.predictive_search_show_vendor, sizes: "80px", widths: "80, 160, 240, 320"
+															if product.title != blank
+																render 'pr_loop_item', section_id: section.id, product: product, show_vendor: settings.predictive_search_show_vendor, sizes: "80px", widths: "80, 160, 240, 320"
+															endif
 														endfor
 													endif -%}
 											</div>
