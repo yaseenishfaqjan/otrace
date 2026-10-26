@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { money, type Product } from '@/lib/products';
+import { colorParam } from '@/lib/lookbook';
 import { SiteImage } from '@/components/site-image';
 import { imageSize } from '@/lib/image-size';
 
@@ -12,13 +13,23 @@ export function ProductCard({
   product,
   priority = false,
   heading: Heading = 'h3',
+  colorwayIndex = 0,
+  lockColorway = false,
 }: {
   product: Product;
   priority?: boolean;
   /** h2 where the grid sits directly under the page h1, so no level is skipped. */
   heading?: 'h2' | 'h3';
+  /** Which colourway this tile opens on. */
+  colorwayIndex?: number;
+  /**
+   * One tile per colourway. The dots are hidden, because a dot that turned the
+   * Warm Cream tile black would just duplicate the tile sitting beside it, and
+   * the link carries ?color= so the product page opens on the same colour.
+   */
+  lockColorway?: boolean;
 }) {
-  const [active, setActive] = useState(0);
+  const [active, setActive] = useState(colorwayIndex);
   const colorway = product.colorways[active];
   const photo = useRef<HTMLImageElement>(null);
 
@@ -27,13 +38,16 @@ export function ProductCard({
   // card up front would duplicate names (the same product can appear twice on
   // a page) and a duplicate name silently cancels the whole animation.
   const nameForTransition = () => {
-    photo.current?.style.setProperty('view-transition-name', `product-${product.slug}`);
+    photo.current?.style.setProperty(
+      'view-transition-name',
+      `product-${product.slug}${lockColorway ? `-${colorParam(colorway.name)}` : ''}`,
+    );
   };
 
   return (
     <div className="group">
       <Link
-        href={`/product/${product.slug}`}
+        href={`/product/${product.slug}${lockColorway ? `?color=${colorParam(colorway.name)}` : ''}`}
         onClick={nameForTransition}
         className="block relative overflow-hidden bg-charcoal/30 aspect-[4/5]"
       >
@@ -71,7 +85,7 @@ export function ProductCard({
 
       <div className="flex items-start justify-between gap-4 mt-4">
         <div className="min-w-0">
-          <Link href={`/product/${product.slug}`} onClick={nameForTransition} className="block">
+          <Link href={`/product/${product.slug}${lockColorway ? `?color=${colorParam(colorway.name)}` : ''}`} onClick={nameForTransition} className="block">
             <Heading className="text-cream text-sm md:text-base font-medium leading-tight">{product.name}</Heading>
           </Link>
           <p className="text-muted text-xs mt-1">
@@ -85,7 +99,7 @@ export function ProductCard({
       {/* 16px dots inside 26px buttons: padding grows the tap area and a matching
           negative margin keeps the layout. gap-3 keeps neighbouring areas apart.
           (A ::before hit area did not register in Chrome's hit testing.) */}
-      <div className="flex items-center gap-3 mt-3">
+      <div className={`items-center gap-3 mt-3 ${lockColorway ? 'hidden' : 'flex'}`}>
         {product.colorways.map((c, i) => (
           <button
             key={c.name}

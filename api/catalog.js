@@ -26,7 +26,7 @@ export const PRODUCTS = {
     description:
       'Boxy oversized hoodie in 450 GSM garment-dyed heavyweight fleece. Self-lined hood, split kangaroo pocket, metal drawcord tips.',
     priceCents: 14800,
-    image: '/products/hoodie-onyx-front.jpg',
+    image: '/products/hoodie-onyx-worn-front.jpg',
     sizes: SIZES,
     colours: COLORWAYS,
     preorder: false,
@@ -38,7 +38,7 @@ export const PRODUCTS = {
     description:
       'Wide-leg sweatpant in the same 450 GSM garment-dyed fleece. Drawcord waist with metal tips, ribbed ankle cuff.',
     priceCents: 12800,
-    image: '/products/pant-onyx-front.jpg',
+    image: '/products/pant-onyx-worn.jpg',
     sizes: SIZES,
     colours: COLORWAYS,
     preorder: false,

@@ -96,11 +96,26 @@ export default function Shop() {
 
       <div className="shell pb-24">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-14 md:gap-x-8">
-          {products.map((p, i) => (
-            <div key={p.slug} className="reveal" style={{ transitionDelay: `${i * 80}ms` }}>
-              <ProductCard product={p} priority={i === 0} heading="h2" />
-            </div>
-          ))}
+          {/* One tile per COLOURWAY, not per product. Two products in a
+              two-column grid left half the row empty and the Warm Cream
+              versions were reachable only by hovering a black tile, so a
+              shopper scanning the grid never saw them. */}
+          {products.flatMap((p) => p.colorways.map((c) => ({ product: p, colorway: c })))
+            .map(({ product, colorway }, i) => (
+              <div
+                key={`${product.slug}-${colorway.name}`}
+                className="reveal"
+                style={{ transitionDelay: `${i * 80}ms` }}
+              >
+                <ProductCard
+                  product={product}
+                  priority={i === 0}
+                  heading="h2"
+                  colorwayIndex={product.colorways.indexOf(colorway)}
+                  lockColorway
+                />
+              </div>
+            ))}
         </div>
       </div>
     </div>

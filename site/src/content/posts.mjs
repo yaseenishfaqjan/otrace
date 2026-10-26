@@ -49,7 +49,7 @@ export const POSTS = [
           'Fit and the garment-flat measurements are on the [size chart](/sizing). How the dye is done is on [what garment dyed means](/garment-dyed). Both hoodies are in the [hoodies shop](/shop/hoodies).',
         ],
         image: {
-          src: '/products/hoodie-onyx-front.jpg',
+          src: '/products/hoodie-onyx-worn-front.jpg',
           alt: 'OTRACE Oversized Hoodie in Onyx Black, flat lay front',
           caption: 'Oversized Hoodie, Onyx Black. The other colorway is Warm Cream.',
         },
@@ -87,7 +87,7 @@ export const POSTS = [
           'People also search “garment dyed hoodie” when they want to buy one. The product page is that page. This note does not replace it, and it does not set the price. The catalogue figure on 26 October 2026 is 148 USD for the hoodie and 128 USD for the sweatpant. Check the live pages before you quote either number. Both are in the [shop](/shop).',
         ],
         image: {
-          src: '/products/hoodie-cream-front.jpg',
+          src: '/products/hoodie-cream-worn-front.jpg',
           alt: 'OTRACE Oversized Hoodie in Warm Cream, flat lay front',
           caption: 'Warm Cream, garment dyed after sewing. Onyx Black is the other colorway.',
         },
@@ -136,7 +136,7 @@ export const POSTS = [
           'The side seam falls straight. There is no waist shaping to pull the hem in. That is the whole of the term here. It is not a cropped cut, and it is not a zip hoodie. The pocket is a split kangaroo, and the hood is self-lined and double layer.',
         ],
         image: {
-          src: '/products/hoodie-onyx-front.jpg',
+          src: '/products/hoodie-onyx-worn-front.jpg',
           alt: 'Flat lay of the OTRACE Oversized Hoodie in Onyx Black, showing the square body',
           caption: 'Laid flat, the body is square. The shoulder seam is dropped.',
         },

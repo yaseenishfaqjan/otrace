@@ -39,8 +39,8 @@ export function WeightCut() {
     };
   }, []);
 
-  const front = imageSize('/products/hoodie-onyx-front.jpg');
-  const back = imageSize('/products/hoodie-onyx-back.jpg');
+  const front = imageSize('/products/hoodie-onyx-worn-front.jpg');
+  const back = imageSize('/products/hoodie-onyx-worn-back.jpg');
 
   return (
     <section className="rule">
@@ -48,7 +48,7 @@ export function WeightCut() {
         <div ref={stage} className="weight-stage">
           <div className="weight-card">
             <SiteImage
-              src="/products/hoodie-onyx-back.jpg"
+              src="/products/hoodie-onyx-worn-back.jpg"
               alt=""
               width={back.width}
               height={back.height}
@@ -57,7 +57,7 @@ export function WeightCut() {
               className="w-full h-auto"
             />
             <SiteImage
-              src="/products/hoodie-onyx-front.jpg"
+              src="/products/hoodie-onyx-worn-front.jpg"
               alt="Onyx Black oversized hoodie, front and back, set apart so the boxy block reads"
               width={front.width}
               height={front.height}

@@ -118,20 +118,16 @@ export const PRODUCTS: Product[] = [
         name: 'Onyx Black',
         hex: '#0D0C0B',
         images: [
-          { src: '/products/hoodie-onyx-front.jpg', label: 'Front', alt: 'OTRACE oversized hoodie in Onyx Black, flat lay front' },
-          { src: '/products/hoodie-onyx-back.jpg', label: 'Back', alt: 'OTRACE oversized hoodie in Onyx Black, flat lay back' },
-          { src: '/products/hoodie-onyx-worn-front.jpg', label: 'Worn', alt: 'Model wearing the OTRACE oversized hoodie in Onyx Black' },
-          { src: '/products/hoodie-onyx-worn-back.jpg', label: 'Worn back', alt: 'Model wearing the OTRACE oversized hoodie in Onyx Black, from behind' },
+          { src: '/products/hoodie-onyx-worn-front.jpg', label: 'Front', alt: 'Model wearing the OTRACE oversized hoodie in Onyx Black' },
+          { src: '/products/hoodie-onyx-worn-back.jpg', label: 'Back', alt: 'Model wearing the OTRACE oversized hoodie in Onyx Black, from behind' },
         ],
       },
       {
         name: 'Warm Cream',
         hex: '#F0EBE0',
         images: [
-          { src: '/products/hoodie-cream-front.jpg', label: 'Front', alt: 'OTRACE oversized hoodie in Warm Cream, flat lay front' },
-          { src: '/products/hoodie-cream-back.jpg', label: 'Back', alt: 'OTRACE oversized hoodie in Warm Cream, flat lay back' },
-          { src: '/products/hoodie-cream-worn-front.jpg', label: 'Worn', alt: 'Model wearing the OTRACE oversized hoodie in Warm Cream' },
-          { src: '/products/hoodie-cream-worn-back.jpg', label: 'Worn back', alt: 'Model wearing the OTRACE oversized hoodie in Warm Cream, from behind' },
+          { src: '/products/hoodie-cream-worn-front.jpg', label: 'Front', alt: 'Model wearing the OTRACE oversized hoodie in Warm Cream' },
+          { src: '/products/hoodie-cream-worn-back.jpg', label: 'Back', alt: 'Model wearing the OTRACE oversized hoodie in Warm Cream, from behind' },
         ],
       },
     ],
@@ -162,16 +158,14 @@ export const PRODUCTS: Product[] = [
         name: 'Onyx Black',
         hex: '#0D0C0B',
         images: [
-          { src: '/products/pant-onyx-front.jpg', label: 'Front', alt: 'OTRACE wide-leg sweatpant in Onyx Black, flat lay' },
-          { src: '/products/pant-onyx-worn.jpg', label: 'Worn', alt: 'Model wearing the OTRACE wide-leg sweatpant in Onyx Black' },
+          { src: '/products/pant-onyx-worn.jpg', label: 'Front', alt: 'Model wearing the OTRACE wide-leg sweatpant in Onyx Black' },
         ],
       },
       {
         name: 'Warm Cream',
         hex: '#F0EBE0',
         images: [
-          { src: '/products/pant-cream-front.jpg', label: 'Front', alt: 'OTRACE wide-leg sweatpant in Warm Cream, flat lay' },
-          { src: '/products/pant-cream-worn.jpg', label: 'Worn', alt: 'Model wearing the OTRACE wide-leg sweatpant in Warm Cream' },
+          { src: '/products/pant-cream-worn.jpg', label: 'Front', alt: 'Model wearing the OTRACE wide-leg sweatpant in Warm Cream' },
         ],
       },
     ],
