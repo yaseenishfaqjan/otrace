@@ -11,7 +11,9 @@
  * whole shop. The log names the section, which is how the remaining gaps get
  * found.
  */
-import path from 'node:path';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   createEngine,
   readSchema,
@@ -234,7 +236,23 @@ export function createThemeRenderer({
    * which silently kills the gallery, the cart drawer and the sticky header
    * while the HTML and CSS look perfectly fine.
    */
+  /**
+   * Our own stylesheet, read once at boot.
+   *
+   * It goes through content_for_header because that is the one hook we own -
+   * forking a vendor liquid file to add a <link> would have to be re-applied
+   * on every theme update.
+   */
+  const OVERRIDE_CSS = (() => {
+    try {
+      return fs.readFileSync(fileURLToPath(new URL('./otrace-overrides.css', import.meta.url)), 'utf8');
+    } catch {
+      return '';
+    }
+  })();
+
   const contentForHeader = () =>
+    (OVERRIDE_CSS ? `<style data-otrace>${OVERRIDE_CSS}</style>` : '') +
     '<script>window.Shopify = window.Shopify || ' +
     JSON.stringify({
       shop: 'otrace.co',

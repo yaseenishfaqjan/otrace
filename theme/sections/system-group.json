@@ -52,7 +52,7 @@
           "type": "img_trust",
           "settings": {
             "wimg": 350,
-            "svg": "visa,paypal,master,american_express,amazon",
+            "svg": "visa,master,american_express,discover,diners_club,jcb",
             "height": 25
           }
         }
@@ -70,9 +70,9 @@
         "color_scheme": "scheme-1",
         "show_free_shipping_bar": true,
         "show_cart_note": true,
-        "show_gift_wrap": true,
-        "show_shipping_estimator": true,
-        "show_cart_discount": true,
+        "show_gift_wrap": false,
+        "show_shipping_estimator": false,
+        "show_cart_discount": false,
         "discount_error_message": "Enter a valid discount code",
         "heading": "Customers also bought",
         "product_list": [
@@ -401,8 +401,6 @@
   },
   "order": [
     "cart-drawer",
-    "toolbar-mobile",
-    "exit_popup_MNrmxJ",
-    "newsletter_modal_FCRPEW"
+    "toolbar-mobile"
   ]
 }

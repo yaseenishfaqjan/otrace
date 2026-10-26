@@ -91,7 +91,7 @@
     "empty_cart_link": "/shop",
     "free_ship_pr": "white-cream-sleeve",
     "gift_wrap_pr": "gift-wrap",
-    "animations_reveal_on_scroll": true,
+    "animations_reveal_on_scroll": false,
     "social_facebook_link": "https://facebook.com/shopify",
     "social_x_link": "https://x.com/shopify",
     "social_instagram_link": "http://instagram.com/shopify",

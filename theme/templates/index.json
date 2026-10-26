@@ -1,12 +1,3 @@
-/*
- * ------------------------------------------------------------
- * IMPORTANT: The contents of this file are auto-generated.
- *
- * This file may be updated by the Shopify admin theme editor
- * or related systems. Please exercise caution as any changes
- * made to this file may be overwritten.
- * ------------------------------------------------------------
- */
 {
   "sections": {
     "slideshow_EVrUzi": {
@@ -18,7 +9,7 @@
             "image": "/lookbook/look-01-wide.jpg",
             "url": "",
             "banner_target": false,
-            "color_scheme": "scheme-1",
+            "color_scheme": "scheme-77e4ef58-56a9-4631-876a-12098ba7d57d",
             "content_position": "center-start",
             "alignment": "left",
             "content_position_mb": "center-start",
@@ -33,14 +24,15 @@
             "border_pd_dk": 0,
             "padding_vertical": 30,
             "padding_horizontal": 30,
-            "min_width_content": 350,
-            "border_pd": 0
+            "min_width_content": 560,
+            "border_pd": 0,
+            "colors_by_block": true
           },
           "blocks": {
             "text_YrQhtV": {
               "type": "text",
               "settings": {
-                "text": "<p>AW2026</p>",
+                "text": "<p>AUTUMN / WINTER 2026</p>",
                 "hidden_br_mobile": false,
                 "hidden_on_mobile": false,
                 "ffamily": "",
@@ -69,7 +61,7 @@
             "heading_MzV9Ty": {
               "type": "heading",
               "settings": {
-                "heading": "<h2>Heavyweight, garment dyed</h2>",
+                "heading": "<h2>WORN LOOSE</h2>",
                 "hidden_br_mobile": false,
                 "hidden_on_mobile": false,
                 "line_height": "hdt-lh-1",
@@ -128,7 +120,7 @@
             "image": "/lookbook/look-06.jpg",
             "url": "",
             "banner_target": false,
-            "color_scheme": "",
+            "color_scheme": "scheme-77e4ef58-56a9-4631-876a-12098ba7d57d",
             "content_position": "center-end",
             "alignment": "right",
             "content_position_mb": "center-end",
@@ -143,8 +135,9 @@
             "border_pd_dk": 0,
             "padding_vertical": 30,
             "padding_horizontal": 30,
-            "min_width_content": 350,
-            "border_pd": 0
+            "min_width_content": 560,
+            "border_pd": 0,
+            "colors_by_block": true
           },
           "blocks": {
             "text_dp3CAh": {
@@ -179,7 +172,7 @@
             "heading_MzV9T1": {
               "type": "heading",
               "settings": {
-                "heading": "<h2>Hoodie and sweatpant, $140</h2>",
+                "heading": "<h2>$140 TOGETHER</h2>",
                 "hidden_br_mobile": false,
                 "hidden_on_mobile": false,
                 "line_height": "hdt-lh-1",
@@ -238,7 +231,7 @@
             "image": "/lookbook/look-09.jpg",
             "url": "",
             "banner_target": false,
-            "color_scheme": "",
+            "color_scheme": "scheme-77e4ef58-56a9-4631-876a-12098ba7d57d",
             "content_position": "center-start",
             "alignment": "left",
             "content_position_mb": "center-start",
@@ -253,8 +246,9 @@
             "border_pd_dk": 0,
             "padding_vertical": 30,
             "padding_horizontal": 30,
-            "min_width_content": 350,
-            "border_pd": 0
+            "min_width_content": 560,
+            "border_pd": 0,
+            "colors_by_block": true
           },
           "blocks": {
             "text_jQgCTT": {
@@ -289,7 +283,7 @@
             "heading_MzV9T2": {
               "type": "heading",
               "settings": {
-                "heading": "<h2>Built to outlast the season</h2>",
+                "heading": "<h2>GARMENT DYED</h2>",
                 "hidden_br_mobile": false,
                 "hidden_on_mobile": false,
                 "line_height": "hdt-lh-1",
@@ -594,39 +588,23 @@
             "banner_target": false,
             "img_effect": "rotate",
             "b_effect": "none",
-            "colors_by_block": false,
-            "color_scheme": "scheme-1",
+            "colors_by_block": true,
+            "color_scheme": "scheme-77e4ef58-56a9-4631-876a-12098ba7d57d",
             "gap_r": 20,
             "gap_c": 20,
-            "content_position": "center",
-            "alignment": "center",
+            "content_position": "end-start",
+            "alignment": "left",
             "gap_r_mb": 20,
             "gap_c_mb": 20,
             "content_position_mb": "center",
             "alignment_mb": "center"
           },
           "blocks": {
-            "liquid_HiCy9a": {
-              "type": "_liquid",
-              "settings": {
-                "text": "LOOKBOOK {{ 'now' | date: \"%Y\"}}",
-                "hidden_br_mobile": false,
-                "hidden_on_mobile": false,
-                "ffamily": "",
-                "text_size": "custom",
-                "font_weight": "medium",
-                "text_color": "hdt-s-text",
-                "font_size_text_lg": 24,
-                "font_size_text": 24,
-                "letter_spacing_text": 0
-              },
-              "blocks": {}
-            },
             "heading_m74R6Q": {
               "type": "heading",
               "disabled": true,
               "settings": {
-                "heading": "<p>LOOKBOOK AW2026</p>",
+                "heading": "<p>HOODIES</p>",
                 "hidden_br_mobile": false,
                 "hidden_on_mobile": false,
                 "line_height": "",
@@ -653,7 +631,7 @@
             "text_hrzh66": {
               "type": "text",
               "settings": {
-                "text": "<p>WORN TOGETHER</p>",
+                "text": "<p>Both colourways, 450 GSM</p>",
                 "hidden_br_mobile": false,
                 "hidden_on_mobile": false,
                 "ffamily": "",
@@ -681,7 +659,6 @@
             }
           },
           "block_order": [
-            "liquid_HiCy9a",
             "heading_m74R6Q",
             "spacer_tEh8TW",
             "text_hrzh66"
@@ -694,12 +671,12 @@
             "banner_target": false,
             "img_effect": "translateToTop",
             "b_effect": "none",
-            "colors_by_block": false,
-            "color_scheme": "scheme-1",
+            "colors_by_block": true,
+            "color_scheme": "scheme-77e4ef58-56a9-4631-876a-12098ba7d57d",
             "gap_r": 20,
             "gap_c": 20,
-            "content_position": "center",
-            "alignment": "center",
+            "content_position": "end-start",
+            "alignment": "left",
             "gap_r_mb": 20,
             "gap_c_mb": 20,
             "content_position_mb": "center",
@@ -709,7 +686,7 @@
             "text_qct3Q9": {
               "type": "text",
               "settings": {
-                "text": "<p>450 GSM</p>",
+                "text": "<p>Wide leg, ribbed cuff</p>",
                 "hidden_br_mobile": false,
                 "hidden_on_mobile": false,
                 "ffamily": "",
@@ -738,7 +715,7 @@
             "heading_yDKf6F": {
               "type": "heading",
               "settings": {
-                "heading": "<p>UP TO 70%</p>",
+                "heading": "<p>BOTTOMS</p>",
                 "hidden_br_mobile": false,
                 "hidden_on_mobile": false,
                 "line_height": "hdt-lh-1",

@@ -235,7 +235,7 @@
             "text_Mh6Yzg": {
               "type": "text",
               "settings": {
-                "text": "<p>Subscribe to our newsletter and get 10% off your first purchase</p>",
+                "text": "<p>New drops and restocks, straight to your inbox.</p>",
                 "hidden_br_mobile": false,
                 "hidden_on_mobile": false,
                 "ffamily": "",
@@ -351,7 +351,7 @@
             "custom_liquid_7gTHbP": {
               "type": "_liquid",
               "settings": {
-                "text": "<span class=\"hdt-text-secondary\">All Rights Reserved © 2025 <a href=\"https://1.envato.market/Eamba9\" class=\"hdt-text-primary\" aria-describedby=\"a11y-external-message\">Kalles</a> - Developed by <a class=\"t4s-secondary\" href=\"https://the4.co/?utm_source=Kalles-Demo&amp;utm_medium=Copyright\" aria-describedby=\"a11y-external-message\" style=\"color: rgb(var(--color-foreground))\"> The4 </a></span>",
+                "text": "<span class=\"hdt-text-secondary\">© {{ 'now' | date: \"%Y\" }} OTRACE. All rights reserved.</span>",
                 "hidden_br_mobile": false,
                 "hidden_on_mobile": false,
                 "ffamily": "",

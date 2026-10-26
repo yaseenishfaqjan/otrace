@@ -1,0 +1,68 @@
+/*
+ * OTRACE overrides on top of the Kalles theme.
+ *
+ * This is injected into <head> through content_for_header, which is the one
+ * hook we own. Forking a vendor liquid file to add a stylesheet would mean
+ * re-applying the change on every theme update; this survives it.
+ *
+ * Keep rules here specific and few. Anything general belongs in the theme's
+ * own settings, where the theme editor can still reach it.
+ */
+
+/*
+ * Hero and banner copy sits ON the photography.
+ *
+ * The theme resolves type colour from a colour scheme, and every scheme
+ * available here is dark type on a light card - so the headline rendered
+ * #222222 over a dark concrete corridor and was invisible. These two sections
+ * always carry copy over an image, so the type is light and carries a soft
+ * shadow to hold up over the bright parts of a shot as well as the dark.
+ */
+.hdt-slide_inner .hdt-heading-block,
+.hdt-slide_inner .hdt-subheading-block,
+.hdt-slide_inner .hdt-text-warry,
+.hdt-banner-item .hdt-heading-block,
+.hdt-banner-item .hdt-subheading-block,
+.hdt-banner-item .hdt-text-warry {
+  color: #ffffff;
+  text-shadow: 0 1px 24px rgba(0, 0, 0, 0.55), 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/*
+ * A scrim behind the copy, not across the whole image: the garment stays
+ * readable and the type still has something to sit on.
+ */
+.hdt-slide_inner .hdt-slide__content,
+.hdt-banner-item .hdt-banner__content {
+  position: relative;
+}
+
+/* The eyebrow line above each headline. */
+.hdt-slide_inner .hdt-text-warry {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/*
+ * The slide-in that never lands.
+ *
+ * global.min.js writes `opacity: 0; transform: translateY(25px)` INLINE onto
+ * every slide and banner content block, meaning to clear it when the slide
+ * becomes active. Off Shopify that activation does not run, so the hero and
+ * banner copy stays permanently invisible - the headline is in the DOM, the
+ * right colour, in the right place, and simply never painted.
+ *
+ * The animation is decorative; the copy is not. !important is needed because
+ * the rule it beats is an inline style.
+ */
+.hdt-slide_inner .hdt-content-inner > *,
+.hdt-slide_inner .hdt-text-warry,
+.hdt-slide_inner .hdt-heading-block,
+.hdt-slide_inner .hdt-subheading-block,
+.hdt-banner-item .hdt-content-inner > *,
+.hdt-banner-item .hdt-text-warry,
+.hdt-banner-item .hdt-heading-block,
+.hdt-banner-item .hdt-subheading-block {
+  opacity: 1 !important;
+  transform: none !important;
+}
