@@ -9,6 +9,7 @@ import { imageSize } from '@/lib/image-size';
 import { SplitHeadline } from '@/components/split-headline';
 import { WeightCut } from '@/components/weight-cut';
 import { QualityStrip } from '@/components/quality-strip';
+import { WeightScale } from '@/components/weight-scale';
 
 import { usePageMeta } from '@/lib/use-page-meta';
 import { organizationLd, websiteLd } from '@/lib/structured-data';
@@ -167,6 +168,7 @@ export default function Home() {
             <br />
             on purpose
           </h2>
+          <WeightScale />
         </div>
 
         <div className="grid gap-10 md:grid-cols-3 md:gap-8">

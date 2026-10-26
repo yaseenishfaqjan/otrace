@@ -510,6 +510,18 @@ html.snap-looks .look {
 .quality-draw svg {
   height: auto;
 }
+.gsm-bar {
+  transform-origin: left center;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .gsm-bar {
+    animation: gsm-grow 700ms ease both;
+  }
+}
+@keyframes gsm-grow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
 .weight-card {
   position: relative;
   transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));

@@ -95,6 +95,7 @@ export default function Product() {
   const [needsSize, setNeedsSize] = useState(false);
   const [pastAdd, setPastAdd] = useState(false);
   const [engaged, setEngaged] = useState(false);
+  const [asSet, setAsSet] = useState(false);
   const [addedFlash, setAddedFlash] = useState(false);
   const addButtonRef = useRef<HTMLButtonElement>(null);
   const galleryRef = useRef<HTMLDivElement>(null);
@@ -110,6 +111,7 @@ export default function Product() {
     setNeedsSize(false);
     setPastAdd(false);
     setEngaged(false);
+    setAsSet(false);
     setAddedFlash(false);
   }, [params?.slug]);
 
@@ -154,22 +156,41 @@ export default function Product() {
 
   const colorway = product.colorways[colorIndex];
   const gallery = colorway.images;
+  const partner = PRODUCTS.find((item) => item.slug !== product.slug);
+  const setPrice = partner ? product.price + partner.price : product.price;
+  const singleLabel = `${product.preorder ? 'Pre-order' : 'Add to cart'} — ${money(product.price)}`;
+  const buyLabel = addedFlash ? 'Added' : asSet && partner ? `Add the set — ${money(setPrice)}` : singleLabel;
 
   const add = () => {
     if (!size) {
       setNeedsSize(true);
       return;
     }
+    const line = {
+      size,
+      quantity: 1,
+      shipsIn: product.preorder?.shipsIn,
+    };
     addItem({
+      ...line,
       sku: product.sku,
       name: product.name,
       price: product.price,
-      size,
       colour: colorway.name,
-      quantity: 1,
       image: gallery[0].src,
-      shipsIn: product.preorder?.shipsIn,
     });
+    if (asSet && partner) {
+      const match = partner.colorways.find((c) => c.name === colorway.name) ?? partner.colorways[0];
+      addItem({
+        ...line,
+        sku: partner.sku,
+        name: partner.name,
+        price: partner.price,
+        colour: match.name,
+        image: match.images[0].src,
+        shipsIn: partner.preorder?.shipsIn,
+      });
+    }
     setAddedFlash(true);
     window.clearTimeout(addedTimer.current);
     addedTimer.current = window.setTimeout(() => setAddedFlash(false), 1400);
@@ -196,6 +217,7 @@ export default function Product() {
             resetKey={`${product.slug}-${colorway.name}`}
             transitionName={`product-${product.slug}`}
             onEngage={() => setEngaged(true)}
+            turntable={{ slug: product.slug, colour: colorway.name }}
           />
         </div>
 
@@ -284,10 +306,24 @@ export default function Product() {
             />
           </div>
 
+          {partner && (
+            <button
+              type="button"
+              aria-pressed={asSet}
+              onClick={() => setAsSet((current) => !current)}
+              className={`mt-8 w-full border px-4 py-3 text-left ${asSet ? 'border-cream' : 'border-line'}`}
+            >
+              <span className="eyebrow text-cream">{asSet ? 'Set selected' : 'Buy both pieces'}</span>
+              <span className="block text-cream-dim text-sm mt-2 leading-relaxed">
+                {product.name} {money(product.price)} and {partner.name} {money(partner.price)}. Together {money(setPrice)}, full price, same colour and the same size.
+              </span>
+            </button>
+          )}
+
           {/* Desktop action. On mobile the same action is pinned to the bottom
               of the screen so it is reachable without scrolling back up. */}
           <button ref={addButtonRef} onClick={add} className="btn w-full mt-9 hidden sm:flex">
-            {addedFlash ? 'Added' : `${product.preorder ? 'Pre-order' : 'Add to cart'} — ${money(product.price)}`}
+            {buyLabel}
           </button>
 
           <ul className="mt-8 space-y-2">
@@ -356,7 +392,7 @@ export default function Product() {
       {/* ---------------------------------------------------- mobile buy bar */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-onyx/95 backdrop-blur-xl border-t border-line px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <button onClick={add} className="btn w-full">
-          {addedFlash ? 'Added' : `${product.preorder ? 'Pre-order' : 'Add to cart'} — ${money(product.price)}`}
+          {buyLabel}
         </button>
       </div>
 
@@ -372,7 +408,7 @@ export default function Product() {
               </p>
             </div>
             <button onClick={add} className="btn shrink-0">
-              {addedFlash ? 'Added' : product.preorder ? 'Pre-order' : 'Add to cart'}
+              {buyLabel}
             </button>
           </div>
         </div>

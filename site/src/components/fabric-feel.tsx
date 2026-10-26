@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { SiteImage } from '@/components/site-image';
 import { imageSize } from '@/lib/image-size';
 import { useReducedMotion } from '@/lib/reduced-motion';
+import { WeightScale } from '@/components/weight-scale';
 
 const FRAMES = [
   {
@@ -31,10 +32,42 @@ const FRAMES = [
  */
 export function FabricFeel() {
   const reduced = useReducedMotion();
+  const section = useRef<HTMLElement>(null);
+  const driven = useRef(false);
   const [index, setIndex] = useState(0);
   const [shift, setShift] = useState(50);
+  const [scale, setScale] = useState(1);
   const origin = useRef<{ x: number; index: number; id: number } | null>(null);
   const frame = FRAMES[index];
+
+  // Scroll moves across the three photographs while this section crosses the
+  // screen. It does not take over the page scroll. A drag or the range wins.
+  useEffect(() => {
+    if (reduced) return;
+    let frameId = 0;
+    const read = () => {
+      frameId = 0;
+      const el = section.current;
+      if (!el || driven.current) return;
+      const rect = el.getBoundingClientRect();
+      const progress = (window.innerHeight - rect.top) / (window.innerHeight + rect.height);
+      const p = Math.min(1, Math.max(0, progress));
+      setIndex(Math.round(p * (FRAMES.length - 1)));
+      setShift(28 + p * 44);
+      setScale(1.06 - p * 0.06);
+    };
+    const onScroll = () => {
+      if (!frameId) frameId = requestAnimationFrame(read);
+    };
+    read();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frameId) cancelAnimationFrame(frameId);
+    };
+  }, [reduced]);
 
   const stepTo = (clientX: number, width: number, startIndex: number) => {
     const span = FRAMES.length - 1;
@@ -44,7 +77,7 @@ export function FabricFeel() {
   };
 
   return (
-    <section className="shell py-16 md:py-24 border-t border-line">
+    <section ref={section} className="shell py-16 md:py-24 border-t border-line">
       <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-end">
         <div className="min-w-0">
           <p className="eyebrow text-muted mb-4">Fabric</p>
@@ -59,12 +92,14 @@ export function FabricFeel() {
             {' · '}
             <Link href="/garment-dyed" className="text-cream underline underline-offset-4">Why it is garment dyed</Link>
           </p>
+          <WeightScale />
         </div>
 
         <div className="min-w-0">
           <div
             className="relative aspect-[4/3] overflow-hidden bg-charcoal/30"
             onPointerDown={(e) => {
+              driven.current = true;
               if (e.pointerType === 'mouse') {
                 origin.current = { x: e.clientX, index, id: e.pointerId };
                 e.currentTarget.setPointerCapture(e.pointerId);
@@ -95,7 +130,7 @@ export function FabricFeel() {
               draggable={false}
               pictureClassName="absolute inset-0 block"
               className="w-full h-full object-cover"
-              style={reduced ? undefined : { objectPosition: `${shift}% 50%` }}
+              style={reduced ? undefined : { objectPosition: `${shift}% 50%`, transform: `scale(${scale})` }}
             />
           </div>
           <div className="mt-4 min-w-0">
@@ -112,7 +147,11 @@ export function FabricFeel() {
               value={index}
               aria-label="Drag across the cloth, stitch, and drawcord"
               aria-valuetext={frame.label}
-              onChange={(e) => setIndex(Number(e.target.value))}
+              onChange={(e) => {
+                driven.current = true;
+                setScale(1);
+                setIndex(Number(e.target.value));
+              }}
             />
             <p className="text-cream-dim text-sm leading-relaxed mt-3">{frame.note}</p>
           </div>

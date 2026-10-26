@@ -350,3 +350,21 @@ The footer, an 8 second popup (off `/cart`, the cart drawer, and `/order/success
 **Screenshot:** `seo/shots/2026-10-26-weight-cut-375.png`, `seo/shots/2026-10-26-weight-cut-1440.png`, `seo/shots/2026-10-26-quality-strip-375.png`, `seo/shots/2026-10-26-sticky-motion-1440.png`, `seo/shots/2026-10-26-lookbook-shift-1440.png`.
 
 **Owner asset still needed:** `site/public/models/hoodie.glb`, if a real mesh viewer is wanted later. The photo stack is the live experience until that file exists.
+
+## [2026-10-26] Turntable scaffold, weight scale, set price
+
+**Why:** The research brief asked for a photo turntable, an honest GSM comparison, and a set add that shows the combined price. It asked not to add React Three Fiber. It also asked for a pre-order timeline only when the dates already exist.
+
+**Approach:** CSS crossfade on the photographs already in the gallery. No GSAP and no Framer Motion: four frames do not need a timeline library, and the home hero stays a static image. `site/public/turntable/manifest.json` is empty. A listed sequence replaces the photographs only after its first frame loads. `<model-viewer>` stays deferred. `site/public/models/` is still empty.
+
+**Before:** The angle control stepped from photograph to photograph. The fabric section scrubbed three detail shots with no comparison. “Complete the set” linked to the other product. Both pieces are in stock and ship in 3–5 business days.
+
+**After:** Dragging the gallery, the range, or a horizontal swipe crossfades between those photographs. Reduced motion shows one at a time. The fabric section also moves through the three detail photographs as it scrolls through the viewport, and a drag or the range takes over. Home and the product page show a scale: typical tee ~180 GSM, typical hoodie ~300 GSM, OTRACE fleece 450 GSM. The caption says the first two are typical weights, not OTRACE cloth and not a test of another brand. “Buy both pieces” adds the hoodie and the sweatpant at full catalogue price, same colour and size. There is no bundle discount.
+
+**Not added:** A cut → sew → dye → ship timeline with dates. The catalogue is in stock. The 6–8 week string is not the current offer, and no production calendar is in the repo. No fabric video, because there is none. No GLB.
+
+**Verified:** `node --experimental-strip-types --test site/src/lib/turntable.test.ts` → 5 passed. `npm run build`, then `node seo/verify.mjs --root site/dist/public` → 0 problems. Headless Chrome at 375px: the home hero is still `hero-mobile.webp` with high priority, overflow 0, and the scale includes ~180 GSM. Setting the angle range to 0.5 gives the front and back photographs opacity 0.5 each. The first image stays eager and high priority. “Buy both pieces” changes the button to “Add the set — $276”. Adding it with size M puts the hoodie and the sweatpant in the drawer at that total. `/cart` had no dialog and no Fit guide after 1.2s. The product page text has no pre-order line and no 6–8 week date. `/turntable/manifest.json` is `{ "sequences": {} }`.
+
+**Screenshot:** `seo/shots/2026-10-26-weight-scale-375.png`, `seo/shots/2026-10-26-crossfade-375.png`, `seo/shots/2026-10-26-set-add-375.png`.
+
+**Waiting on the owner:** a 24–36 frame shoot per colourway, named in `site/public/turntable/manifest.json`. A real `site/public/models/hoodie.glb` only if AR or model-viewer is wanted later. No dates for a production timeline.

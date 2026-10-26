@@ -1,32 +1,51 @@
 # Conversion motion
 
-Shipped on the storefront without a 3D library. There is no hoodie GLB in the repo, so the pages use the photographs that already exist. React Three Fiber and `<model-viewer>` were not added: either one would download a renderer for a file the owner has not supplied, and the home hero has to stay a plain image so it can be the LCP element.
+The store uses CSS and a small amount of React. React Three Fiber, GSAP, Framer Motion, Spline, and `<model-viewer>` are not installed. A renderer or a scroll-timeline library would be extra weight for four photographs and an empty turntable folder. CSS crossfades cover the photographs. A timeline library is the right add only after a 24–36 frame shoot exists and the scrub needs a pinned scene.
+
+There is no hoodie GLB and no fabric video in the repo. The home hero stays a static image so it can be the LCP element.
 
 ## What is on the site
 
-**Home, under the ticker.** `WeightCut` stacks the Onyx hoodie front and back photographs in a CSS perspective. On a fine pointer, with motion allowed, moving the pointer tilts the stack a few degrees. Otherwise the stack sits still, including `prefers-reduced-motion: reduce` and touch screens. Both images are `loading="lazy"`. The campaign hero above them is unchanged and remains the LCP image.
+**Product gallery.** Drag, the Angles range, or a horizontal trackpad swipe crossfades between the photographs that already exist (hoodie: front, back, worn, worn back; sweatpant: front, worn). The first photograph is a normal `<img>` with `fetchpriority="high"`. Neighbouring frames load beside it. A vertical swipe still scrolls the page. Reduced motion shows one frame at a time and does not coast. The caption says these are the photographs we have, not a 3D model.
 
-**Home, after the construction photos.** `QualityStrip` reuses the journal diagrams for 450 GSM, garment dye order, and the boxy block. Each one links to the hoodie, the Warm Cream hoodie, or the size guide. A stroke draw runs only when motion is allowed. Reduced motion shows the lines immediately.
+**Turntable scaffold.** `site/public/turntable/manifest.json` ships with `"sequences": {}`. When a colourway is listed there and its first frame actually loads, those frames replace the photographs for that colour. Paths look like `/turntable/oversized-hoodie/onyx-black/01.jpg`. See below. Until that file is real, the gallery does not request frames.
 
-**Product gallery.** The angle control still steps through the existing frames (hoodie: front, back, worn, worn back; sweatpant: front, worn). A mouse drag now keeps a little speed after release and coasts to a stop. Touch keeps native scroll-snap momentum. Changing colour fades the previous frame out over about half a second. Reduced motion swaps the frame with no fade and no coast. The caption still says these are photographs, not a 3D model.
+**Feel the 450 GSM.** On the product page, scrolling the section across the viewport moves through `/detail-fabric.jpg`, `/detail-stitch.jpg`, and `/detail-drawcord.jpg` and eases the crop. The range and a drag take over from the scroll. Reduced motion leaves the first photograph still. There is no loop video because the repo has none.
 
-**Add to cart.** Choosing a size shows that size’s flat measurements from the product data. The selected size shifts up by 1px when motion is allowed. The button label changes to “Added” for about 1.4 seconds. The cart drawer still opens, which is the existing confirmation. Desktop shows a bottom bar once the in-page button has left the viewport, or once the gallery has been dragged and then scrolled up. The bar does not animate in. It is not shown on `/cart` or `/order/success`. The lead popup stays off those routes and off the cart drawer.
+**Weight scale.** Home (“Made heavy on purpose”) and the product fabric section show three bars: a typical tee at about 180 GSM, a typical hoodie at about 300 GSM, and this fleece at 450 GSM. The caption says the first two are typical cloth weights, not OTRACE products and not a test of another brand. 450 is this fleece.
 
-**Lookbook.** On viewports at least 768px wide, with motion allowed, each look shifts up to 16px against the scroll. Phones and reduced motion leave the pictures still. The existing scroll-snap and the cover “Scroll” line are unchanged. The line does not animate when motion is reduced.
+**Colour and the set.** Changing colour fades the previous frame. “Buy both pieces” toggles the hoodie and the sweatpant at full price ($148 + $128 = $276 from the catalogue, not a discount). Add then puts both lines in the cart, same colour, same size. The set switcher still links to the other product and keeps the colour.
 
-## Performance
+**Add to cart.** The button reads “Added” for about 1.4 seconds. The cart drawer still opens. Desktop shows a bottom bar after the in-page button scrolls away, or after a drag once the gallery has scrolled up. The bar does not animate in. It is not on `/cart` or `/order/success`. The lead popup stays off those routes and off the cart drawer.
 
-No new runtime dependency. Nothing in this pass is dynamically imported, because the added code is small CSS and React and is cheaper than a separate chunk that still has to be requested. The home hero image is not the weight-and-cut stack. Product and lookbook photographs were already on those routes.
+**Home weight-and-cut stack, quality diagrams, lookbook shift.** Unchanged from the previous pass: CSS perspective under the ticker, journal diagrams with links, and at most 16px of lookbook shift on desktop. Phones and reduced motion stay still.
 
-## Dropping in a GLB later
+## Not shipped
 
-Put the file at `site/public/models/hoodie.glb`. Do not point a viewer at it until the file is actually there.
+**Pre-order timeline.** Both products are in stock. The copy that is on the site is “ships in 3–5 business days”. The old 6–8 week window is not the current offer. Cut → sew → dye is already explained on the garment-dyed page and in the dye diagram, without dates. A dated production timeline would be invented, so it is not on the page.
 
-When it is:
+**model-viewer and AR.** `site/public/models/` is empty. Do not point a viewer at a GLB until `hoodie.glb` is actually there. Load `@google/model-viewer` with a dynamic import from the product page only, keep the photograph scrub as the fallback, and do not put the model on the home hero. Poster: `/products/hoodie-onyx-front.jpg`.
 
-1. Load `@google/model-viewer` with a dynamic `import()` from the product page only, and only when `document.querySelector` is unnecessary — check `fetch('/models/hoodie.glb', { method: 'HEAD' })` or, simpler, ship the tag only after the file is committed.
-2. Keep the photograph scrub as the fallback when the HEAD request fails, when WebGL is missing, and when `prefers-reduced-motion: reduce` matches.
-3. Do not put the model on the home hero. If the home page uses it, render it below the hero and lazy-load the script.
-4. Poster image: `/products/hoodie-onyx-front.jpg`. Alt text stays a description of the garment, not “3D model” unless that is what is showing.
+**Fit visualizer with extra on-model bodies, hardware hotspots, and a pinned 36-frame scroll scene.** Those need photographs or clips that are not in the repo.
 
-`site/public/models/` is empty on purpose. No GLB was generated.
+## Adding a turntable
+
+Shoot 24–36 frames of one colourway, same crop, in order. Export JPEG or WebP at one pixel size. Put them in:
+
+`site/public/turntable/oversized-hoodie/onyx-black/01.jpg` … `24.jpg`
+
+Then set `site/public/turntable/manifest.json`:
+
+```json
+{
+  "sequences": {
+    "oversized-hoodie": {
+      "onyx-black": { "frames": 24, "width": 819, "height": 1024, "ext": "jpg" }
+    }
+  }
+}
+```
+
+`frames` must be an integer from 2 to 36. `ext` is `jpg` or `webp`. Slugs are lowercase letters, numbers, and hyphens. The gallery ignores anything else, and it keeps the existing photographs if the first frame 404s. Add the frame size to `site/src/lib/image-size.ts` only if a frame is also used as a normal `<img>` in prerendered HTML outside the gallery. The gallery reads width and height from the manifest.
+
+Repeat per colourway (`warm-cream`, and the sweatpant slugs `wide-leg-sweatpant`). Do not generate the frames. A missing shoot is better than a fake rotation.

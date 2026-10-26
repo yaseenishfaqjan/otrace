@@ -3,15 +3,17 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import type { ProductImage } from '@/lib/products';
 import { SiteImage } from '@/components/site-image';
 import { imageSize } from '@/lib/image-size';
+import { sequenceFromManifest, blendOpacity, type TurntableSequence } from '@/lib/turntable';
+import { useReducedMotion } from '@/lib/reduced-motion';
 
 /**
- * Product gallery: native swipe on phones, hover-zoom on desktop, and a
- * full-screen viewer with tap-to-zoom and pan on both.
+ * Product gallery: a drag that crossfades the photographs we already have,
+ * hover-zoom on desktop, and a full-screen viewer with tap-to-zoom.
  *
- * The swipe is CSS scroll-snap, not a JS carousel. It gets the platform's own
- * momentum and edge feel for free, costs no library, and still swipes if this
- * script fails. Scroll position is the single source of truth — the counter,
- * dots and thumbnails all follow it rather than driving it.
+ * A real turntable (24–36 frames) replaces those photographs only after
+ * public/turntable/manifest.json names the files and the first frame loads.
+ * The first photograph stays a normal image so it can be the LCP element.
+ * The lightbox still uses scroll-snap. The page itself does not.
  */
 
 type Props = {
@@ -22,9 +24,13 @@ type Props = {
   resetKey: string;
   /** view-transition-name for the photo on screen, so a card can morph into it. */
   transitionName?: string;
-  /** Fired once a mouse drag actually moves between frames. */
+  /** Fired once a drag or horizontal swipe actually moves between frames. */
   onEngage?: () => void;
+  /** Looks up public/turntable/manifest.json. Absent means photographs only. */
+  turntable?: { slug: string; colour: string };
 };
+
+type Frame = ProductImage & { width: number; height: number };
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -60,18 +66,34 @@ function useSnapIndex(ref: RefObject<HTMLDivElement | null>, count: number) {
   return index;
 }
 
-export function ProductGallery({ images, badge, resetKey, transitionName, onEngage }: Props) {
-  const track = useRef<HTMLDivElement>(null);
-  const index = useSnapIndex(track, images.length);
+export function ProductGallery({ images, badge, resetKey, transitionName, onEngage, turntable }: Props) {
+  const reduced = useReducedMotion();
+  const stage = useRef<HTMLButtonElement>(null);
+  const [pos, setPos] = useState(0);
+  const [sequence, setSequence] = useState<TurntableSequence | null>(null);
   const [viewer, setViewer] = useState<number | null>(null);
   const [scrubbing, setScrubbing] = useState(false);
-  const scrub = useRef<{ x: number; index: number; id: number } | null>(null);
+  const scrub = useRef<{ x: number; y: number; pos: number; id: number; axis: 'x' | 'y' | null } | null>(null);
   const suppressClick = useRef(false);
   const coast = useRef(0);
-  const sample = useRef({ t: 0, index: 0, v: 0 });
+  const sample = useRef({ t: 0, pos: 0, v: 0 });
+  const posRef = useRef(0);
   const [ghost, setGhost] = useState<{ src: string; width: number; height: number } | null>(null);
   const firstSrc = images[0]?.src;
   const previousSrc = useRef(firstSrc);
+  posRef.current = pos;
+
+  const frames: Frame[] = sequence
+    ? sequence.urls.map((src, i) => ({
+        src,
+        label: `Frame ${i + 1}`,
+        alt: `${images[0]?.alt ?? 'Product photograph'}, frame ${i + 1} of ${sequence.urls.length}`,
+        width: sequence.width,
+        height: sequence.height,
+      }))
+    : images.map((img) => ({ ...img, ...imageSize(img.src) }));
+  const last = Math.max(0, frames.length - 1);
+  const index = Math.max(0, Math.min(last, Math.round(pos)));
 
   useEffect(() => () => cancelAnimationFrame(coast.current), []);
 
@@ -88,15 +110,36 @@ export function ProductGallery({ images, badge, resetKey, transitionName, onEnga
 
   // New product or colorway: straight back to the first frame, no animation.
   useEffect(() => {
-    scrollToIndex(track.current, 0, false);
+    setPos(0);
+    setSequence(null);
   }, [resetKey]);
+
+  // A turntable replaces the photographs only after its first frame actually loads.
+  useEffect(() => {
+    if (!turntable) return;
+    let cancel = false;
+    fetch('/turntable/manifest.json')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        const next = sequenceFromManifest(data, turntable.slug, turntable.colour);
+        if (!next || cancel) return;
+        const probe = new Image();
+        probe.onload = () => {
+          if (!cancel) setSequence(next);
+        };
+        probe.src = next.urls[0];
+      })
+      .catch(() => {});
+    return () => {
+      cancel = true;
+    };
+  }, [turntable?.slug, turntable?.colour]);
 
   const go = useCallback(
     (i: number) => {
-      const n = images.length;
-      scrollToIndex(track.current, (i + n) % n, true);
+      setPos(Math.max(0, Math.min(last, i)));
     },
-    [images.length],
+    [last],
   );
 
   // Hover-zoom follows the cursor. Written straight to the element's style so
@@ -129,76 +172,96 @@ export function ProductGallery({ images, badge, resetKey, transitionName, onEnga
     if (viewer !== null || returnTo.current === null) return;
     const at = returnTo.current;
     returnTo.current = null;
-    scrollToIndex(track.current, at, false);
-    // Keyboard focus goes to the photo actually on screen, without scrolling.
-    (track.current?.children[at] as HTMLElement | undefined)?.focus({ preventScroll: true });
+    setPos(at);
+    stage.current?.focus({ preventScroll: true });
   }, [viewer]);
 
   const many = images.length > 1;
 
-  // Mouse drag steps through the existing photographs. Touch keeps the native
-  // swipe. The jump is instant either way, so reduced motion does not animate.
+  // Drag crossfades between frames. A vertical touch still scrolls the page.
+  // Reduced motion snaps to the nearest photograph and does not coast.
   const stopCoast = () => {
     if (coast.current) cancelAnimationFrame(coast.current);
     coast.current = 0;
   };
 
-  const onScrubDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (!many || e.pointerType !== 'mouse') return;
+  const onScrubDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!many) return;
     if ((e.target as HTMLElement).closest('[data-gallery-control]')) return;
     stopCoast();
-    scrub.current = { x: e.clientX, index, id: e.pointerId };
-    sample.current = { t: performance.now(), index, v: 0 };
+    scrub.current = { x: e.clientX, y: e.clientY, pos, id: e.pointerId, axis: e.pointerType === 'mouse' ? 'x' : null };
+    sample.current = { t: performance.now(), pos, v: 0 };
     e.currentTarget.setPointerCapture(e.pointerId);
   };
 
-  const onScrubMove = (e: React.PointerEvent<HTMLDivElement>) => {
+  const onScrubMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (e.pointerType === 'mouse' && !scrub.current) onPointerMove(e);
     const origin = scrub.current;
     if (!origin || origin.id !== e.pointerId) return;
     const dx = e.clientX - origin.x;
-    if (Math.abs(dx) < 12) return;
+    const dy = e.clientY - origin.y;
+    if (!origin.axis) {
+      if (Math.abs(dx) < 8 && Math.abs(dy) < 8) return;
+      origin.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+    }
+    if (origin.axis !== 'x') return;
     suppressClick.current = true;
     setScrubbing(true);
     onEngage?.();
-    const width = track.current?.clientWidth || 1;
-    const span = Math.max(1, images.length - 1);
-    const next = Math.max(0, Math.min(span, Math.round(origin.index + (-dx / width) * span)));
+    const width = stage.current?.clientWidth || 1;
+    const raw = origin.pos + (-dx / width) * last;
+    const next = Math.max(0, Math.min(last, reducedMotion() ? Math.round(raw) : raw));
     const now = performance.now();
     const dt = now - sample.current.t;
-    if (dt > 0) {
-      sample.current = { t: now, index: next, v: ((next - sample.current.index) / dt) * 16 };
-    }
-    scrollToIndex(track.current, next, false);
+    if (dt > 0) sample.current = { t: now, pos: next, v: ((next - sample.current.pos) / dt) * 16 };
+    setPos(next);
   };
 
-  const onScrubEnd = (e: React.PointerEvent<HTMLDivElement>) => {
+  const onScrubEnd = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (scrub.current?.id !== e.pointerId) return;
+    const dragged = scrub.current.axis === 'x';
     scrub.current = null;
     setScrubbing(false);
+    if (!dragged) return;
     const vel = sample.current.v;
-    if (reducedMotion() || Math.abs(vel) < 0.2) return;
-    let frame = sample.current.index;
-    let v = Math.max(-1.4, Math.min(1.4, vel));
-    const span = Math.max(1, images.length - 1);
+    if (reducedMotion() || Math.abs(vel) < 0.08) {
+      setPos((current) => Math.round(current));
+      return;
+    }
+    let frame = sample.current.pos;
+    let v = Math.max(-0.55, Math.min(0.55, vel));
     const tick = () => {
-      frame = Math.max(0, Math.min(span, frame + v));
-      v *= 0.84;
-      scrollToIndex(track.current, Math.round(frame), false);
-      const atEnd = frame <= 0 || frame >= span;
-      if (Math.abs(v) > 0.05 && !atEnd) coast.current = requestAnimationFrame(tick);
+      frame = Math.max(0, Math.min(last, frame + v));
+      v *= 0.86;
+      setPos(frame);
+      const atEnd = frame <= 0 || frame >= last;
+      if (Math.abs(v) > 0.02 && !atEnd) coast.current = requestAnimationFrame(tick);
+      else setPos(Math.round(frame));
     };
     coast.current = requestAnimationFrame(tick);
   };
 
+  useEffect(() => {
+    const el = stage.current;
+    if (!el || !many) return;
+    const onWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+      event.preventDefault();
+      onEngage?.();
+      const delta = event.deltaX / 180;
+      setPos((current) => {
+        const raw = current + delta;
+        const next = Math.max(0, Math.min(last, reducedMotion() ? Math.round(raw) : raw));
+        return next;
+      });
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, [many, last, onEngage]);
+
   return (
     <div>
-      <div
-        className={`relative group/gallery ${scrubbing ? 'gallery-scrubbing' : ''}`}
-        onPointerDown={onScrubDown}
-        onPointerMove={onScrubMove}
-        onPointerUp={onScrubEnd}
-        onPointerCancel={onScrubEnd}
-      >
+      <div className={`relative group/gallery ${scrubbing ? 'gallery-scrubbing' : ''}`}>
         {badge && (
           <span className="absolute top-4 left-4 z-10 eyebrow bg-cream text-onyx px-3 py-2 leading-none pointer-events-none">
             {badge}
@@ -214,50 +277,48 @@ export function ProductGallery({ images, badge, resetKey, transitionName, onEnga
           />
         )}
 
-        <div
-          ref={track}
-          role="region"
-          aria-roledescription="carousel"
-          aria-label="Product images"
-          className="no-scrollbar flex overflow-x-auto snap-x snap-mandatory overscroll-x-contain bg-charcoal/25"
+        <button
+          ref={stage}
+          type="button"
+          aria-label={`Open ${frames[index]?.label.toLowerCase() ?? 'product'} image full screen`}
+          onClick={() => {
+            if (suppressClick.current) {
+              suppressClick.current = false;
+              return;
+            }
+            setViewer(index);
+          }}
+          onPointerDown={onScrubDown}
+          onPointerMove={onScrubMove}
+          onPointerUp={onScrubEnd}
+          onPointerCancel={onScrubEnd}
+          className="zoom-wrap relative block w-full aspect-[4/5] overflow-hidden bg-charcoal/25"
+          style={{ touchAction: 'pan-y' }}
         >
-          {images.map((img, i) => (
-            <button
-              key={img.src}
-              type="button"
-              onClick={() => {
-                if (suppressClick.current) {
-                  suppressClick.current = false;
-                  return;
-                }
-                setViewer(i);
-              }}
-              onPointerMove={onPointerMove}
-              aria-label={`Open ${img.label.toLowerCase()} image full screen`}
-              className="zoom-wrap relative shrink-0 w-full snap-start snap-always aspect-[4/5] overflow-hidden"
-            >
+          {frames.map((img, i) => {
+            const opacity = blendOpacity(pos, i, reduced);
+            if (Math.abs(pos - i) > 1 && i !== 0) return null;
+            return (
               <SiteImage
+                key={img.src}
                 src={img.src}
                 alt={img.alt}
-                width={imageSize(img.src).width}
-                height={imageSize(img.src).height}
+                width={img.width}
+                height={img.height}
                 loading={i === 0 ? 'eager' : 'lazy'}
                 fetchPriority={i === 0 ? 'high' : 'auto'}
                 draggable={false}
-                pictureClassName="block w-full h-full"
-                // Only the photo actually on screen carries the name: a named image
-                // scrolled out of view is still captured, unclipped, and would
-                // drift across the page during the transition.
+                pictureClassName="absolute inset-0 block"
                 style={
                   transitionName && i === index
-                    ? ({ viewTransitionName: transitionName } as React.CSSProperties)
-                    : undefined
+                    ? ({ viewTransitionName: transitionName, opacity } as React.CSSProperties)
+                    : { opacity }
                 }
                 className="zoom-img w-full h-full object-cover"
               />
-            </button>
-          ))}
-        </div>
+            );
+          })}
+        </button>
 
         {many && (
           <>
@@ -285,7 +346,7 @@ export function ProductGallery({ images, badge, resetKey, transitionName, onEnga
               aria-live="polite"
               className="sm:hidden absolute top-4 right-4 eyebrow bg-onyx/70 text-cream px-2.5 py-1.5 leading-none tabular-nums pointer-events-none"
             >
-              {index + 1} / {images.length}
+              {index + 1} / {frames.length}
             </span>
           </>
         )}
@@ -295,38 +356,47 @@ export function ProductGallery({ images, badge, resetKey, transitionName, onEnga
         <div className="mt-4 min-w-0">
           <div className="flex items-baseline justify-between gap-4 mb-3">
             <p className="eyebrow text-muted">Angles</p>
-            <p className="text-cream-dim text-xs">{images[index]?.label}</p>
+            <p className="text-cream-dim text-xs">{frames[index]?.label}</p>
           </div>
           <input
             type="range"
             className="scrub-range"
             min={0}
-            max={images.length - 1}
-            step={1}
-            value={index}
-            aria-label="Drag across the angles"
-            aria-valuetext={images[index]?.label ?? ''}
-            onChange={(e) => scrollToIndex(track.current, Number(e.target.value), false)}
+            max={last}
+            step={0.01}
+            value={pos}
+            aria-label={sequence ? 'Drag to turn the photographed frames' : 'Drag across the photographs'}
+            aria-valuetext={frames[index]?.label ?? ''}
+            onChange={(e) => {
+              const value = Number(e.target.value);
+              setPos(reducedMotion() ? Math.round(value) : value);
+              onEngage?.();
+            }}
           />
           <p className="text-muted text-[11px] leading-relaxed mt-2">
-            Drag across the photographs. These are the shots we have, not a 3D model.
+            {sequence
+              ? 'Drag to turn the photographed frames. This is not a 3D model.'
+              : 'Drag to move between the photographs we have. A full turntable is not on the site yet.'}
           </p>
         </div>
       )}
 
       {many && (
         <>
+          {frames.length <= 8 && (
           <div className="sm:hidden flex justify-center gap-2 mt-4" aria-hidden="true">
-            {images.map((img, i) => (
+            {frames.map((img, i) => (
               <span
                 key={img.src}
                 className={`motion-dot h-[3px] transition-all duration-300 ${i === index ? 'w-6 bg-cream' : 'w-3 bg-cream/25'}`}
               />
             ))}
           </div>
+          )}
 
+          {!sequence && (
           <div className="hidden sm:grid grid-cols-4 gap-2 md:gap-3 mt-2 md:mt-3">
-            {images.map((img, i) => (
+            {frames.map((img, i) => (
               <button
                 key={img.src}
                 type="button"
@@ -340,8 +410,8 @@ export function ProductGallery({ images, badge, resetKey, transitionName, onEnga
                 <SiteImage
                   src={img.src}
                   alt=""
-                  width={imageSize(img.src).width}
-                  height={imageSize(img.src).height}
+                  width={img.width}
+                  height={img.height}
                   loading="lazy"
                   pictureClassName="block w-full h-full"
                   className="w-full h-full object-cover"
@@ -349,10 +419,11 @@ export function ProductGallery({ images, badge, resetKey, transitionName, onEnga
               </button>
             ))}
           </div>
+          )}
         </>
       )}
 
-      {viewer !== null && <Viewer images={images} start={viewer} onClose={closeViewer} />}
+      {viewer !== null && <Viewer images={frames} start={viewer} onClose={closeViewer} />}
     </div>
   );
 }
@@ -364,7 +435,7 @@ function Viewer({
   start,
   onClose,
 }: {
-  images: ProductImage[];
+  images: Frame[];
   start: number;
   onClose: (at: number) => void;
 }) {
@@ -490,8 +561,8 @@ function Viewer({
                 <SiteImage
                   src={img.src}
                   alt={img.alt}
-                  width={imageSize(img.src).width}
-                  height={imageSize(img.src).height}
+                  width={img.width}
+                  height={img.height}
                   draggable={false}
                   onClick={(e) => toggleZoom(e, i)}
                   pictureClassName={here ? 'block' : 'absolute inset-0 block'}
