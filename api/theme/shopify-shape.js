@@ -63,6 +63,18 @@ export function toShopifyProduct(p, { siteUrl = '' } = {}) {
     };
   });
 
+  const media = images.map((image, i) => ({
+    id: i + 1,
+    media_type: 'image',
+    position: i + 1,
+    alt: image.alt,
+    src: image.src,
+    width: image.width,
+    height: image.height,
+    aspect_ratio: image.aspect_ratio,
+    preview_image: image,
+  }));
+
   return {
     id: p.sku,
     handle: p.slug,
@@ -81,17 +93,11 @@ export function toShopifyProduct(p, { siteUrl = '' } = {}) {
     tags: [],
     featured_image: images[0] ?? null,
     images,
-    media: images.map((image, i) => ({
-      id: i + 1,
-      media_type: 'image',
-      position: i + 1,
-      alt: image.alt,
-      src: image.src,
-      width: image.width,
-      height: image.height,
-      aspect_ratio: image.aspect_ratio,
-      preview_image: image,
-    })),
+    media,
+    // Product CARDS read featured_media, not featured_image. With only the
+    // latter the card falls through to the placeholder: the grid renders at
+    // full size with every tile empty, and nothing reports a problem.
+    featured_media: media[0] ?? null,
     options: ['Color', 'Size'],
     options_with_values: [
       { name: 'Color', position: 1, values: colours },
@@ -107,6 +113,35 @@ export function toShopifyProduct(p, { siteUrl = '' } = {}) {
 }
 
 /** The theme reads hundreds of `settings.*`; they ship in the theme itself. */
+/**
+ * A Shopify collection over our own catalogue.
+ *
+ * The listing templates read products, counts and the handle; `paginate` is
+ * satisfied by the engine's own tag, so there is no page state to model while
+ * the catalogue is two products.
+ */
+export function toShopifyCollection({ handle, title, description = '', products }, { siteUrl = '' } = {}) {
+  const shaped = products.map((p) => toShopifyProduct(p, { siteUrl }));
+  return {
+    id: handle,
+    handle,
+    title,
+    name: title,
+    description,
+    url: `/collections/${handle}`,
+    products: shaped,
+    all_products_count: shaped.length,
+    products_count: shaped.length,
+    all_tags: [],
+    tags: [],
+    sort_by: null,
+    default_sort_by: 'manual',
+    featured_image: shaped[0]?.featured_image ?? null,
+    image: shaped[0]?.featured_image ?? null,
+    filters: [],
+  };
+}
+
 export function themeSettings(settingsData, settingsSchema) {
   const current = settingsData?.current ?? settingsData ?? {};
   const saved = typeof current === 'object' ? current : {};

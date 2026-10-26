@@ -435,6 +435,37 @@ const sendThemeHtml = (res, html) => {
   res.send(html);
 };
 
+/**
+ * The shop listing.
+ *
+ * `/shop` is the whole catalogue; `/shop/:handle` narrows it. The categories
+ * come from the products themselves rather than a second list to keep in step.
+ */
+const COLLECTIONS = {
+  hoodies: { title: 'Hoodies', match: (p) => p.sku === 'OT-HOOD' },
+  bottoms: { title: 'Bottoms', match: (p) => p.sku === 'OT-PANT' },
+};
+
+app.get('/api/theme-preview/shop/:handle?', async (req, res) => {
+  if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
+  const handle = req.params.handle;
+  const group = handle ? COLLECTIONS[handle] : null;
+  if (handle && !group) return res.status(404).send('No such collection.');
+
+  const products = Object.values(PRODUCTS).filter((p) => (group ? group.match(p) : true));
+  try {
+    sendThemeHtml(res, await themeRenderer.renderCollection({
+      handle: handle ?? 'all',
+      title: group ? group.title : 'AW2026',
+      description: '450 GSM garment-dyed heavyweight fleece.',
+      products,
+    }));
+  } catch (err) {
+    console.error('[theme] collection render failed:', err.message);
+    res.status(500).send('Theme render failed: ' + err.message);
+  }
+});
+
 app.get('/api/theme-preview/cart', async (req, res) => {
   if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
   try {

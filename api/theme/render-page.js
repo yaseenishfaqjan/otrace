@@ -21,7 +21,7 @@ import {
   resolveLinkListSettings,
   wrapSection,
 } from './liquid-engine.js';
-import { toShopifyProduct, themeSettings } from './shopify-shape.js';
+import { toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
 
 export function createThemeRenderer({
   themeRoot,
@@ -214,6 +214,16 @@ export function createThemeRenderer({
     return wrap(content, { ...globals, page_title: extra.page_title ?? title }, globals);
   }
 
+  /** The shop listing. */
+  async function renderCollection({ handle, title, description, products }) {
+    const collection = toShopifyCollection({ handle, title, description, products }, { siteUrl });
+    return renderPage(
+      'collection',
+      { collection, title, page_title: `${title} — OTRACE` },
+      'collection',
+    );
+  }
+
   /** Drop the sections into layout/theme.liquid. */
   /**
    * What Shopify injects into {{ content_for_header }}.
@@ -246,5 +256,5 @@ export function createThemeRenderer({
     return renderThemeFile(engine, themeRoot, 'layout', 'theme', scope, globals);
   }
 
-  return { engine, renderTemplate, renderProduct, renderPage, wrap, settings };
+  return { engine, renderTemplate, renderProduct, renderCollection, renderPage, wrap, settings };
 }

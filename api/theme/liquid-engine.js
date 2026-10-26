@@ -68,13 +68,33 @@ export const readThemeJson = (file) => parseThemeJson(fs.readFileSync(file, 'utf
  * snippet may share a name, and on Shopify they never collide because each tag
  * looks in exactly one place. This keeps that guarantee.
  */
+/**
+ * Shopify accepts an EMPTY output tag; LiquidJS refuses to parse one.
+ *
+ * `{{- -}}` prints nothing and exists only for its whitespace control, and
+ * Kalles uses it. LiquidJS rejects it as "invalid value expression", which
+ * fails the whole section - the collection page rendered its header and footer
+ * and no products at all.
+ *
+ * The dashes are honoured rather than dropped: a leading dash eats the
+ * whitespace before the tag, a trailing one the whitespace after.
+ */
+export function stripEmptyOutputTags(source) {
+  return String(source)
+    .replace(/\s*\{\{-\s*-\}\}\s*/g, '')
+    .replace(/\s*\{\{-\s*\}\}/g, '')
+    .replace(/\{\{\s*-\}\}\s*/g, '')
+    .replace(/\{\{\s*\}\}/g, '');
+}
+
 export async function renderThemeFile(engine, themeRoot, dir, name, scope, globals) {
   const overridden = path.join(themeRoot, '..', 'theme-overrides', `${name}.liquid`);
   const file = fs.existsSync(overridden) ? overridden : path.join(themeRoot, dir, `${name}.liquid`);
   if (!fs.existsSync(file)) throw new Error(`theme file not found: ${dir}/${name}.liquid`);
   // `globals` overrides the engine's own per RENDER, which is how a page sets
   // request.page_type without mutating state the next request also reads.
-  return engine.parseAndRender(fs.readFileSync(file, 'utf8'), scope, globals ? { globals } : undefined);
+  const source = stripEmptyOutputTags(fs.readFileSync(file, 'utf8'));
+  return engine.parseAndRender(source, scope, globals ? { globals } : undefined);
 }
 
 /**
