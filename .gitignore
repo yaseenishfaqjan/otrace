@@ -33,3 +33,6 @@ Thumbs.db
 # ---------------------------------------------------------------------------
 assets/generated/
 assets/branded/
+
+# Replaced product shots, kept locally until the new ones are signed off.
+*.superseded
