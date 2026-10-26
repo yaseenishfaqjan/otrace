@@ -33,7 +33,7 @@ export const POSTS = [
         h2: 'What this hoodie is made of',
         paragraphs: [
           'The fabric is 450 GSM heavyweight fleece, 100% cotton, pre-shrunk, garment dyed. It is loopback fleece, brushed on the inside. The face is the knit you see. The brush is the soft side against the body.',
-          'It is cut boxy, with a dropped shoulder, a self-lined double-layer hood, a split kangaroo pocket, and metal drawcord tips through metal eyelets. Ribbed cuffs and hem hold the edge. The OTRACE wordmark is embroidered at the chest. Wash it cold, inside out, and tumble dry low. High heat is what shrinks cotton hoodies, even when the cloth was pre-shrunk.',
+          'It is cut boxy, with a dropped shoulder, a self-lined double-layer hood, a split kangaroo pocket, and white moulded plastic drawcord tips through metal eyelets. Ribbed cuffs and hem hold the edge. The OTRACE wordmark is embroidered at the chest. Wash it cold, inside out, and tumble dry low. High heat is what shrinks cotton hoodies, even when the cloth was pre-shrunk.',
         ],
         image: {
           src: '/detail-stitch.jpg',
@@ -84,7 +84,7 @@ export const POSTS = [
         h2: 'A garment dyed hoodie, on this label',
         paragraphs: [
           'The [Oversized Hoodie](/product/oversized-hoodie) is a garment dyed hoodie in 450 GSM cotton fleece. So is the [Wide-Leg Sweatpant](/product/wide-leg-sweatpant), cut from the same cloth. The colorways are Onyx Black and Warm Cream. Two pieces from the same lot match. A later lot can sit a step lighter or darker. That shift is the process, not a fault, and the terms say the same thing.',
-          'People also search “garment dyed hoodie” when they want to buy one. The product page is that page. This note does not replace it, and it does not set the price. The catalogue figure on 26 October 2026 is 80 USD for the hoodie and 80 USD for the sweatpant, each reduced from 100 USD, or 140 USD for both together. Check the live pages before you quote either number. Both are in the [shop](/shop).',
+          'People also search “garment dyed hoodie” when they want to buy one. The product page is that page. This note does not replace it, and it does not set the price. The catalogue figure on 26 October 2026 is 148 USD for the hoodie and 128 USD for the sweatpant. Both pieces together are 276 USD, the sum of those two prices. Check the live pages before you quote either number. Both are in the [shop](/shop).',
         ],
         image: {
           src: '/products/hoodie-cream-worn-front.jpg',

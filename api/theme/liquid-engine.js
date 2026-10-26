@@ -159,7 +159,59 @@ export function readSchema(themeRoot, dir, name) {
  * resolved menu, so `section.settings.main_menu.links` works. Skip this and the
  * header prints its empty-menu notice: no error, no warning, just no menu.
  */
-export function resolveLinkListSettings(schema, settings, linklists) {
+/**
+ * JPEG and PNG dimensions, read from the file header.
+ *
+ * Banner and slideshow settings store a path, and the theme sizes the slot
+ * from image.aspect_ratio. A bare string has no ratio, so the theme falls
+ * back to 2:1 and crops a portrait hoodie into a strip of windows and a head.
+ */
+export function readImageSize(file) {
+  let buf;
+  try {
+    buf = fs.readFileSync(file);
+  } catch {
+    return null;
+  }
+  if (buf.length >= 24 && buf[0] === 0x89 && buf[1] === 0x50) {
+    return { width: buf.readUInt32BE(16), height: buf.readUInt32BE(20) };
+  }
+  if (buf[0] !== 0xff || buf[1] !== 0xd8) return null;
+  let offset = 2;
+  while (offset + 8 < buf.length) {
+    if (buf[offset] !== 0xff) break;
+    const marker = buf[offset + 1];
+    const size = buf.readUInt16BE(offset + 2);
+    const sof = marker >= 0xc0 && marker <= 0xcf && marker !== 0xc4 && marker !== 0xc8 && marker !== 0xcc;
+    if (sof && offset + 9 < buf.length) {
+      return { height: buf.readUInt16BE(offset + 5), width: buf.readUInt16BE(offset + 7) };
+    }
+    if (size < 2) break;
+    offset += 2 + size;
+  }
+  return null;
+}
+
+/** A theme image_picker path, as the object Liquid prints and measures. */
+export function imageSetting(themeRoot, src, alt = '') {
+  if (!src || typeof src !== 'string') return src;
+  const rel = src.replace(/^\//, '');
+  const dim = themeRoot ? readImageSize(path.join(themeRoot, '..', 'site', 'public', rel)) : null;
+  const width = dim?.width || 1600;
+  const height = dim?.height || 2000;
+  return {
+    src,
+    url: src,
+    alt,
+    width,
+    height,
+    aspect_ratio: width / height,
+    toString() { return src; },
+    valueOf() { return src; },
+  };
+}
+
+export function resolveLinkListSettings(schema, settings, linklists, themeRoot, blogs, productsByHandle) {
   if (!schema) return settings ?? {};
 
   // Template JSON stores only the settings that were CHANGED, so everything
@@ -181,11 +233,32 @@ export function resolveLinkListSettings(schema, settings, linklists) {
   }
   Object.assign(out, settings ?? {});
 
-  // A `link_list` setting is stored as a handle and must become the menu.
   for (const setting of schema.settings ?? []) {
-    if (setting?.type !== 'link_list' || !setting.id) continue;
-    const handle = out[setting.id];
-    if (typeof handle === 'string') out[setting.id] = linklists?.[handle] ?? null;
+    if (!setting?.id) continue;
+    // A `link_list` setting is stored as a handle and must become the menu.
+    if (setting.type === 'link_list') {
+      const handle = out[setting.id];
+      if (typeof handle === 'string') out[setting.id] = linklists?.[handle] ?? null;
+    }
+    // LiquidJS treats [] as truthy, so an empty product_list skips the
+    // collection branch and the grid renders nothing.
+    if (setting.type === 'product_list' && Array.isArray(out[setting.id]) && out[setting.id].length === 0) {
+      out[setting.id] = null;
+    }
+    if (setting.type === 'image_picker' && typeof out[setting.id] === 'string' && out[setting.id]) {
+      out[setting.id] = imageSetting(themeRoot, out[setting.id]);
+    }
+    // A blog setting is a handle. Left as a string, `blog.articles` is empty
+    // and the carousel prints six "Your post's title" placeholders.
+    if (setting.type === 'blog' && typeof out[setting.id] === 'string') {
+      out[setting.id] = blogs?.[out[setting.id]] ?? null;
+    }
+    // A product setting is a handle. A string is not blank, so the theme
+    // renders it as a product and the missing fields become the $19.99
+    // placeholder card.
+    if (setting.type === 'product' && typeof out[setting.id] === 'string') {
+      out[setting.id] = productsByHandle?.[out[setting.id]] ?? null;
+    }
   }
   return out;
 }
@@ -196,9 +269,26 @@ export function resolveLinkListSettings(schema, settings, linklists) {
  * finds a section by `#shopify-section-<id>`. Omitting it costs layout and
  * behaviour with nothing to indicate why.
  */
-/** Template JSON stores blocks keyed by id; Liquid wants a list that carries it. */
-export const blockList = (blocks) =>
-  Object.entries(blocks || {}).map(([id, block]) => ({ id, ...block }));
+/**
+ * Template JSON stores blocks keyed by id. Shopify renders `block_order` and
+ * skips `disabled`. Blocks left out of the order (static media the template
+ * asks for by id) are appended so a named content_for can still find them.
+ */
+export const blockList = (blocks, order) => {
+  if (Array.isArray(blocks)) return blocks;
+  const map = blocks || {};
+  const seen = new Set();
+  const list = [];
+  const consider = (id) => {
+    if (!id || seen.has(id) || !map[id]) return;
+    seen.add(id);
+    if (map[id].disabled) return;
+    list.push({ id, ...map[id] });
+  };
+  for (const id of order || []) consider(id);
+  for (const id of Object.keys(map)) consider(id);
+  return list;
+};
 
 export const wrapSection = (id, type, html) =>
   `<div id="shopify-section-${id}" class="shopify-section shopify-section-${type}">${html}</div>`;
@@ -299,7 +389,18 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
   // image_url takes named args (width:, height:) in Shopify; ours are already sized.
   engine.registerFilter('image_url', resolveImage);
   engine.registerFilter('img_url', resolveImage);
-  engine.registerFilter('image_tag', (src, ...rest) => `<img src="${src}" ${rest.join(' ')}>`);
+  // Named args arrive as [name, value] pairs. Joining them made
+  // `class,hdt-object-pos-mb`, so the hero image had a src and no class.
+  engine.registerFilter('image_tag', (src, ...rest) => {
+    const attrs = [`src="${resolveImage(src)}"`];
+    for (const item of rest) {
+      if (!Array.isArray(item) || item.length !== 2 || typeof item[0] !== 'string') continue;
+      const [name, value] = item;
+      if (value == null || value === false || value === '') continue;
+      attrs.push(`${name}="${String(value).replace(/"/g, '&quot;')}"`);
+    }
+    return `<img ${attrs.join(' ')}>`;
+  });
 
   engine.registerFilter('stylesheet_tag', (href) => `<link rel="stylesheet" href="${href}">`);
   engine.registerFilter('script_tag', (src) => `<script src="${src}"></script>`);
@@ -363,9 +464,16 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
        * warning, just the whole page twice.
        */
       const args = String(this.what);
-      const kind = (/'([^']*)'|"([^"]*)"/.exec(args) || [])[1] || 'blocks';
-      const wantType = (/\btype:\s*'([^']*)'/.exec(args) || [])[1];
-      const wantId = (/\bid:\s*'([^']*)'/.exec(args) || [])[1];
+      const quoted = (re) => {
+        const match = re.exec(args);
+        return match ? (match[1] ?? match[2]) : undefined;
+      };
+      // Group 1 is the single-quoted capture. A double-quoted tag used to miss
+      // it and was treated as content_for 'blocks', which dumped every block
+      // into the first slot on the page.
+      const kind = quoted(/'([^']*)'|"([^"]*)"/) || 'blocks';
+      const wantType = quoted(/\btype:\s*(?:'([^']*)'|"([^"]*)")/);
+      const wantId = quoted(/\bid:\s*(?:'([^']*)'|"([^"]*)")/);
 
       if (!ctx.registers.contentFor) ctx.registers.contentFor = new Set();
       const placed = ctx.registers.contentFor;
@@ -389,12 +497,32 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
       }
 
       const linklists = ctx.get(['linklists']) || (ctx.globals && ctx.globals.linklists) || {};
+      const blogs = ctx.get(['blogs']) || (ctx.globals && ctx.globals.blogs) || {};
+      const productsByHandle = (ctx.globals && ctx.globals.productsByHandle) || {};
+      /**
+       * Theme presets store `"article": "{{ closest.article }}"`. Shopify
+       * fills that from the content_for argument. Left as text, the card
+       * overwrites the real article with the braces and the title renders blank.
+       */
+      const closest = {};
+      for (const match of String(args).matchAll(/closest\.(\w+)\s*:\s*(\w+)/g)) {
+        closest[match[1]] = ctx.get([match[2]]);
+      }
       for (const rawBlock of list) {
         const type = rawBlock && rawBlock.type;
         if (!type) continue;
         placed.add(keyOf(rawBlock));
         const blockSchema = readSchema(themeRoot, 'blocks', type);
-        let blockSettings = resolveLinkListSettings(blockSchema, rawBlock.settings, linklists);
+        let blockSettings = resolveLinkListSettings(
+          blockSchema, rawBlock.settings, linklists, themeRoot, blogs, productsByHandle,
+        );
+        for (const [key, value] of Object.entries(blockSettings)) {
+          if (typeof value !== 'string') continue;
+          const placeholder = /^\{\{\s*closest\.(\w+)\s*\}\}$/.exec(value.trim());
+          if (!placeholder) continue;
+          const name = placeholder[1];
+          blockSettings[key] = closest[name] ?? ctx.get([name]) ?? null;
+        }
 
         /**
          * A setting declared `"type": "liquid"` holds a TEMPLATE, and Shopify
@@ -435,7 +563,10 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
           const childScope = {
             ...ctx.getAll(),
             block,
-            section: { ...(section || {}), blocks: block.blocks ? Object.values(block.blocks) : [] },
+            section: {
+              ...(section || {}),
+              blocks: blockList(block.blocks, block.block_order),
+            },
           };
           emitter.write(yield renderThemeFile(engine, themeRoot, 'blocks', type, childScope));
         } catch {
@@ -525,13 +656,15 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
         // scope quietly yields undefined and every menu resolves to null.
         const all = ctx.getAll();
         const linklists = all.linklists || (ctx.globals && ctx.globals.linklists) || {};
+        const blogs = all.blogs || (ctx.globals && ctx.globals.blogs) || {};
+        const productsByHandle = (ctx.globals && ctx.globals.productsByHandle) || {};
         const schema = readSchema(themeRoot, 'sections', sec.type);
         const scope = {
           ...all,
           section: {
             id: key,
-            settings: resolveLinkListSettings(schema, sec.settings || {}, linklists),
-            blocks: blockList(sec.blocks),
+            settings: resolveLinkListSettings(schema, sec.settings || {}, linklists, themeRoot, blogs, productsByHandle),
+            blocks: blockList(sec.blocks, sec.block_order),
           },
         };
         try {

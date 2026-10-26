@@ -157,14 +157,11 @@ export default function Product() {
   const colorway = product.colorways[colorIndex];
   const gallery = colorway.images;
   const partner = PRODUCTS.find((item) => item.slug !== product.slug);
-  // The set is a fixed offer, not two singles added up: $200 list, 30% off.
-  // api/catalog.js holds the authority and charges the same 14000 cents.
-  const SET_PRICE = 140;
-  const SET_LIST = 200;
-  const setPrice = partner ? SET_PRICE : product.price;
+  // Both pieces are charged at their own catalogue prices. The figure here is
+  // the sum, and api/catalog.js charges the same sum.
+  const setPrice = partner ? product.price + partner.price : product.price;
   const singleLabel = `${product.preorder ? 'Pre-order' : 'Add to cart'} — ${money(product.price)}`;
-  const setSaving = partner ? SET_LIST - SET_PRICE : 0;
-  const setLabel = `Add the set — ${money(setPrice)}` + (setSaving > 0 ? ` (save ${money(setSaving)})` : '');
+  const setLabel = `Add both — ${money(setPrice)}`;
   const buyLabel = addedFlash ? 'Added' : asSet && partner ? setLabel : singleLabel;
 
   const add = () => {
@@ -333,7 +330,7 @@ export default function Product() {
             >
               <span className="eyebrow text-cream">{asSet ? 'Set selected' : 'Buy both pieces'}</span>
               <span className="block text-cream-dim text-sm mt-2 leading-relaxed">
-                {product.name} and {partner.name} together for {money(setPrice)} instead of {money(SET_LIST)} — same colour, same size.
+                {product.name} and {partner.name} together for {money(setPrice)} — same colour, same size. Each piece is charged at its catalogue price.
               </span>
             </button>
           )}

@@ -421,3 +421,67 @@ retrying by hand when it fails.
 capture stores to MySQL until then, nothing is lost); the WhatsApp number env;
 `VITE_INSTAGRAM` / `VITE_TIKTOK` (footer renders nothing without them);
 currency decision; turntable frames and `hoodie.glb` if ever wanted.
+
+## 2026-10-26 — Homepage chrome, honest catalogue, moulded tips
+
+Owner screenshots of live https://otrace.co, plus the earlier storefront
+leftovers. Work is on `cursor/storefront-cleanup-53e0` off `theme-kalles`.
+Not deployed. Live otrace.co still shows the old page until the steps below.
+
+**Pricing.** Catalogue prices are the hoodie at 14800 cents ($148) and the
+sweatpant at 12800 cents ($128). `listPriceCents` equals `priceCents`, so
+`compare_at_price` is null and the -20% badge does not render. One of each
+is $276, the sum. Checkout charges each SKU its own `priceCents`. The $80 /
+$100 list and the $140 set (commit 617bab2) are removed. `SET_TOTAL_CENTS`
+is that sum, not a discount. Hero files `hero-02-set.jpg` and
+`hero-03-fleece.jpg` stay on disk and are no longer slides.
+
+**Drawcords.** Factory photos: the tips are white moulded plastic. Eyelets
+were not re-verified, so copy still says metal eyelets. The about line “No
+plastic anywhere you can feel it” is removed. Wording is in `api/catalog.js`,
+`site/src/lib/products.ts`, the journal, the about/home/fabric notes, and
+the generated `seo/llms-full.txt` and product/blog mirrors.
+
+**Homepage (`theme/templates/index.json`, `theme/sections/header-group.json`).**
+Header group order is the main nav only. Announcement (“Welcome to our
+store”), the email/phone row, the Location link, and the $140 promo are out
+of the render order. Slideshow is slide 1 only (WORN LOOSE / look-01-wide),
+`dotUI` false, `loop` false, `autoplay` 0. The manual collection strip is
+out of the page order. Featured-collection padding is tightened and the
+grids use the real `fashion` and `featured` collections (two columns).
+HOODIES heading is enabled, left-aligned on `/lookbook/look-02.jpg`, copy
+“HOODIES / Both colourways / 450 GSM”, dark type because the fleece is
+cream. The stairwell frame (`look-08.jpg`) and the tunnel frame
+(`look-10-tall.jpg`) are out of the homepage lookbook carousel. Lookbook
+pins point at `oversized-hoodie` or `wide-leg-sweatpant` instead of Kalles
+demo handles. Journal posts replace the six “Your post's title” cards.
+
+**Why the theme was lying.** `content_for "block"` (double quotes) was
+parsed as `content_for 'blocks'`, so section blocks dumped into the first
+slot and left the white gap. Empty `product_list: []` is truthy in LiquidJS,
+so the collection branch never ran. Option values were plain strings, so
+every size got `is-unavailable` and “Variant sold out” even though
+`available` on the variant was true. Blog handle `fashion` was not a blog,
+so the carousel took the onboarding branch. Image settings were path strings
+with no aspect ratio, so banners fell back to 2:1 and cropped the hoodie.
+
+**Verified locally, not on the live host.** `node --test api/theme/theme.test.mjs`
+15/15. Rendered index and the hoodie product: no fashionshop, 555, Fashion
+Street, “Welcome to our store”, “Your post”, “Variant sold out”,
+`is-unavailable`, `$140`, or `look-08` / `look-10` on the homepage. Hoodie
+page shows $148.00, white moulded plastic tips, and Add to cart. Chrome
+headless screenshots of that render: hero under the nav only, one slide, no
+dots, THE COLLECTION in the first viewport, HOODIES text on the cream image
+(sampled pixels ~rgb(15,15,15) on the cream ground).
+
+**Deploy (no SSH from this run).** From the repo on the VPS, the API image
+build context is the repo root (`api/Dockerfile`), so `theme/` and
+`api/catalog.js` ship together. Rebuild and restart the `api` service in
+`deploy/docker-compose.yml`. Rebuild the site and write the new `dist` into
+the existing web bind mount (`deploy/web/dist` when compose is run from
+`deploy/`; on the host that mount is `/opt/otrace/web/dist` — write into the
+directory, do not replace it). `/`, `/shop`, `/product/`, and `/cart` are
+proxied to the theme by the external nginx snippet
+`deploy/nginx-theme-routes.conf`. This change does not edit nginx. `/blog`
+and `/llms.txt` stay on the static site. Then `sh deploy/after-deploy.sh`
+for IndexNow.

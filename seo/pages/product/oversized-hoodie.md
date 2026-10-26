@@ -2,7 +2,7 @@
 
 HTML: https://otrace.co/product/oversized-hoodie
 
-Catalogue price on 2026-10-26: 80 USD. Confirm on the HTML page before quoting it. Availability: in stock. There is no per-variant unit count.
+Catalogue price on 2026-10-26: 148 USD. Confirm on the HTML page before quoting it. Availability: in stock. There is no per-variant unit count.
 
 - Fabric: 450 GSM heavyweight fleece. 100% cotton, pre-shrunk, garment dyed.
 - Fit: Oversized. Take your usual size for the intended fit, or size down for a cleaner line.
@@ -13,7 +13,7 @@ Catalogue price on 2026-10-26: 80 USD. Confirm on the HTML page before quoting i
 - Boxy oversized body with a dropped shoulder seam
 - Self-lined double-layer hood
 - Split kangaroo pocket
-- Metal drawcord tips through metal eyelets
+- White moulded plastic drawcord tips through metal eyelets
 - Ribbed cuffs and hem that hold their shape
 - OTRACE wordmark embroidered at the chest in 40wt matte thread
 

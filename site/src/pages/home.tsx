@@ -31,7 +31,7 @@ const CRAFT = [
   {
     image: '/detail-drawcord.jpg',
     title: 'Hardware',
-    body: 'Metal drawcord tips through metal eyelets. The parts you touch every day are the parts most brands cheapen.',
+    body: 'White moulded plastic drawcord tips through metal eyelets. The parts you touch every day are the parts most brands cheapen.',
   },
   {
     image: '/detail-stitch.jpg',

@@ -83,7 +83,7 @@ test('both storefronts produce the same session for the same basket', async () =
   assert.deepEqual(args.shipping_address_collection.allowed_countries, ['US']);
   assert.ok(args.shipping_options?.length, 'shipping must be offered');
 
-  // One hoodie with one sweatpant is the set, and the set is the whole offer.
+  // One hoodie with one sweatpant is the sum of the two catalogue prices.
   const total = args.line_items.reduce(
     (sum, i) => sum + i.price_data.unit_amount * i.quantity,
     0,
@@ -118,16 +118,19 @@ test('the cart groups the price bands back into the lines the customer added', (
     { siteUrl: SITE },
   );
 
-  // buildLineItems returns three rows here - one hoodie at the set rate, one at
-  // the single rate, one sweatpant - which is right for Stripe and wrong for a
-  // drawer that would then show three lines for two things added.
+  // Two hoodies and one sweatpant stay two lines. Each is charged at its own
+  // catalogue price, so the drawer has no set discount to explain.
   assert.equal(cart.items.length, 2);
   assert.equal(cart.item_count, 3);
-  assert.equal(cart.total_price, SET_TOTAL_CENTS + PRODUCTS['OT-HOOD'].priceCents);
-  assert.equal(cart.total_discount, cart.original_total_price - cart.total_price);
-
-  const discounted = cart.items.filter((i) => i.line_level_discount_allocations.length);
-  assert.ok(discounted.length, 'the set saving must be visible on the line');
+  assert.equal(
+    cart.total_price,
+    PRODUCTS['OT-HOOD'].priceCents * 2 + PRODUCTS['OT-PANT'].priceCents,
+  );
+  assert.equal(cart.total_discount, 0);
+  assert.equal(
+    cart.items.filter((i) => i.line_level_discount_allocations.length).length,
+    0,
+  );
 });
 
 test('a cart line carries what Liquid reads, not only what the JSON needs', () => {
@@ -256,7 +259,9 @@ test('the shaped product prices the offer the way the page states it', () => {
   const product = PRODUCTS['OT-HOOD'];
   const shaped = toShopifyProduct(product, { siteUrl: SITE });
   assert.equal(shaped.price, product.priceCents);
-  assert.equal(shaped.compare_at_price, product.listPriceCents);
-  assert.ok(shaped.compare_at_price > shaped.price, 'the strike-through must be the higher number');
+  assert.equal(shaped.compare_at_price, null);
+  assert.equal(shaped.price, 14800);
+  assert.equal(shaped.options_with_values[1].values[0].available, true);
+  assert.equal(String(shaped.options_with_values[1].values[0]), product.sizes[0]);
   assert.equal(shaped.variants.length, product.sizes.length * product.colours.length);
 });

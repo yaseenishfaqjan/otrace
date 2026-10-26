@@ -11,8 +11,8 @@
  * whole shop. The log names the section, which is how the remaining gaps get
  * found.
  */
-import fs from 'node:fs';
-import path from 'node:path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   createEngine,
@@ -20,10 +20,13 @@ import {
   readThemeJson,
   renderThemeFile,
   blockList,
+  imageSetting,
   resolveLinkListSettings,
   wrapSection,
 } from './liquid-engine.js';
 import { toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
+import { PRODUCTS } from '../catalog.js';
+import { POSTS } from '../../site/src/content/posts.mjs';
 
 export function createThemeRenderer({
   themeRoot,
@@ -94,6 +97,53 @@ export function createThemeRenderer({
     },
   };
 
+  const journalArticles = POSTS.map((post) => {
+    const excerpt = post.description || post.answer || '';
+    return {
+      id: post.slug,
+      title: post.h1,
+      handle: `journal/${post.slug}`,
+      url: `/blog/${post.slug}`,
+      author: 'OTRACE',
+      published_at: post.date,
+      tags: post.eyebrow ? [post.eyebrow] : [],
+      comments_count: 0,
+      excerpt,
+      content: post.answer || excerpt,
+      image: imageSetting(themeRoot, post.hero?.src, post.hero?.alt || post.h1),
+    };
+  });
+  const journal = {
+    title: 'Journal',
+    handle: 'journal',
+    url: '/blog',
+    articles: journalArticles,
+    all_tags: [],
+  };
+  const BLOGS = { journal, fashion: journal };
+  const both = Object.values(PRODUCTS);
+  const COLLECTIONS = {
+    fashion: toShopifyCollection(
+      { handle: 'fashion', title: 'The collection', products: both },
+      { siteUrl },
+    ),
+    featured: toShopifyCollection(
+      { handle: 'featured', title: 'The set', products: both },
+      { siteUrl },
+    ),
+    hoodies: toShopifyCollection(
+      { handle: 'hoodies', title: 'Hoodies', products: [PRODUCTS['OT-HOOD']] },
+      { siteUrl },
+    ),
+    bottoms: toShopifyCollection(
+      { handle: 'bottoms', title: 'Bottoms', products: [PRODUCTS['OT-PANT']] },
+      { siteUrl },
+    ),
+  };
+  const PRODUCTS_BY_HANDLE = Object.fromEntries(
+    COLLECTIONS.fashion.products.map((product) => [product.handle, product]),
+  );
+
   const GLOBALS = {
     settings,
     shop: SHOP,
@@ -101,6 +151,9 @@ export function createThemeRenderer({
     request: REQUEST,
     cart: CART,
     linklists: LINKLISTS,
+    blogs: BLOGS,
+    collections: COLLECTIONS,
+    productsByHandle: PRODUCTS_BY_HANDLE,
     localization: { available_countries: [], available_languages: [] },
     powered_by_link: '',
   };
@@ -122,6 +175,9 @@ export function createThemeRenderer({
     request: REQUEST,
     cart: CART,
     linklists: LINKLISTS,
+    blogs: BLOGS,
+    collections: COLLECTIONS,
+    productsByHandle: PRODUCTS_BY_HANDLE,
     localization: { available_countries: [], available_languages: [] },
     canonical_url: siteUrl,
     powered_by_link: '',
@@ -141,8 +197,10 @@ export function createThemeRenderer({
         ...extra,
         section: {
           id: key,
-          settings: resolveLinkListSettings(schema, sec.settings ?? {}, LINKLISTS),
-          blocks: blockList(sec.blocks),
+          settings: resolveLinkListSettings(
+            schema, sec.settings ?? {}, LINKLISTS, themeRoot, BLOGS, PRODUCTS_BY_HANDLE,
+          ),
+          blocks: blockList(sec.blocks, sec.block_order),
         },
       };
       try {

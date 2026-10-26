@@ -86,7 +86,7 @@
         <label for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" class="hdt-product-form_value is-type-color">
           <hdt-tooltip inner>
             <span class="hdt-form-color-pattern {% if color_white == color_downcase %} hdt-bg-color-white{% endif %}" {{ color_style }}></span>
-            {%- unless hide_sold_out %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endunless -%}
+            {%- if option_soldout %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endif -%}
             <span tt-title class="hdt-form-color-name sr-only">{{- value | escape -}}</span>
           </hdt-tooltip>
         </label>
@@ -99,7 +99,7 @@
           <label for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" class="hdt-product-form_value hdt-product-form_value_has-image is-type-color">
             <hdt-tooltip inner>
               {{ image | image_url: width: 160 | image_tag: widths: '50, 100, 160', loading: 'lazy', class: class }}
-              {%- unless hide_sold_out %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endunless -%}
+              {%- if option_soldout %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endif -%}
               <span tt-title class="hdt-form-color-name sr-only">{{- value | escape -}}</span>
             </hdt-tooltip>
           </label>
@@ -107,7 +107,7 @@
           <label for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" class="hdt-product-form_value is-type-color">
             <hdt-tooltip inner>
               <span class="hdt-form-color-pattern {% if color_white == color_downcase %} hdt-bg-color-white{% endif %}" {{ color_style }}></span>
-              {%- unless hide_sold_out %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endunless -%}
+              {%- if option_soldout %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endif -%}
               <span tt-title class="hdt-form-color-name sr-only">{{- value | escape -}}</span>
             </hdt-tooltip>
           </label>
@@ -116,7 +116,7 @@
         <div class="hdt-swatch__item hdt-flex hdt-align-center{% if option_unavailable %} is-unavailable{% endif %}">
           <input autocomplete="off" is-value type="radio" id="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" name="{{ option.name | escape }}" value="{{ value | escape }}" form="{{ product_form_id }}"{% if selected_value == value and un_no_pick %} checked{% endif %} class="{% if option_soldout %}is-disabled{% endif %}">
           <label for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" class="hdt-product-form_value is-type-{{ color_picker_type }}">
-            {%- unless hide_sold_out %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endunless -%}
+            {%- if option_soldout %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endif -%}
             <span class="hdt-form-color-name">{{- value | escape -}}</span>
           </label>
         </div>
@@ -128,7 +128,7 @@
       {%- else -%}
         <input autocomplete="off" is-value type="radio" id="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" name="{{ option.name | escape }}" value="{{ value | escape }}" form="{{ product_form_id }}"{% if selected_value == value and un_no_pick %} checked{% endif %} class="sr-only {% if option_unavailable %}is-unavailable{% elsif option_soldout %}is-disabled{% endif %}">
         <label for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" class="hdt-product-form_value is-type-{{ color_picker_type }}">
-          {%- unless hide_sold_out %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endunless -%}
+          {%- if option_soldout %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endif -%}
           <span class="hdt-block-swatch__color{% if color_white == color_downcase %} hdt-bg-color-white{% endif %}" {{ color_style }}></span>
           <span class="hdt-form-color-name">{{- value | escape -}}</span>
         </label>
@@ -137,14 +137,14 @@
       <div class="hdt-selector__item hdt-flex hdt-align-center{% if option_unavailable %} is-unavailable{% endif %}">
         <input autocomplete="off" is-value type="radio" id="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" name="{{ option.name | escape }}" value="{{ value | escape }}" form="{{ product_form_id }}"{% if selected_value == value and un_no_pick %} checked{% endif %} class="{% if option_soldout %}is-disabled{% endif %}">
         <label for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" class="hdt-product-form_value is-type-{{ block.settings.picker_type }}">
-          {%- unless hide_sold_out %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endunless -%}
+          {%- if option_soldout %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endif -%}
           <span class="hdt-form-color-name">{{- value | escape -}}</span>
         </label>
       </div>
     {%- elsif block.settings.picker_type == 'circle'-%}
       <input autocomplete="off" is-value type="radio" id="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" name="{{ option.name | escape }}" value="{{ value | escape }}" form="{{ product_form_id }}"{% if selected_value == value and un_no_pick %} checked{% endif %} class="sr-only {% if option_unavailable %}is-unavailable{% elsif option_soldout %}is-disabled{% endif %}">
       <label for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" class="hdt-product-form_value  is-type-circle">
-        {%- unless hide_sold_out %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endunless -%}
+        {%- if option_soldout %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endif -%}
         {{- value | escape -}}
       </label>
     {%- elsif block.settings.picker_type == 'dropdown' -%}
@@ -152,7 +152,7 @@
     {%- else -%}
       <input autocomplete="off" is-value type="radio" id="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" name="{{ option.name | escape }}" value="{{ value | escape }}" form="{{ product_form_id }}"{% if selected_value == value and un_no_pick %} checked{% endif %} class="sr-only {% if option_unavailable %}is-unavailable{% elsif option_soldout %}is-disabled{% endif %}">
       <label for="{{ section.id }}-{{ option.position }}-{{ forloop.index0 }}" class="hdt-product-form_value  is-type-block">
-        {%- unless hide_sold_out %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endunless -%}
+        {%- if option_soldout %}<span class="sr-only">{{ 'products.product.variant_sold_out' | t }}</span>{% endif -%}
         {{- value | escape -}}
       </label>
     {%- endif -%}

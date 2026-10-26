@@ -36,7 +36,6 @@ const faqBlock = (group, question, heading = true) => {
 };
 
 const price = (sku) => formatMoney(PRODUCTS[sku].priceCents);
-const listPrice = (sku) => formatMoney(PRODUCTS[sku].listPriceCents);
 
 /* ---------------------------------------------------------------- sizing */
 
@@ -83,9 +82,9 @@ const garmentDyed = () => {
     ` go through the dye together. Two pieces from the same lot match. A later lot`,
     ` can sit a step lighter or darker, which is the process.</p>`,
     `<p>AW2026 uses it on two pieces, both 450 GSM cotton fleece: the `,
-    `<a href="/product/${hood.slug}">${esc(hood.name)}</a> and the `,
-    `<a href="/product/${pant.slug}">${esc(pant.name)}</a>, each `,
-    `${price('OT-HOOD')} (was ${listPrice('OT-HOOD')}), in Onyx Black and Warm Cream.`,
+    `<a href="/product/${hood.slug}">${esc(hood.name)}</a> at ${price('OT-HOOD')} and the `,
+    `<a href="/product/${pant.slug}">${esc(pant.name)}</a> at ${price('OT-PANT')},`,
+    ` in Onyx Black and Warm Cream. Together they are the sum of those two prices.`,
     ` Both are in stock and ship within 3&ndash;5 business days inside the United`,
     ` States, with free delivery.</p>`,
     faqBlock('GARMENT_DYE_FAQS', 'Garment dyed vs piece dyed'),

@@ -246,7 +246,7 @@ ${chartLines(chart, ['Sleeve / waist'])}`,
 
 ${faqBlock(faqs.GARMENT_DYE_FAQS)}
 
-The Oversized Hoodie is 80 USD on the catalogue date ${UPDATED}, reduced from 100 USD. The Wide-Leg Sweatpant is 80 USD on that date, reduced from 100 USD. Both pieces bought together are 140 USD, reduced from 200 USD. Check the live product pages before quoting a price.`,
+The Oversized Hoodie is ${hoodie.price} USD on the catalogue date ${UPDATED}. The Wide-Leg Sweatpant is ${pant.price} USD on that date. Both pieces bought together are ${Number(hoodie.price) + Number(pant.price)} USD, the sum of the two catalogue prices. Check the live product pages before quoting a price.`,
     ),
     'shipping.md': page(
       'Shipping and returns',

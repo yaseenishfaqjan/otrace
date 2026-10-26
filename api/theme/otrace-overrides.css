@@ -21,6 +21,9 @@
 .hdt-slide_inner .hdt-heading-block,
 .hdt-slide_inner .hdt-subheading-block,
 .hdt-slide_inner .hdt-text-warry,
+.hdt-banner__item .hdt-heading-block,
+.hdt-banner__item .hdt-subheading-block,
+.hdt-banner__item .hdt-text-warry,
 .hdt-banner-item .hdt-heading-block,
 .hdt-banner-item .hdt-subheading-block,
 .hdt-banner-item .hdt-text-warry {
@@ -29,10 +32,24 @@
 }
 
 /*
+ * The hoodies banner is the cream fleece. White type disappears on it.
+ * The copy sits on the left of the photograph, so the shadow is light.
+ */
+#banner_item_CCbabr .hdt-heading-block,
+#banner_item_CCbabr .hdt-subheading-block,
+#banner_item_CCbabr .hdt-text-warry,
+#banner_item_CCbabr .hdt-content,
+#banner_item_CCbabr .hdt-content p {
+  color: #161513;
+  text-shadow: 0 1px 18px rgba(255, 255, 255, 0.75), 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+
+/*
  * A scrim behind the copy, not across the whole image: the garment stays
  * readable and the type still has something to sit on.
  */
 .hdt-slide_inner .hdt-slide__content,
+.hdt-banner__item .hdt-content,
 .hdt-banner-item .hdt-banner__content {
   position: relative;
 }
@@ -59,6 +76,10 @@
 .hdt-slide_inner .hdt-text-warry,
 .hdt-slide_inner .hdt-heading-block,
 .hdt-slide_inner .hdt-subheading-block,
+.hdt-banner__item .hdt-content > *,
+.hdt-banner__item .hdt-text-warry,
+.hdt-banner__item .hdt-heading-block,
+.hdt-banner__item .hdt-subheading-block,
 .hdt-banner-item .hdt-content-inner > *,
 .hdt-banner-item .hdt-text-warry,
 .hdt-banner-item .hdt-heading-block,

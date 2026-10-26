@@ -74,7 +74,7 @@
         "text_yBAEgJ": {
           "type": "text",
           "settings": {
-            "text1": "Hoodie and sweatpant together — <strong>$140</strong> for the set. <a href=\"/shop\" title=\"Shop AW2026\">Shop the set</a>",
+            "text1": "Hoodie and sweatpant, each at its catalogue price. <a href=\"/shop\" title=\"Shop AW2026\">Shop</a>",
             "text2": "",
             "text3": "",
             "adding_border": false,
@@ -253,7 +253,7 @@
         "lazy_mn_mb": true,
         "only_click_icon": false,
         "header_mobile_colors": "",
-        "note_mobile": "<span class=\"hdt-inline-flex\" style=\"margin-bottom: 10px\">Need help ? </span><span class=\"hdt-flex hdt-flex-col hdt-text-sm hdt-text-secondary\" style=\"line-height: 24px;\"><span>Email: <b class=\"hdt-font-medium\">info@fashionshop.com</b></span><span>Phone: <b class=\"hdt-font-medium\">(212) 555-1234</b></span></span>",
+        "note_mobile": "<span class=\"hdt-inline-flex\" style=\"margin-bottom: 10px\">Need help ? </span><span class=\"hdt-flex hdt-flex-col hdt-text-sm hdt-text-secondary\" style=\"line-height: 24px;\"><span>Email: <b class=\"hdt-font-medium\">info@otrace.co</b></span></span>",
         "header_transparent": false,
         "header_transparent_colors": "",
         "sticky_type": "on_scroll_up",
@@ -262,8 +262,6 @@
     }
   },
   "order": [
-    "announcement_bar_QKnWCh",
-    "top_bar_3qfcq8",
     "header_inline_xePFbC"
   ]
 }

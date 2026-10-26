@@ -12,7 +12,7 @@ There is no single public standard that grades 450 as a named class such as “u
 ## What this hoodie is made of
 
 The fabric is 450 GSM heavyweight fleece, 100% cotton, pre-shrunk, garment dyed. It is loopback fleece, brushed on the inside. The face is the knit you see. The brush is the soft side against the body.
-It is cut boxy, with a dropped shoulder, a self-lined double-layer hood, a split kangaroo pocket, and metal drawcord tips through metal eyelets. Ribbed cuffs and hem hold the edge. The OTRACE wordmark is embroidered at the chest. Wash it cold, inside out, and tumble dry low. High heat is what shrinks cotton hoodies, even when the cloth was pre-shrunk.
+It is cut boxy, with a dropped shoulder, a self-lined double-layer hood, a split kangaroo pocket, and white moulded plastic drawcord tips through metal eyelets. Ribbed cuffs and hem hold the edge. The OTRACE wordmark is embroidered at the chest. Wash it cold, inside out, and tumble dry low. High heat is what shrinks cotton hoodies, even when the cloth was pre-shrunk.
 
 ## The hoodie that uses it
 
