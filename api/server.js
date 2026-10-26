@@ -16,6 +16,7 @@ import express from 'express';
 import Stripe from 'stripe';
 import mysql from 'mysql2/promise';
 import nodemailer from 'nodemailer';
+import { createMailer } from './mailer.js';
 import { fileURLToPath } from 'node:url';
 
 import { LOGO_CID, orderEmail, welcomeEmail } from './emails.js';
@@ -36,6 +37,8 @@ const {
   SITE_URL = 'https://otrace.co',
   STRIPE_SECRET_KEY,
   STRIPE_WEBHOOK_SECRET,
+  RESEND_API_KEY,
+  RESEND_FROM,
   DB_HOST = 'db',
   DB_USER,
   DB_PASSWORD,
@@ -127,7 +130,20 @@ const mailer =
         auth: { user: SMTP_USER, pass: SMTP_PASSWORD },
       })
     : null;
-if (!mailer) console.warn('[boot] SMTP not configured — emails will be skipped.');
+/**
+ * Resend over HTTPS first, SMTP second. The cPanel mailbox this shop sends
+ * from lives on a host that is unreachable from this VPS on every port, so
+ * SMTP alone delivered nothing at all - see mailer.js.
+ */
+const mail = createMailer({
+  resendApiKey: RESEND_API_KEY,
+  from: RESEND_FROM || `"OTRACE" <${SHOP_EMAIL || SMTP_USER}>`,
+  smtpTransport: mailer,
+  // The logo rides as a cid: attachment over SMTP; Resend gets the public URL.
+  cidBase: `${SITE_URL.replace(/\/$/, '')}/email`,
+});
+
+console.log(`[boot] email providers: ${mail.describe()}`);
 
 /** Never let a mail failure lose an order: it is already committed by now. */
 // The logo rides inside every message (emails.js explains why it is not a link).
@@ -138,15 +154,8 @@ const LOGO_ATTACHMENT = {
 };
 
 async function send({ to, subject, html, text }) {
-  if (!mailer || !to) return false;
-  try {
-    await mailer.sendMail({ from: `"OTRACE" <${SMTP_USER}>`, to, subject, html, text, attachments: [LOGO_ATTACHMENT] });
-    console.log(`[mail] sent "${subject}" to ${to}`);
-    return true;
-  } catch (err) {
-    console.error(`[mail] FAILED "${subject}" to ${to}:`, err.message);
-    return false;
-  }
+  // attachments are the SMTP path only; Resend rewrites cid: to a public URL.
+  return mail.deliver({ to, subject, html, text, attachments: [LOGO_ATTACHMENT] });
 }
 
 const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v ?? '').trim());

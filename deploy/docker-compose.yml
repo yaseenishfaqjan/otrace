@@ -42,6 +42,9 @@ services:
       SITE_URL: ${SITE_URL}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      # Email over HTTPS: the cPanel SMTP host is unreachable from this VPS.
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_FROM: ${RESEND_FROM:-}
       DB_HOST: db
       DB_USER: ${DB_USER}
       DB_PASSWORD: ${DB_PASSWORD}
