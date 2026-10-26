@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 
 import { createCheckoutSession } from '../checkout-session.js';
 import { PRODUCTS, SET_TOTAL_CENTS } from '../catalog.js';
@@ -270,4 +271,32 @@ test('the shaped product prices the offer the way the page states it', () => {
   assert.equal(shaped.options_with_values[1].values[0].available, true);
   assert.equal(String(shaped.options_with_values[1].values[0]), product.sizes[0]);
   assert.equal(shaped.variants.length, product.sizes.length * product.colours.length);
+});
+
+test('quick view and quick add sit on a paper chip, and the prices stay', async () => {
+  const { createThemeRenderer } = await import('./render-page.js');
+  const themeRoot = fileURLToPath(new URL('../../theme', import.meta.url));
+  const renderer = createThemeRenderer({
+    themeRoot,
+    siteUrl: SITE,
+    assetBase: '/api/theme-assets',
+    routesRoot: '/api/theme-preview/',
+  });
+  const shop = await renderer.renderCollection({
+    handle: 'all',
+    title: 'AW2026',
+    products: Object.values(PRODUCTS),
+  });
+  const home = await renderer.renderPage('index', { title: 'OTRACE', page_title: 'OTRACE — AW2026' }, 'index');
+  for (const html of [shop, home]) {
+    assert.match(html, /Quick view/);
+    assert.match(html, /Quick add/);
+    assert.match(html, /#f4f1eb/);
+    assert.match(html, /#161513/);
+  }
+  assert.match(shop, /\$80\.00/);
+  assert.match(shop, /\$100\.00/);
+  assert.doesNotMatch(shop, /\$148/);
+  assert.doesNotMatch(shop, /\$128/);
+  assert.match(home, /\$140/);
 });

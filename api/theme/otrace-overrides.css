@@ -374,3 +374,45 @@
     animation: none !important;
   }
 }
+
+/*
+ * Quick view / Quick add.
+ *
+ * Style 1 (shop, THE SET, and the other product cards) paints these labels
+ * from the colour scheme. The scheme's button colours do not resolve onto the
+ * control, so the words inherit body type and the button reset leaves the
+ * background transparent. Dark type then sits directly on the photograph and
+ * disappears on onyx fleece.
+ *
+ * A paper chip carries the label on onyx and on cream. The type stays dark,
+ * the weight is enough to read at card size, and the shadow separates the
+ * chip from a light garment. Same treatment for the icon-only size, so a
+ * narrow card does not go back to a bare glyph on the photo.
+ */
+hdt-card-product.hdt-card-product .hdt-pr_btn :is(
+  button.hdt-card-product__btn-quick-view,
+  a.hdt-card-product__btn-quick-view,
+  button.hdt-card-product__btn-ultra,
+  a.hdt-card-product__btn-ultra
+) {
+  color: #161513;
+  background-color: #f4f1eb;
+  border: 1px solid rgba(22, 21, 19, 0.16);
+  border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(22, 21, 19, 0.16), 0 8px 18px rgba(22, 21, 19, 0.18);
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  -webkit-appearance: none;
+  appearance: none;
+}
+hdt-card-product.hdt-card-product .hdt-pr_btn :is(
+  button.hdt-card-product__btn-quick-view,
+  a.hdt-card-product__btn-quick-view,
+  button.hdt-card-product__btn-ultra,
+  a.hdt-card-product__btn-ultra
+):hover {
+  color: #161513;
+  background-color: #f4f1eb;
+}
