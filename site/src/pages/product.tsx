@@ -163,7 +163,9 @@ export default function Product() {
   const SET_LIST = 200;
   const setPrice = partner ? SET_PRICE : product.price;
   const singleLabel = `${product.preorder ? 'Pre-order' : 'Add to cart'} — ${money(product.price)}`;
-  const buyLabel = addedFlash ? 'Added' : asSet && partner ? `Add the set — ${money(setPrice)}` : singleLabel;
+  const setSaving = partner ? SET_LIST - SET_PRICE : 0;
+  const setLabel = `Add the set — ${money(setPrice)}` + (setSaving > 0 ? ` (save ${money(setSaving)})` : '');
+  const buyLabel = addedFlash ? 'Added' : asSet && partner ? setLabel : singleLabel;
 
   const add = () => {
     if (!size) {
@@ -231,7 +233,19 @@ export default function Product() {
           <h1 className="text-cream text-xl sm:text-2xl font-medium tracking-tight mt-3">
             {product.name}
           </h1>
-          <p className="text-cream-dim text-lg mt-2 tabular-nums">{money(product.price)}</p>
+          {/* The offer only works if the saving is visible. listPrice is the
+              figure before the discount; api/catalog.js charges product.price. */}
+          <p className="text-cream-dim text-lg mt-2 tabular-nums flex items-baseline gap-2">
+            {product.listPrice > product.price && (
+              <span className="text-muted line-through">{money(product.listPrice)}</span>
+            )}
+            <span className="text-cream">{money(product.price)}</span>
+            {product.listPrice > product.price && (
+              <span className="eyebrow text-cream/70">
+                {Math.round((1 - product.price / product.listPrice) * 100)}% off
+              </span>
+            )}
+          </p>
           <p className="text-cream-dim leading-relaxed mt-6 max-w-md">{product.tagline}</p>
 
           {/* The terms have to be unmissable BEFORE the size picker. A customer
@@ -319,7 +333,7 @@ export default function Product() {
             >
               <span className="eyebrow text-cream">{asSet ? 'Set selected' : 'Buy both pieces'}</span>
               <span className="block text-cream-dim text-sm mt-2 leading-relaxed">
-                {product.name} {money(product.price)} and {partner.name} {money(partner.price)}. Together {money(setPrice)}, full price, same colour and the same size.
+                {product.name} and {partner.name} together for {money(setPrice)} instead of {money(SET_LIST)} — same colour, same size.
               </span>
             </button>
           )}

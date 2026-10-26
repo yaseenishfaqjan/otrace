@@ -93,7 +93,12 @@ export function ProductCard({
             {product.preorder && <> · Ships in {product.preorder.shipsIn}</>}
           </p>
         </div>
-        <span className="text-cream text-sm md:text-base tabular-nums shrink-0">{money(product.price)}</span>
+        <span className="text-sm md:text-base tabular-nums shrink-0 flex items-baseline gap-2">
+          {product.listPrice > product.price && (
+            <span className="text-muted line-through">{money(product.listPrice)}</span>
+          )}
+          <span className="text-cream">{money(product.price)}</span>
+        </span>
       </div>
 
       {/* 16px dots inside 26px buttons: padding grows the tap area and a matching
