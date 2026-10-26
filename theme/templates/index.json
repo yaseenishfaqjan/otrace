@@ -117,7 +117,7 @@
         "slide_item_GJUjrL": {
           "type": "_slide-item",
           "settings": {
-            "image": "/lookbook/look-06.jpg",
+            "image": "/lookbook/hero-02-set.jpg",
             "url": "",
             "banner_target": false,
             "color_scheme": "scheme-77e4ef58-56a9-4631-876a-12098ba7d57d",
@@ -228,7 +228,7 @@
         "slide_item_GJUjrO": {
           "type": "_slide-item",
           "settings": {
-            "image": "/lookbook/look-09.jpg",
+            "image": "/lookbook/hero-03-fleece.jpg",
             "url": "",
             "banner_target": false,
             "color_scheme": "scheme-77e4ef58-56a9-4631-876a-12098ba7d57d",
@@ -350,7 +350,7 @@
         "is_fade": false,
         "loop": true,
         "autoplay": 7,
-        "pauseOnHover": true,
+        "pauseOnHover": false,
         "navUI": false,
         "nav_visible": "always",
         "nav_style": "default",

@@ -243,13 +243,14 @@ export function createThemeRenderer({
    * forking a vendor liquid file to add a <link> would have to be re-applied
    * on every theme update.
    */
-  const OVERRIDE_CSS = (() => {
+  const readOwn = (name) => {
     try {
-      return fs.readFileSync(fileURLToPath(new URL('./otrace-overrides.css', import.meta.url)), 'utf8');
+      return fs.readFileSync(fileURLToPath(new URL(name, import.meta.url)), 'utf8');
     } catch {
       return '';
     }
-  })();
+  };
+  const OVERRIDE_CSS = readOwn('./otrace-overrides.css');
 
   const contentForHeader = () =>
     (OVERRIDE_CSS ? `<style data-otrace>${OVERRIDE_CSS}</style>` : '') +
