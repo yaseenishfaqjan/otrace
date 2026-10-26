@@ -435,6 +435,19 @@ const sendThemeHtml = (res, html) => {
   res.send(html);
 };
 
+app.get('/api/theme-preview/', async (req, res) => {
+  if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
+  try {
+    sendThemeHtml(res, await themeRenderer.renderPage('index', {
+      title: 'OTRACE',
+      page_title: 'OTRACE — AW2026',
+    }, 'index'));
+  } catch (err) {
+    console.error('[theme] home render failed:', err.message);
+    res.status(500).send('Theme render failed: ' + err.message);
+  }
+});
+
 /**
  * The shop listing.
  *
