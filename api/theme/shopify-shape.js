@@ -182,3 +182,35 @@ export function themeSettings(settingsData, settingsSchema) {
   }
   return { ...defaults, ...saved };
 }
+
+/**
+ * Theme settings that point at products.
+ *
+ * A `product_list` saved in the theme editor is a list of handles. Left as
+ * strings, the search drawer treats each one as a product: the title and the
+ * link are empty, and price.liquid's `default: 1999` prints the $19.99
+ * placeholder. Unknown handles are dropped. An empty list becomes null,
+ * because LiquidJS treats [] as truthy and would still enter the suggestion
+ * branch.
+ */
+export function resolveThemeProductSettings(settings, settingsSchema, productsByHandle) {
+  if (!settings) return settings;
+  const lookup = (handle) => {
+    if (handle && typeof handle === 'object' && handle.title) return handle;
+    if (typeof handle !== 'string' || !handle) return null;
+    const product = productsByHandle?.[handle];
+    return product?.title ? product : null;
+  };
+  for (const group of Array.isArray(settingsSchema) ? settingsSchema : []) {
+    for (const setting of group?.settings ?? []) {
+      if (!setting?.id) continue;
+      if (setting.type === 'product_list' && Array.isArray(settings[setting.id])) {
+        const resolved = settings[setting.id].map(lookup).filter(Boolean);
+        settings[setting.id] = resolved.length ? resolved : null;
+      } else if (setting.type === 'product' && typeof settings[setting.id] === 'string') {
+        settings[setting.id] = lookup(settings[setting.id]);
+      }
+    }
+  }
+  return settings;
+}
