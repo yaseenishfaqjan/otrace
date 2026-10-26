@@ -4,12 +4,24 @@
 .git
 **/node_modules
 
-# The storefront is built separately and served by the web container from a
-# bind mount; its source never belongs in the API image.
-site
+# Storefront build output and bulk source. Keep site/src/content — the theme
+# renderer imports journal posts from there at boot.
+site/dist
+site/public
+site/scripts
+site/src/components
+site/src/lib
+site/src/pages
+site/src/styles
+site/index.html
+site/package.json
+site/package-lock.json
+site/tsconfig.json
+site/tsconfig.*.json
+site/vite.config.*
+site/*.config.*
 
-# Source artwork and every generated render. The shots the shop actually serves
-# live in site/public and are published with the storefront.
+# Source artwork and every generated render.
 assets
 
 # Local scratch and docs.
