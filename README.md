@@ -45,10 +45,10 @@ SEO / AEO / GEO notes, the query research, and the change log live in `seo/`.
 4. Confirm the size chart (see the note in `site/src/lib/products.ts`) — four
    rows in the AW2026 spec sheet run backwards at L and are rendered as "—"
    rather than published wrong.
-5. Confirm retail prices. Hoodie $148 / sweatpant $128 are placeholders chosen
-   to sit where this quality of fleece normally sells; they are set in TWO
-   places and must match: `api/catalog.js` (authoritative) and
-   `site/src/lib/products.ts` (display).
+5. Retail prices live in two places and must match: `api/catalog.js`
+   (authoritative) and `site/src/lib/products.ts` (display). Each piece is
+   $80, reduced from $100. One hoodie and one sweatpant together are $140,
+   reduced from $200.
 6. List and fit capture. See `seo/LEAD-CAPTURE.md`. The API stores signups in
    MySQL either way. Set `KLAVIYO_PRIVATE_API_KEY` and `KLAVIYO_LIST_ID` on the
    API, then rebuild the storefront with `VITE_WHATSAPP_NUMBER` (E.164 digits,

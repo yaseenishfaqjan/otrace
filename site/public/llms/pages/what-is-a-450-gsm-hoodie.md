@@ -16,6 +16,6 @@ It is cut boxy, with a dropped shoulder, a self-lined double-layer hood, a split
 
 ## The hoodie that uses it
 
-The [Oversized Hoodie](/product/oversized-hoodie) is sold in Onyx Black and Warm Cream. The catalogue price on 26 October 2026 is 148 USD. Read the product page for the current price and for stock. The page is the source of truth, not this note.
+The [Oversized Hoodie](/product/oversized-hoodie) is sold in Onyx Black and Warm Cream. The price on 26 October 2026 is 80 USD, reduced from 100 USD. Read the product page for the current price and for stock. The page is the source of truth, not this note.
 AW2026 is in stock. We ship worldwide. Delivery is free inside the United States, and in-stock orders ship in 3–5 business days. The same fleece is used for the [Wide-Leg Sweatpant](/product/wide-leg-sweatpant).
 Fit and the garment-flat measurements are on the [size chart](/sizing). How the dye is done is on [what garment dyed means](/garment-dyed). Both hoodies are in the [hoodies shop](/shop/hoodies).

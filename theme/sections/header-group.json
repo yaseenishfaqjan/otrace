@@ -28,7 +28,7 @@
           "type": "announcement",
           "settings": {
             "link": "",
-            "text": "AW2026 is in stock. Hoodie $148, sweatpant $128.",
+            "text": "AW2026 is in stock. Each piece $80. The set is $140.",
             "adding_border": false,
             "countdown": "2024-12-30 15:00:00",
             "txt_day": "days"
@@ -74,7 +74,7 @@
         "text_yBAEgJ": {
           "type": "text",
           "settings": {
-            "text1": "Hoodie and sweatpant, each at its catalogue price. <a href=\"/shop\" title=\"Shop AW2026\">Shop</a>",
+            "text1": "Hoodie and sweatpant together — <strong>$140</strong> for the set. <a href=\"/shop\" title=\"Shop AW2026\">Shop the set</a>",
             "text2": "",
             "text3": "",
             "adding_border": false,

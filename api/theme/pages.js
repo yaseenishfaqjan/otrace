@@ -3,14 +3,14 @@
  *
  * Every number here comes from a single source - prices from api/catalog.js,
  * measurements from shared/size-chart.json, FAQ copy from shared/faqs.json -
- * because the page these replaced had hard-coded "148 USD" and "128 USD" in
- * its prose and was still quoting them on the live site long after the prices
- * changed. Prose that restates a number always ends up lying about it.
+ * because the page these replaced had hard-coded prices in its prose and
+ * kept quoting them on the live site long after the prices changed. Prose
+ * that restates a number always ends up lying about it.
  */
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { PRODUCTS, formatMoney } from '../catalog.js';
+import { PRODUCTS, SET_LIST_CENTS, SET_TOTAL_CENTS, formatMoney } from '../catalog.js';
 
 const shared = (name) =>
   JSON.parse(fs.readFileSync(fileURLToPath(new URL(`../../shared/${name}`, import.meta.url)), 'utf8'));
@@ -36,6 +36,7 @@ const faqBlock = (group, question, heading = true) => {
 };
 
 const price = (sku) => formatMoney(PRODUCTS[sku].priceCents);
+const listPrice = (sku) => formatMoney(PRODUCTS[sku].listPriceCents);
 
 const SHIP_COPY =
   'We ship worldwide to the address you enter at checkout, including the United Kingdom and the rest of the world. Delivery is free inside the United States, and in-stock orders leave in 3–5 business days. Checkout does not add an international carrier fee, because none is configured.';
@@ -154,7 +155,7 @@ const garmentDyed = () => {
     `<text x="36" y="64">Knit</text><text x="220" y="64">Cut</text><text x="404" y="64">Sew</text><text class="is-last" x="604" y="64">Dye</text>`,
     `</svg>`,
     `<p>The fleece is knit, cut, and sewn, and only then dyed. Seams, rib and body go through the dye together. Two pieces from the same lot match. A later lot can sit a step lighter or darker, which is the process.</p>`,
-    `<p>AW2026 is two pieces in that fleece: the <a href="/product/${hood.slug}">${esc(hood.name)}</a> at ${price('OT-HOOD')} and the <a href="/product/${pant.slug}">${esc(pant.name)}</a> at ${price('OT-PANT')}, in Onyx Black and Warm Cream. ${esc(SHIP_COPY)}</p>`,
+    `<p>AW2026 is two pieces in that fleece: the <a href="/product/${hood.slug}">${esc(hood.name)}</a> at ${price('OT-HOOD')} (was ${listPrice('OT-HOOD')}) and the <a href="/product/${pant.slug}">${esc(pant.name)}</a> at ${price('OT-PANT')} (was ${listPrice('OT-PANT')}), in Onyx Black and Warm Cream. Together they are ${formatMoney(SET_TOTAL_CENTS)} (was ${formatMoney(SET_LIST_CENTS)}). ${esc(SHIP_COPY)}</p>`,
     `<div class="hdt-dye-details">`,
     `<figure><img src="/detail-fabric.jpg" alt="Close view of the 450 GSM garment-dyed fleece" width="1200" height="1500"><figcaption>450 GSM fleece</figcaption></figure>`,
     `<figure><img src="/detail-stitch.jpg" alt="Stitch line that has taken the garment dye" width="1200" height="1500"><figcaption>Dye in the stitch</figcaption></figure>`,

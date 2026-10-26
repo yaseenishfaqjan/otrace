@@ -14,7 +14,7 @@ There is no hoodie GLB and no fabric video in the repo. The home hero stays a st
 
 **Weight scale.** Home (“Made heavy on purpose”) and the product fabric section show three bars: a typical tee at about 180 GSM, a typical hoodie at about 300 GSM, and this fleece at 450 GSM. The caption says the first two are typical cloth weights, not OTRACE products and not a test of another brand. 450 is this fleece.
 
-**Colour and the set.** Changing colour fades the previous frame. “Buy both pieces” toggles the hoodie and the sweatpant at full price ($148 + $128 = $276 from the catalogue, not a discount). Add then puts both lines in the cart, same colour, same size. The set switcher still links to the other product and keeps the colour.
+**Colour and the set.** Changing colour fades the previous frame. “Buy both pieces” toggles the hoodie and the sweatpant as a set: $140 instead of $200, same colour, same size. Each piece alone is $80, reduced from $100. Add then puts both lines in the cart. The set switcher still links to the other product and keeps the colour.
 
 **Add to cart.** The button reads “Added” for about 1.4 seconds. The cart drawer still opens. Desktop shows a bottom bar after the in-page button scrolls away, or after a drag once the gallery has scrolled up. The bar does not animate in. It is not on `/cart` or `/order/success`. The lead popup stays off those routes and off the cart drawer.
 

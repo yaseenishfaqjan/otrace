@@ -12,7 +12,7 @@ Prices below are copied from the storefront catalogue on 2026-10-26 and can chan
 
 - URL: https://otrace.co/product/oversized-hoodie
 - Markdown: https://otrace.co/product/oversized-hoodie.md
-- Price: 148 USD
+- Price: 80 USD
 - Fabric: 450 GSM heavyweight fleece. 100% cotton, pre-shrunk, garment dyed.
 - Fit: Oversized. Take your usual size for the intended fit, or size down for a cleaner line.
 - Care: Machine wash cold, inside out. Tumble dry low. Do not iron the embroidery.
@@ -31,7 +31,7 @@ Prices below are copied from the storefront catalogue on 2026-10-26 and can chan
 
 - URL: https://otrace.co/product/wide-leg-sweatpant
 - Markdown: https://otrace.co/product/wide-leg-sweatpant.md
-- Price: 128 USD
+- Price: 80 USD
 - Fabric: 450 GSM heavyweight fleece. 100% cotton, pre-shrunk, garment dyed.
 - Fit: Relaxed and wide. True to size at the waist.
 - Care: Machine wash cold, inside out. Tumble dry low.

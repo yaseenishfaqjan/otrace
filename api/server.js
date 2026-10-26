@@ -38,7 +38,7 @@ import { submitIndexNow } from './indexnow.js';
 import { ensureLeadColumns, handleContact, handleSubscribe, inquiryLabel } from './leads.js';
 import { klaviyoConfig } from './klaviyo.js';
 import { createThemeRenderer } from './theme/render-page.js';
-import { toShopifyProduct } from './theme/shopify-shape.js';
+import { toShopifyProduct } from './theme/shopify-shape.js';
 import { PAGES, pageContent } from './theme/pages.js';
 import {
   CART_COOKIE,
@@ -465,8 +465,8 @@ const COLLECTIONS = {
  *
  * Their copy and every number in it come from shared data, so the prose cannot
  * drift away from the catalogue the way the old garment-dyed page did - it was
- * still quoting 148 USD and 128 USD on the live site long after the prices
- * changed to $100/$80.
+ * still quoting the previous retail figures on the live site long after
+ * the prices changed to $100 list / $80.
  */
 app.get('/api/theme-preview/page/:handle', async (req, res) => {
   if (!themeRenderer) return res.status(503).send('Theme preview is not available.');

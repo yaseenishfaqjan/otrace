@@ -8,10 +8,11 @@ These are the names and numbers the pages, the FAQ answers, and `llms.txt` are s
 | Site | https://otrace.co |
 | Hoodie name | Oversized Hoodie |
 | Hoodie URL | https://otrace.co/product/oversized-hoodie |
-| Hoodie price | 148 USD (14800 cents in `api/catalog.js`) |
+| Hoodie price | 80 USD (8000 cents in `api/catalog.js`), list 100 USD (10000 cents) |
 | Sweatpant name | Wide-Leg Sweatpant |
 | Sweatpant URL | https://otrace.co/product/wide-leg-sweatpant |
-| Sweatpant price | 128 USD (12800 cents) |
+| Sweatpant price | 80 USD (8000 cents), list 100 USD (10000 cents) |
+| Set | 140 USD for one hoodie and one sweatpant (14000 cents), list 200 USD |
 | Fabric | 450 GSM heavyweight cotton fleece, pre-shrunk, garment dyed |
 | Colours | Onyx Black, Warm Cream |
 | Sizes | XS, S, M, L, XL, 2XL, 3XL, unisex |

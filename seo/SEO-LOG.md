@@ -547,3 +547,7 @@ Same branch, still not deployed. Live otrace.co still shows the promo bars, the 
 **Chrome.** Header announcement, phone, and location stay out of the render order. Footer Categories and Useful links are filled. Shopify demo social URLs (`facebook.com/shopify` and the rest) are blank, so the footer does not publish them. Page overflow measured 0 at 375px and 1440px on garment-dyed, sizing, and contact. Theme tests 15/15.
 
 **Still needs the owner before it can be turned on:** a GLB, turntable frames, `KLAVIYO_PRIVATE_API_KEY` and `KLAVIYO_LIST_ID`, a WhatsApp number, and Crisp or Tawk ids. None of those are invented here.
+
+## 2026-10-26 — Prices restored to the theme-kalles offer
+
+Each piece is $80, reduced from $100 (`listPriceCents` 10000, `priceCents` 8000 on both OT-HOOD and OT-PANT). One hoodie and one sweatpant together are $140, reduced from $200 (`SET_LIST_CENTS` 20000, `SET_TOTAL_CENTS` 14000, `SET_UNIT_CENTS` 7000). Matched units checkout at the set rate. Strike-through and the set line are that offer. The $148 / $128 / $276 catalogue-only figures from this branch are removed. Moulded drawcord tips, worldwide shipping, and the nav cleanup stay.

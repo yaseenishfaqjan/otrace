@@ -103,12 +103,11 @@ export function syncPublicSeo() {
    * Assert that the CATALOGUE prices reach llms-full.txt - not that one
    * particular number does.
    *
-   * This used to require the literal '148 USD'. Changing the hoodie price made
+   * This used to require one frozen hoodie price. Changing the price made
    * it throw, which is the build working as designed, except the message read
    * 'missing required facts' and `npm run build | tail` hid the exit code. The
-   * previous dist was deployed while the API charged the new price: the page
-   * said 148 and Stripe took 100. A guard that freezes a price is a guard that
-   * breaks every price change.
+   * previous dist was deployed while the API charged a different price. A
+   * guard that freezes a price is a guard that breaks every price change.
    */
   const productsSrc = fs.readFileSync(
     path.join(REPO_ROOT, 'site', 'src', 'lib', 'products.ts'),
