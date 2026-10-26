@@ -14,6 +14,7 @@ import Cart from '@/pages/cart';
 import About from '@/pages/about';
 import Lookbook from '@/pages/lookbook';
 import Sizing from '@/pages/sizing';
+import GarmentDyed from '@/pages/garment-dyed';
 import Contact from '@/pages/contact';
 import Account from '@/pages/account';
 import OrderSuccess from '@/pages/order-success';
@@ -53,6 +54,7 @@ export default function App() {
           <Route path="/lookbook" component={Lookbook} />
           <Route path="/about" component={About} />
           <Route path="/sizing" component={Sizing} />
+          <Route path="/garment-dyed" component={GarmentDyed} />
           <Route path="/contact" component={Contact} />
           <Route path="/account" component={Account} />
           <Route path="/order/success" component={OrderSuccess} />

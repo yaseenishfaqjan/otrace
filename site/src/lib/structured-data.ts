@@ -74,8 +74,25 @@ const RETURN_POLICY = {
   returnMethod: 'https://schema.org/ReturnByMail',
 };
 
+/**
+ * FAQPage from the same strings the page renders. Google stopped showing FAQ
+ * rich results on 7 May 2026; this is for page understanding and AI extraction,
+ * not a promised snippet.
+ */
+export const faqLd = (faqs: { question: string; answer: string }[]) => ({
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((faq) => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+  })),
+});
+
 export const productLd = (product: Product) => {
   const url = absoluteUrl(`/product/${product.slug}`);
+  // No per-variant quantity exists in the catalogue. `preorder` is the only
+  // availability flag the API reports; absent means every variant is in stock.
   const availability = product.preorder ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock';
 
   return {

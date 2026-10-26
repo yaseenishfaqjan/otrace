@@ -1,5 +1,7 @@
 import { Link } from 'wouter';
 import { useReveal } from '@/lib/use-reveal';
+import { SiteImage } from '@/components/site-image';
+import { imageSize } from '@/lib/image-size';
 
 import { usePageMeta } from '@/lib/use-page-meta';
 export default function About() {
@@ -25,8 +27,9 @@ export default function About() {
           </p>
           <p>
             So we made two pieces instead of twenty. A hoodie and a sweatpant,
-            both from the same 450 gsm loopback fleece, both garment dyed after
-            they are sewn so the colour settles into the seams and softens
+            both from the same 450 GSM loopback fleece, both{' '}
+            <Link href="/garment-dyed" className="text-cream underline underline-offset-4">garment dyed</Link>{' '}
+            after they are sewn so the colour settles into the seams and softens
             rather than fades.
           </p>
           <p>
@@ -38,15 +41,31 @@ export default function About() {
       </div>
 
       <div className="grid md:grid-cols-2">
-        <img src="/detail-fabric.jpg" alt="Macro detail of heavyweight loopback fleece" loading="lazy" className="w-full aspect-[4/3] object-cover reveal" />
-        <img src="/detail-stitch.jpg" alt="Macro detail of a dropped shoulder seam" loading="lazy" className="w-full aspect-[4/3] object-cover reveal" />
+        <SiteImage
+          src="/detail-fabric.jpg"
+          alt="Macro detail of heavyweight loopback fleece"
+          width={imageSize('/detail-fabric.jpg').width}
+          height={imageSize('/detail-fabric.jpg').height}
+          loading="lazy"
+          pictureClassName="block w-full"
+          className="w-full aspect-[4/3] object-cover reveal"
+        />
+        <SiteImage
+          src="/detail-stitch.jpg"
+          alt="Macro detail of a dropped shoulder seam"
+          width={imageSize('/detail-stitch.jpg').width}
+          height={imageSize('/detail-stitch.jpg').height}
+          loading="lazy"
+          pictureClassName="block w-full"
+          className="w-full aspect-[4/3] object-cover reveal"
+        />
       </div>
 
       <div className="shell py-16 md:py-24 max-w-3xl">
         <h2 className="display text-cream text-[8vw] md:text-[2.5rem]">How we make it</h2>
         <div className="mt-8 divide-y divide-line border-y border-line">
           {[
-            ['Knit', '450 gsm loopback cotton fleece, brushed on the inside. Heavy enough to hang properly from the shoulder.'],
+            ['Knit', '450 GSM loopback cotton fleece, brushed on the inside. Heavy enough to hang properly from the shoulder.'],
             ['Cut', 'Boxy body, dropped shoulder, long enough in the hem to sit where it should rather than ride up.'],
             ['Dye', 'Dyed after sewing. The seams take the colour differently, so no two pieces are identical.'],
             ['Finish', 'Metal eyelets and drawcord tips, self-lined hood, internal branding tag. No plastic anywhere you can feel it.'],

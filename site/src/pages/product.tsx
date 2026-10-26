@@ -7,9 +7,13 @@ import NotFound from '@/pages/not-found';
 import { getProduct, money, PRODUCTS, SIZES, IN_STOCK_SHIPS_IN } from '@/lib/products';
 import { ProductCard } from '@/components/product-card';
 import { ProductGallery } from '@/components/product-gallery';
+import { FaqList } from '@/components/faq-list';
+import { SiteImage, webpSrc } from '@/components/site-image';
+import { imageSize } from '@/lib/image-size';
+import { faqsForProduct } from '@/lib/faqs';
 
 import { usePageMeta } from '@/lib/use-page-meta';
-import { breadcrumbLd, productLd } from '@/lib/structured-data';
+import { breadcrumbLd, faqLd, productLd } from '@/lib/structured-data';
 function Accordion({ title, children, open = false }: { title: string; children: React.ReactNode; open?: boolean }) {
   return (
     <details className="group border-b border-line" open={open}>
@@ -31,6 +35,7 @@ const PRODUCT_SEO_TITLE: Record<string, string> = {
 export default function Product() {
   const [, params] = useRoute('/product/:slug');
   const product = getProduct(params?.slug);
+  const faqs = product ? faqsForProduct(product.slug) : [];
   usePageMeta(
     product ? PRODUCT_SEO_TITLE[product.slug] ?? product.name : 'Page not found',
     product
@@ -51,6 +56,7 @@ export default function Product() {
               { name: product.category, path: `/shop/${product.categorySlug}` },
               { name: product.name, path: `/product/${product.slug}` },
             ]),
+            faqLd(faqs),
           ],
         }
       : { noindex: true },
@@ -83,7 +89,7 @@ export default function Product() {
   // holding the previous image while the new JPEG downloads.
   useEffect(() => {
     product?.colorways.forEach((c) =>
-      c.images.forEach((img) => { const p = new Image(); p.src = img.src; }),
+      c.images.forEach((img) => { const p = new Image(); p.src = webpSrc(img.src); }),
     );
   }, [product]);
 
@@ -213,7 +219,7 @@ export default function Product() {
               'Free delivery on every order',
               product.preorder
                 ? `Ships in ${product.preorder.shipsIn}`
-                : `Ships in ${IN_STOCK_SHIPS_IN}`,
+                : `In stock · ships in ${IN_STOCK_SHIPS_IN}`,
               product.preorder
                 ? 'Cancel any time before it ships'
                 : '30-day returns, unworn with tags',
@@ -240,37 +246,8 @@ export default function Product() {
               <p><span className="text-cream">Fabric.</span> {product.fabric}</p>
               <p><span className="text-cream">Fit.</span> {product.fit}</p>
               <p><span className="text-cream">Care.</span> {product.care}</p>
-            </Accordion>
-            <Accordion title="Pre-order questions">
-              {/* Asking someone to pay now and wait two months invites five
-                  questions. Answering them here, rather than on a policy page
-                  nobody opens, is the difference between a sale and a tab that
-                  gets closed. */}
               <p>
-                <span className="text-cream">Why pre-order?</span> Each colorway is
-                cut in one small run. Pre-ordering is what tells us how many to make, so
-                nothing is wasted and nothing sits in a warehouse.
-              </p>
-              <p>
-                <span className="text-cream">When does it arrive?</span>{' '}
-                {product.preorder ? `About ${product.preorder.shipsIn} from today.` : 'Within a few days.'}{' '}
-                We email tracking the moment it leaves us, and we write if anything slips.
-              </p>
-              <p>
-                <span className="text-cream">Can I change my mind?</span> Yes. Cancel any
-                time before it ships and you are refunded in full — no email chain, no
-                restocking fee.
-              </p>
-              <p>
-                <span className="text-cream">How does it fit?</span> Everything is cut
-                oversized on purpose. Take your usual size for the intended look, or size
-                down for something closer.{' '}
-                <Link href="/sizing" className="text-cream underline underline-offset-4">Flat measurements</Link>{' '}
-                are on the size guide.
-              </p>
-              <p>
-                <span className="text-cream">Will it come back?</span> Not in this run.
-                Drops are small and we do not restock a colorway once it is gone.
+                <Link href="/garment-dyed" className="text-cream underline underline-offset-4">What does garment dyed mean?</Link>
               </p>
             </Accordion>
             <Accordion title="Shipping &amp; returns">
@@ -290,6 +267,11 @@ export default function Product() {
               </p>
             </Accordion>
           </div>
+          <FaqList faqs={faqs} />
+          <p className="text-cream-dim text-sm mt-6">
+            <Link href="/sizing" className="text-cream underline underline-offset-4">Flat measurements</Link>
+            {' '}are on the size guide.
+          </p>
         </div>
       </div>
 
@@ -318,11 +300,14 @@ export default function Product() {
               href="/shop"
               className="reveal group relative block aspect-[4/5] overflow-hidden bg-charcoal/30"
             >
-              <img
+              <SiteImage
                 src="/campaign.jpg"
                 alt="Both OTRACE pieces worn together as a set"
+                width={imageSize('/campaign.jpg').width}
+                height={imageSize('/campaign.jpg').height}
                 loading="lazy"
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.03]"
+                pictureClassName="absolute inset-0 block"
+                className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.03]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-onyx via-onyx/20 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">

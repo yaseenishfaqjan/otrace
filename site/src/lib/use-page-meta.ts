@@ -12,7 +12,7 @@ export const SITE_URL = (
 export const SITE_NAME = 'OTRACE';
 export const DEFAULT_TITLE = 'OTRACE — Heavyweight Oversized Hoodies & Wide-Leg Sweatpants';
 export const DEFAULT_DESCRIPTION =
-  'OTRACE AW2026: 450 GSM heavyweight fleece hoodies and wide-leg sweatpants, cut oversized and garment dyed in Onyx Black and Warm Cream. Pre-order now with free shipping.';
+  'OTRACE AW2026: 450 GSM heavyweight fleece hoodies and wide-leg sweatpants, cut oversized and garment dyed in Onyx Black and Warm Cream. In stock, free US shipping.';
 export const DEFAULT_IMAGE = '/og.jpg';
 
 export const absoluteUrl = (path: string) => (/^https?:\/\//.test(path) ? path : `${SITE_URL}${path}`);

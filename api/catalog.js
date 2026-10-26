@@ -24,26 +24,24 @@ export const PRODUCTS = {
     slug: 'oversized-hoodie',
     name: 'OTRACE Oversized Hoodie',
     description:
-      'Boxy oversized hoodie in 450gsm garment-dyed heavyweight fleece. Self-lined hood, split kangaroo pocket, metal drawcord tips.',
+      'Boxy oversized hoodie in 450 GSM garment-dyed heavyweight fleece. Self-lined hood, split kangaroo pocket, metal drawcord tips.',
     priceCents: 14800,
     image: '/products/hoodie-onyx-front.jpg',
     sizes: SIZES,
     colours: COLORWAYS,
-    preorder: true,
-    shipsIn: '6–8 weeks',
+    preorder: false,
   },
   'OT-PANT': {
     sku: 'OT-PANT',
     slug: 'wide-leg-sweatpant',
     name: 'OTRACE Wide-Leg Sweatpant',
     description:
-      'Wide-leg sweatpant in the same 450gsm garment-dyed fleece. Drawcord waist with metal tips, ribbed ankle cuff.',
+      'Wide-leg sweatpant in the same 450 GSM garment-dyed fleece. Drawcord waist with metal tips, ribbed ankle cuff.',
     priceCents: 12800,
     image: '/products/pant-onyx-front.jpg',
     sizes: SIZES,
     colours: COLORWAYS,
-    preorder: true,
-    shipsIn: '6–8 weeks',
+    preorder: false,
   },
 };
 

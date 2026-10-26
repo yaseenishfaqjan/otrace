@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build && node scripts/prerender.mjs",
+    "build": "node scripts/sync-seo-public.mjs && vite build && node scripts/prerender.mjs",
     "serve": "node scripts/serve.mjs",
     "typecheck": "tsc --noEmit",
     "build:spa": "vite build"

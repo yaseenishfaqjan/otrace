@@ -8,6 +8,8 @@ import { SplitHeadline } from '@/components/split-headline';
 import { useReveal } from '@/lib/use-reveal';
 
 import { usePageMeta } from '@/lib/use-page-meta';
+import { SiteImage } from '@/components/site-image';
+import { imageSize } from '@/lib/image-size';
 const pad = (n: number) => String(n).padStart(2, '0');
 
 /* ------------------------------------------------------------ pieces ---- */
@@ -42,20 +44,22 @@ function Pieces({ look }: { look: Look }) {
 /* ----------------------------------------------------------- picture ---- */
 
 function LookPicture({ look, eager = false, sizes }: { look: Look; eager?: boolean; sizes?: string }) {
+  const frame = imageSize(look.src);
   return (
-    <picture>
-      {look.wide && <source media="(min-width: 768px)" srcSet={look.wide} />}
-      <img
-        src={look.src}
-        alt={look.alt}
-        sizes={sizes}
-        loading={eager ? 'eager' : 'lazy'}
-        fetchPriority={eager ? 'high' : 'auto'}
-        decoding="async"
-        style={look.position ? { objectPosition: look.position } : undefined}
-        className="look-img absolute inset-0 w-full h-full object-cover"
-      />
-    </picture>
+    <SiteImage
+      src={look.src}
+      sources={look.wide ? [{ src: look.wide, media: '(min-width: 768px)' }] : undefined}
+      alt={look.alt}
+      width={frame.width}
+      height={frame.height}
+      sizes={sizes}
+      loading={eager ? 'eager' : 'lazy'}
+      fetchPriority={eager ? 'high' : 'auto'}
+      decoding="async"
+      pictureClassName="absolute inset-0 block"
+      style={look.position ? { objectPosition: look.position } : undefined}
+      className="look-img w-full h-full object-cover"
+    />
   );
 }
 

@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type RefObject } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import type { ProductImage } from '@/lib/products';
+import { SiteImage } from '@/components/site-image';
+import { imageSize } from '@/lib/image-size';
 
 /**
  * Product gallery: native swipe on phones, hover-zoom on desktop, and a
@@ -136,12 +138,15 @@ export function ProductGallery({ images, badge, resetKey, transitionName }: Prop
               aria-label={`Open ${img.label.toLowerCase()} image full screen`}
               className="zoom-wrap relative shrink-0 w-full snap-start snap-always aspect-[4/5] overflow-hidden"
             >
-              <img
+              <SiteImage
                 src={img.src}
                 alt={img.alt}
+                width={imageSize(img.src).width}
+                height={imageSize(img.src).height}
                 loading={i === 0 ? 'eager' : 'lazy'}
                 fetchPriority={i === 0 ? 'high' : 'auto'}
                 draggable={false}
+                pictureClassName="block w-full h-full"
                 // Only the photo actually on screen carries the name: a named image
                 // scrolled out of view is still captured, unclipped, and would
                 // drift across the page during the transition.
@@ -209,7 +214,15 @@ export function ProductGallery({ images, badge, resetKey, transitionName }: Prop
                   index === i ? 'border-cream' : 'border-transparent hover:border-line'
                 }`}
               >
-                <img src={img.src} alt="" loading="lazy" className="w-full h-full object-cover" />
+                <SiteImage
+                  src={img.src}
+                  alt=""
+                  width={imageSize(img.src).width}
+                  height={imageSize(img.src).height}
+                  loading="lazy"
+                  pictureClassName="block w-full h-full"
+                  className="w-full h-full object-cover"
+                />
               </button>
             ))}
           </div>
@@ -351,15 +364,18 @@ function Viewer({
                     the grid's auto row grow to the photo's natural height, so on a
                     wide screen the bottom of every portrait shot ran off the
                     viewport. */}
-                <img
+                <SiteImage
                   src={img.src}
                   alt={img.alt}
+                  width={imageSize(img.src).width}
+                  height={imageSize(img.src).height}
                   draggable={false}
                   onClick={(e) => toggleZoom(e, i)}
+                  pictureClassName={here ? 'block' : 'absolute inset-0 block'}
                   className={`select-none [touch-action:manipulation] ${
                     here
                       ? 'block max-w-none w-[220%] h-auto cursor-zoom-out'
-                      : 'absolute inset-0 w-full h-full object-contain cursor-zoom-in'
+                      : 'w-full h-full object-contain cursor-zoom-in'
                   }`}
                 />
               </div>

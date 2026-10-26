@@ -30,6 +30,7 @@ import {
   subtotalCents,
   formatMoney,
 } from './catalog.js';
+import { submitIndexNow } from './indexnow.js';
 
 const {
   PORT = 3000,
@@ -360,7 +361,16 @@ app.post('/api/contact', async (req, res) => {
 
 initDatabase()
   .then(() => {
-    app.listen(PORT, () => console.log(`[boot] OTRACE API listening on ${PORT}`));
+    app.listen(PORT, () => {
+      console.log(`[boot] OTRACE API listening on ${PORT}`);
+      // After a deploy the process restarts. Ping IndexNow then, so Bing (what
+      // ChatGPT searches) is not waiting on someone to remember. A failure here
+      // must not stop checkout: the key file may not be on the host yet.
+      if (process.env.INDEXNOW_SUBMIT === '0') return;
+      submitIndexNow(SITE_URL)
+        .then((result) => console.log('[indexnow]', JSON.stringify(result)))
+        .catch((err) => console.error('[indexnow]', err));
+    });
   })
   .catch((err) => {
     console.error('[boot] database failed:', err.message);

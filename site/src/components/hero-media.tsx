@@ -8,16 +8,21 @@
  * ~370KB download. The <img> stays the LCP element; reduced motion gets the
  * still (see .hero-drift in index.css).
  */
+import { SiteImage } from '@/components/site-image';
+import { imageSize } from '@/lib/image-size';
+
 export function HeroMedia({ alt }: { alt: string }) {
+  const desktop = imageSize('/hero-desktop.jpg');
   return (
-    <picture>
-      <source media="(max-width: 767px)" srcSet="/hero-mobile.jpg" />
-      <img
-        src="/hero-desktop.jpg"
-        alt={alt}
-        className="hero-drift absolute inset-0 w-full h-full object-cover"
-        fetchPriority="high"
-      />
-    </picture>
+    <SiteImage
+      src="/hero-desktop.jpg"
+      sources={[{ src: '/hero-mobile.jpg', media: '(max-width: 767px)' }]}
+      alt={alt}
+      width={desktop.width}
+      height={desktop.height}
+      pictureClassName="absolute inset-0 block"
+      className="hero-drift w-full h-full object-cover"
+      fetchPriority="high"
+    />
   );
 }

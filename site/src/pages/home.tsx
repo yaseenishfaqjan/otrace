@@ -4,12 +4,14 @@ import { PRODUCTS } from '@/lib/products';
 import { ProductCard } from '@/components/product-card';
 import { useReveal } from '@/lib/use-reveal';
 import { HeroMedia } from '@/components/hero-media';
+import { SiteImage } from '@/components/site-image';
+import { imageSize } from '@/lib/image-size';
 import { SplitHeadline } from '@/components/split-headline';
 
 import { usePageMeta } from '@/lib/use-page-meta';
 import { organizationLd, websiteLd } from '@/lib/structured-data';
 const TICKER = [
-  'AW2026 pre-order',
+  'AW2026 in stock',
   '450 GSM heavyweight fleece',
   'Garment dyed',
   'Cut oversized',
@@ -53,7 +55,7 @@ export default function Home() {
 
         <div className="relative h-full shell flex flex-col justify-end pb-16 md:pb-20">
           <p className="eyebrow text-cream-dim mb-5 fade">
-            Autumn / Winter 2026 &mdash; pre-order open
+            Autumn / Winter 2026 &mdash; in stock
           </p>
           <SplitHeadline
             lines={['Worn', 'loose']}
@@ -68,11 +70,11 @@ export default function Home() {
           >
             Heavyweight fleece cut boxy and dyed after it is sewn. Two pieces,
             two colorways, made to be worn as a set or broken apart.
-            Pre-order now &mdash; ships in 6&ndash;8 weeks.
+            In stock &mdash; ships in 3&ndash;5 business days.
           </p>
           <div className="flex flex-wrap items-center gap-3 mt-9 rise" style={{ animationDelay: '780ms' }}>
             <Link href="/shop" className="btn">
-              Pre-order the drop <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} />
+              Shop the drop <ArrowRight className="w-3.5 h-3.5" strokeWidth={2.5} />
             </Link>
             <Link href="/about" className="btn-ghost">The label</Link>
           </div>
@@ -120,11 +122,14 @@ export default function Home() {
       <section className="relative">
         <div className="grid md:grid-cols-2 items-stretch">
           <div className="relative aspect-[4/5] md:aspect-auto md:min-h-[42rem] overflow-hidden">
-            <img
+            <SiteImage
               src="/campaign.jpg"
               alt="Both OTRACE colorways worn as a full set — Onyx Black and Warm Cream"
+              width={imageSize('/campaign.jpg').width}
+              height={imageSize('/campaign.jpg').height}
               loading="lazy"
-              className="absolute inset-0 w-full h-full object-cover"
+              pictureClassName="absolute inset-0 block"
+              className="w-full h-full object-cover"
             />
           </div>
 
@@ -164,7 +169,15 @@ export default function Home() {
           {CRAFT.map((c, i) => (
             <article key={c.title} className="reveal" style={{ transitionDelay: `${i * 90}ms` }}>
               <div className="aspect-[4/3] overflow-hidden bg-charcoal/30">
-                <img src={c.image} alt="" loading="lazy" className="w-full h-full object-cover" />
+                <SiteImage
+                  src={c.image}
+                  alt=""
+                  width={imageSize(c.image).width}
+                  height={imageSize(c.image).height}
+                  loading="lazy"
+                  pictureClassName="block w-full h-full"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <h3 className="eyebrow text-cream mt-5">{c.title}</h3>
               <p className="text-cream-dim text-sm leading-relaxed mt-3">{c.body}</p>

@@ -4,7 +4,7 @@ import { postJson } from '@/lib/api';
 
 import { usePageMeta } from '@/lib/use-page-meta';
 export default function Contact() {
-  usePageMeta('Contact', 'Contact OTRACE about an order, sizing or a pre-order. A person replies within one business day.');
+  usePageMeta('Contact', 'Contact OTRACE about an order, sizing or a product. A person replies within one business day.');
   const [state, setState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
   const [message, setMessage] = useState('');
 

@@ -1,0 +1,11 @@
+=== live section 11 2026-10-26T02:40:07Z ===
+hoodie_http 200
+PreOrder lines 1
+PreOrder occ 14
+InStock lines 0
+pre-order ci lines 4
+llms 404
+GPTBot 0
+sitemap lastmods: 13 <lastmod>2026-09-29
+sitemap locs 13
+live hoodie imgs 11 missing_wh 11

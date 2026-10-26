@@ -1,0 +1,10 @@
+=== local prerender server ===
+hoodie PreOrder 0
+hoodie InStock lines 1
+hoodie InStock occ 14
+pant PreOrder 0
+shop PreOrder 0
+shop pre-order 0
+home pre-order 0
+llms 200
+GPTBot 1
