@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="80 120 860 860">
+  <!-- The OT monogram (arrow through O and T). The full script wordmark is
+       unreadable at tab size; this is the mark that survives at 16-32px. -->
+  <rect x="80" y="120" width="860" height="860" fill="#0D0C0B"/>
+  <g fill="#F0EBE0">
+    <path fill-rule="evenodd" d="M500,330 A230,230 0 1,0 500,790 A230,230 0 1,0 500,330 Z M500,412 A148,148 0 1,1 500,708 A148,148 0 1,1 500,412 Z"/>
+    <path d="M280,212 L720,212 L720,312 L682,312 L682,268 L545,268 L545,838 Q545,846 555,846 L600,846 L600,882 L400,882 L400,846 L445,846 Q455,846 455,838 L455,268 L318,268 L318,312 L280,312 Z"/>
+    <g transform="translate(190,905) rotate(-49)">
+      <rect x="0" y="-17" width="880" height="34"/>
+      <path d="M965,0 L845,-62 L872,0 L845,62 Z"/>
+      <path d="M75,-16 L120,-16 L70,-72 L25,-72 Z"/>
+      <path d="M20,-16 L65,-16 L15,-72 L-30,-72 Z"/>
+      <path d="M75,16 L120,16 L70,72 L25,72 Z"/>
+      <path d="M20,16 L65,16 L15,72 L-30,72 Z"/>
+    </g>
+  </g>
+</svg>

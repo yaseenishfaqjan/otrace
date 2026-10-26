@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>OTRACE — type options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;700;800;900&family=Inter:wght@400;500;600;700;800;900&family=Inter+Tight:wght@400;500;600;700;800;900&family=Anton&family=Bodoni+Moda:wght@400;500;700;800;900&family=Manrope:wght@400;500;600;700;800&family=Oswald:wght@400;500;600;700&family=Kaushan+Script&display=swap" rel="stylesheet" />
+<style>
+  :root{ --onyx:#0D0C0B; --lift:#141312; --cream:#F0EBE0; --dim:#B9B3A8; --muted:#8A8681; --line:#262523; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:var(--onyx); color:var(--cream); font-family:Inter, system-ui, sans-serif; }
+  .wrap{ max-width:1100px; margin:0 auto; padding:40px 20px 80px; }
+  .intro{ border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:8px; }
+  .intro h1{ font-family:'Kaushan Script',cursive; font-weight:400; font-size:34px; margin:0 0 10px; }
+  .intro p{ color:var(--dim); font-size:14px; line-height:1.6; margin:0; max-width:60ch; }
+
+  .opt{ border-bottom:1px solid var(--line); padding:44px 0; }
+  .tag{ display:flex; align-items:baseline; gap:14px; flex-wrap:wrap; margin-bottom:26px; }
+  .letter{ font-family:Inter,sans-serif; font-weight:800; font-size:13px; letter-spacing:.16em;
+           background:var(--cream); color:var(--onyx); padding:6px 11px; }
+  .name{ font-family:Inter,sans-serif; font-weight:600; font-size:14px; letter-spacing:.02em; }
+  .note{ font-family:Inter,sans-serif; color:var(--muted); font-size:12.5px; line-height:1.55; max-width:56ch; }
+
+  .demo{ background:var(--lift); border:1px solid var(--line); padding:30px 26px; }
+  .nav{ display:flex; gap:26px; margin-bottom:34px; flex-wrap:wrap; }
+  .nav span{ font-size:11px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); }
+  .head{ margin:0 0 20px; }
+  .copy{ color:var(--dim); font-size:15px; line-height:1.65; max-width:44ch; margin:0 0 26px; }
+  .row{ display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  .btn{ display:inline-block; background:var(--cream); color:var(--onyx); padding:15px 28px;
+        font-size:12px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; }
+  .prod{ margin-top:28px; padding-top:20px; border-top:1px solid var(--line);
+         display:flex; justify-content:space-between; align-items:baseline; gap:20px; }
+  .prod .t{ font-size:15px; font-weight:500; }
+  .prod .p{ font-size:15px; }
+  .prod .s{ display:block; color:var(--muted); font-size:12px; margin-top:5px; font-weight:400; }
+
+  /* --- A : Inter Tight ------------------------------------------------- */
+  .a .nav span,.a .btn,.a .copy,.a .prod{ font-family:Inter,sans-serif; }
+  .a .head{ font-family:'Inter Tight',sans-serif; font-weight:800; font-size:clamp(46px,9vw,86px);
+            text-transform:uppercase; letter-spacing:-.045em; line-height:.86; word-spacing:.12em; }
+
+  /* --- B : Anton -------------------------------------------------------- */
+  .b .nav span,.b .btn,.b .copy,.b .prod{ font-family:Inter,sans-serif; }
+  .b .head{ font-family:Anton,sans-serif; font-weight:400; font-size:clamp(48px,9.5vw,92px);
+            text-transform:uppercase; letter-spacing:.005em; line-height:.9; }
+
+  /* --- C : Bodoni Moda -------------------------------------------------- */
+  .c .nav span,.c .btn,.c .copy,.c .prod{ font-family:Inter,sans-serif; }
+  .c .head{ font-family:'Bodoni Moda',serif; font-weight:800; font-size:clamp(44px,8.5vw,82px);
+            text-transform:uppercase; letter-spacing:-.01em; line-height:.95; }
+
+  /* --- D : Oswald ------------------------------------------------------- */
+  .d .nav span,.d .btn,.d .copy,.d .prod{ font-family:Manrope,sans-serif; }
+  .d .head{ font-family:Oswald,sans-serif; font-weight:600; font-size:clamp(48px,9.5vw,92px);
+            text-transform:uppercase; letter-spacing:.005em; line-height:.92; }
+
+  /* --- E : current ------------------------------------------------------ */
+  .e .nav span,.e .btn,.e .copy,.e .prod{ font-family:Archivo,sans-serif; }
+  .e .head{ font-family:Archivo,sans-serif; font-weight:800; font-size:clamp(46px,9vw,86px);
+            text-transform:uppercase; letter-spacing:-.045em; line-height:.88; word-spacing:.12em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="intro">
+    <h1>OTRACE</h1>
+    <p>The same block of the real site, set five ways. Look at the headline weight,
+       the small caps in the nav, and how the body paragraph reads at length.
+       Tell me a letter — A, B, C, D or E — and I'll apply it everywhere.</p>
+  </div>
+
+  <section class="opt a">
+    <div class="tag"><span class="letter">A</span><span class="name">Inter Tight + Inter</span></div>
+    <p class="note">Swiss neutral. The quiet-luxury default — Aimé Leon Dore, Arket, COS territory. Lets the photography do the talking.</p>
+    <div class="demo">
+      <div class="nav"><span>Shop</span><span>Hoodies</span><span>Bottoms</span><span>The Label</span></div>
+      <h2 class="head">Worn loose</h2>
+      <p class="copy">Heavyweight fleece cut boxy and dyed after it is sewn. Two pieces, two colorways, made to be worn as a set or broken apart.</p>
+      <div class="row"><span class="btn">Pre-order the drop</span></div>
+      <div class="prod"><span class="t">Oversized Hoodie<span class="s">Onyx Black · Ships in 6–8 weeks</span></span><span class="p">$148</span></div>
+    </div>
+  </section>
+
+  <section class="opt b">
+    <div class="tag"><span class="letter">B</span><span class="name">Anton + Inter</span></div>
+    <p class="note">Tall and condensed. Loud, poster-like, unmistakably streetwear. The most aggressive of the five.</p>
+    <div class="demo">
+      <div class="nav"><span>Shop</span><span>Hoodies</span><span>Bottoms</span><span>The Label</span></div>
+      <h2 class="head">Worn loose</h2>
+      <p class="copy">Heavyweight fleece cut boxy and dyed after it is sewn. Two pieces, two colorways, made to be worn as a set or broken apart.</p>
+      <div class="row"><span class="btn">Pre-order the drop</span></div>
+      <div class="prod"><span class="t">Oversized Hoodie<span class="s">Onyx Black · Ships in 6–8 weeks</span></span><span class="p">$148</span></div>
+    </div>
+  </section>
+
+  <section class="opt c">
+    <div class="tag"><span class="letter">C</span><span class="name">Bodoni Moda + Inter</span></div>
+    <p class="note">High-contrast serif. Fashion-house, editorial, expensive. Reads closer to Saint Laurent than to streetwear.</p>
+    <div class="demo">
+      <div class="nav"><span>Shop</span><span>Hoodies</span><span>Bottoms</span><span>The Label</span></div>
+      <h2 class="head">Worn loose</h2>
+      <p class="copy">Heavyweight fleece cut boxy and dyed after it is sewn. Two pieces, two colorways, made to be worn as a set or broken apart.</p>
+      <div class="row"><span class="btn">Pre-order the drop</span></div>
+      <div class="prod"><span class="t">Oversized Hoodie<span class="s">Onyx Black · Ships in 6–8 weeks</span></span><span class="p">$148</span></div>
+    </div>
+  </section>
+
+  <section class="opt d">
+    <div class="tag"><span class="letter">D</span><span class="name">Oswald + Manrope</span></div>
+    <p class="note">Condensed but calmer than Anton, on a softer geometric body. Athletic without shouting.</p>
+    <div class="demo">
+      <div class="nav"><span>Shop</span><span>Hoodies</span><span>Bottoms</span><span>The Label</span></div>
+      <h2 class="head">Worn loose</h2>
+      <p class="copy">Heavyweight fleece cut boxy and dyed after it is sewn. Two pieces, two colorways, made to be worn as a set or broken apart.</p>
+      <div class="row"><span class="btn">Pre-order the drop</span></div>
+      <div class="prod"><span class="t">Oversized Hoodie<span class="s">Onyx Black · Ships in 6–8 weeks</span></span><span class="p">$148</span></div>
+    </div>
+  </section>
+
+  <section class="opt e">
+    <div class="tag"><span class="letter">E</span><span class="name">Archivo — what is on the site now</span></div>
+    <p class="note">For comparison. The wide, slightly sporty grotesque you are looking at today.</p>
+    <div class="demo">
+      <div class="nav"><span>Shop</span><span>Hoodies</span><span>Bottoms</span><span>The Label</span></div>
+      <h2 class="head">Worn loose</h2>
+      <p class="copy">Heavyweight fleece cut boxy and dyed after it is sewn. Two pieces, two colorways, made to be worn as a set or broken apart.</p>
+      <div class="row"><span class="btn">Pre-order the drop</span></div>
+      <div class="prod"><span class="t">Oversized Hoodie<span class="s">Onyx Black · Ships in 6–8 weeks</span></span><span class="p">$148</span></div>
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

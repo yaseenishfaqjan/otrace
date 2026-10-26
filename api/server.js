@@ -1,0 +1,368 @@
+/**
+ * OTRACE — checkout / payment / order backend.
+ *
+ * The storefront is a static bundle with no server of its own, so this service
+ * supplies the three things it cannot do itself:
+ *   1. turn a browser cart into a Stripe Checkout Session (prices resolved
+ *      server-side, never trusted from the client),
+ *   2. receive Stripe's webhook and record the paid order,
+ *   3. email the customer and the shop.
+ *
+ * Stripe's hosted Checkout collects the card, billing and shipping address, so
+ * no card data ever touches this server or the browser bundle.
+ */
+
+import express from 'express';
+import Stripe from 'stripe';
+import mysql from 'mysql2/promise';
+import nodemailer from 'nodemailer';
+import { fileURLToPath } from 'node:url';
+
+import { LOGO_CID, orderEmail, welcomeEmail } from './emails.js';
+import {
+  PRODUCTS,
+  publicProducts,
+  SHIPPING,
+  CURRENCY,
+  buildLineItems,
+  packItems,
+  unpackItems,
+  subtotalCents,
+  formatMoney,
+} from './catalog.js';
+
+const {
+  PORT = 3000,
+  SITE_URL = 'https://otrace.co',
+  STRIPE_SECRET_KEY,
+  STRIPE_WEBHOOK_SECRET,
+  DB_HOST = 'db',
+  DB_USER,
+  DB_PASSWORD,
+  DB_NAME = 'otrace',
+  SMTP_HOST,
+  SMTP_PORT = '465',
+  SMTP_USER,
+  SMTP_PASSWORD,
+  SHOP_EMAIL,
+} = process.env;
+
+// A thrown error in any one route must never take the whole service down — an
+// admin query bug once killed a sibling process and with it checkout.
+process.on('unhandledRejection', (r) => console.error('[fatal-guard] unhandled rejection:', r));
+process.on('uncaughtException', (e) => console.error('[fatal-guard] uncaught exception:', e));
+
+const app = express();
+app.set('trust proxy', 1);
+
+const stripe = STRIPE_SECRET_KEY
+  ? new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2024-12-18.acacia' })
+  : null;
+if (!stripe) console.warn('[boot] STRIPE_SECRET_KEY not set — /api/checkout will refuse.');
+
+/* ------------------------------------------------------------------ database */
+
+let pool;
+
+async function initDatabase() {
+  pool = mysql.createPool({
+    host: DB_HOST,
+    user: DB_USER,
+    password: DB_PASSWORD,
+    database: DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 5,
+    charset: 'utf8mb4',
+  });
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS orders (
+      id                 INT AUTO_INCREMENT PRIMARY KEY,
+      stripe_session_id  VARCHAR(255) NOT NULL UNIQUE,
+      payment_intent     VARCHAR(255) NULL,
+      email              VARCHAR(255) NULL,
+      customer_name      VARCHAR(255) NULL,
+      phone              VARCHAR(64)  NULL,
+      amount_total_cents INT NOT NULL DEFAULT 0,
+      currency           VARCHAR(10)  NOT NULL DEFAULT 'usd',
+      payment_status     VARCHAR(50)  NULL,
+      items_json         JSON NULL,
+      shipping_json      JSON NULL,
+      created_at         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS subscribers (
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      email        VARCHAR(255) NOT NULL UNIQUE,
+      source       VARCHAR(64)  NOT NULL DEFAULT 'footer',
+      unsubscribed TINYINT(1)   NOT NULL DEFAULT 0,
+      created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS enquiries (
+      id         INT AUTO_INCREMENT PRIMARY KEY,
+      name       VARCHAR(255) NOT NULL,
+      email      VARCHAR(255) NOT NULL,
+      subject    VARCHAR(255) NULL,
+      message    TEXT NOT NULL,
+      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+  `);
+
+  console.log('[boot] database ready');
+}
+
+/* --------------------------------------------------------------------- email */
+
+const mailer =
+  SMTP_HOST && SMTP_USER && SMTP_PASSWORD
+    ? nodemailer.createTransport({
+        host: SMTP_HOST,
+        port: Number(SMTP_PORT),
+        secure: Number(SMTP_PORT) === 465,
+        auth: { user: SMTP_USER, pass: SMTP_PASSWORD },
+      })
+    : null;
+if (!mailer) console.warn('[boot] SMTP not configured — emails will be skipped.');
+
+/** Never let a mail failure lose an order: it is already committed by now. */
+// The logo rides inside every message (emails.js explains why it is not a link).
+const LOGO_ATTACHMENT = {
+  filename: 'otrace.png',
+  path: fileURLToPath(new URL('./assets/otrace-logo-email.png', import.meta.url)),
+  cid: LOGO_CID,
+};
+
+async function send({ to, subject, html, text }) {
+  if (!mailer || !to) return false;
+  try {
+    await mailer.sendMail({ from: `"OTRACE" <${SMTP_USER}>`, to, subject, html, text, attachments: [LOGO_ATTACHMENT] });
+    console.log(`[mail] sent "${subject}" to ${to}`);
+    return true;
+  } catch (err) {
+    console.error(`[mail] FAILED "${subject}" to ${to}:`, err.message);
+    return false;
+  }
+}
+
+const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v ?? '').trim());
+
+/* -------------------------------------------- webhook (raw body must be first) */
+
+/**
+ * Registered BEFORE express.json(): Stripe signs the raw bytes, so any JSON
+ * parsing ahead of this invalidates the signature.
+ */
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  if (!stripe || !STRIPE_WEBHOOK_SECRET) return res.status(503).send('Webhook not configured');
+
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, req.headers['stripe-signature'], STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    console.error('[webhook] signature verification failed:', err.message);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // Acknowledge immediately; Stripe retries on anything but a fast 2xx.
+  res.json({ received: true });
+  if (event.type !== 'checkout.session.completed') return;
+
+  try {
+    const session = await stripe.checkout.sessions.retrieve(event.data.object.id, {
+      expand: ['line_items'],
+    });
+
+    const items = unpackItems(session.metadata);
+    const shipping =
+      session.collected_information?.shipping_details ?? session.shipping_details ?? null;
+    const reference = `OT-${String(session.id).slice(-8).toUpperCase()}`;
+
+    // INSERT IGNORE + a UNIQUE session id makes redelivered webhooks safe.
+    await pool.query(
+      `INSERT IGNORE INTO orders
+         (stripe_session_id, payment_intent, email, customer_name, phone,
+          amount_total_cents, currency, payment_status, items_json, shipping_json)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        session.id,
+        typeof session.payment_intent === 'string' ? session.payment_intent : null,
+        session.customer_details?.email ?? null,
+        session.customer_details?.name ?? shipping?.name ?? null,
+        session.customer_details?.phone ?? null,
+        session.amount_total ?? 0,
+        session.currency ?? CURRENCY,
+        session.payment_status ?? null,
+        JSON.stringify(items),
+        JSON.stringify(shipping),
+      ],
+    );
+    console.log(`[order] ${reference} recorded (${session.customer_details?.email})`);
+
+    const order = {
+      reference,
+      items,
+      shipping,
+      amountTotalCents: session.amount_total ?? 0,
+      shippingCents: session.shipping_cost?.amount_total ?? 0,
+    };
+
+    const built = orderEmail({ siteUrl: SITE_URL.replace(/\/$/, ''), order });
+    await send({
+      to: session.customer_details?.email,
+      subject: built.subject,
+      html: built.html,
+      text: built.text,
+    });
+
+    if (SHOP_EMAIL) {
+      const lines = items
+        .map((i) => `  ${i.quantity} x ${i.name} (${[i.colour, i.size].filter(Boolean).join(', ')})`)
+        .join('\n');
+      const a = shipping?.address ?? {};
+      await send({
+        to: SHOP_EMAIL,
+        subject: `New order ${reference} — ${formatMoney(order.amountTotalCents)}`,
+        text: `${reference}\n\n${lines}\n\nTotal ${formatMoney(order.amountTotalCents)}\n\n` +
+          `${session.customer_details?.name ?? ''}\n${session.customer_details?.email ?? ''}\n` +
+          `${session.customer_details?.phone ?? ''}\n` +
+          `${[a.line1, a.line2, a.city, a.state, a.postal_code, a.country].filter(Boolean).join('\n')}\n`,
+      });
+    }
+  } catch (err) {
+    console.error('[webhook] processing failed:', err);
+  }
+});
+
+app.use(express.json({ limit: '32kb' }));
+
+/* -------------------------------------------------------------------- routes */
+
+app.get('/api/health', (_req, res) => {
+  res.json({
+    ok: true,
+    stripe: stripe ? 'configured' : 'not configured',
+    mail: mailer ? 'configured' : 'not configured',
+  });
+});
+
+/** Lets the storefront read authoritative pricing rather than hardcoding it. */
+app.get('/api/products', (_req, res) => {
+  res.json({ currency: CURRENCY, shipping: SHIPPING, products: publicProducts(SITE_URL) });
+});
+
+app.post('/api/checkout', async (req, res) => {
+  if (!stripe) {
+    return res.status(503).json({ error: 'Payments are not configured yet. Please try again shortly.' });
+  }
+
+  const { lineItems, normalised, errors } = buildLineItems(req.body?.items, { siteUrl: SITE_URL });
+  if (errors.length || lineItems.length === 0) {
+    return res.status(400).json({ error: errors[0] ?? 'Your cart is empty.' });
+  }
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      mode: 'payment',
+      line_items: lineItems,
+      success_url: `${SITE_URL}/order/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${SITE_URL}/cart`,
+      billing_address_collection: 'required',
+      shipping_address_collection: { allowed_countries: ['US'] },
+      phone_number_collection: { enabled: true },
+      shipping_options: [
+        {
+          shipping_rate_data: {
+            type: 'fixed_amount',
+            display_name: SHIPPING.label,
+            fixed_amount: { amount: SHIPPING.amountCents, currency: CURRENCY },
+            delivery_estimate: {
+              minimum: { unit: 'business_day', value: SHIPPING.minDays },
+              maximum: { unit: 'business_day', value: SHIPPING.maxDays },
+            },
+          },
+        },
+      ],
+      // packItems keeps every value inside Stripe's 500-character metadata cap.
+      metadata: {
+        ...packItems(normalised),
+        subtotal_cents: String(subtotalCents(normalised)),
+      },
+    });
+
+    console.log(`[checkout] session ${session.id} for ${formatMoney(session.amount_total ?? 0)}`);
+    res.json({ url: session.url, id: session.id });
+  } catch (err) {
+    console.error('[checkout] failed:', err.message);
+    res.status(500).json({ error: 'Checkout could not start. Please try again.' });
+  }
+});
+
+app.post('/api/subscribe', async (req, res) => {
+  const email = String(req.body?.email ?? '').trim().toLowerCase();
+  const source = String(req.body?.source ?? 'footer').slice(0, 64);
+  if (!isEmail(email)) return res.status(400).json({ error: 'That email does not look right.' });
+
+  try {
+    // affectedRows lies for a no-op ON DUPLICATE KEY UPDATE, so ask first.
+    const [[existing]] = await pool.query('SELECT id FROM subscribers WHERE email = ? LIMIT 1', [email]);
+    if (existing) return res.json({ ok: true, alreadySubscribed: true });
+
+    await pool.query('INSERT INTO subscribers (email, source) VALUES (?, ?)', [email, source]);
+
+    const built = welcomeEmail({ siteUrl: SITE_URL.replace(/\/$/, '') });
+    await send({ to: email, subject: built.subject, html: built.html, text: built.text });
+
+    res.json({ ok: true, alreadySubscribed: false });
+  } catch (err) {
+    console.error('[subscribe] failed:', err.message);
+    res.status(500).json({ error: 'Could not add you just now. Please try again.' });
+  }
+});
+
+app.post('/api/contact', async (req, res) => {
+  const name = String(req.body?.name ?? '').trim().slice(0, 255);
+  const email = String(req.body?.email ?? '').trim().slice(0, 255);
+  const subject = String(req.body?.subject ?? '').trim().slice(0, 255);
+  const message = String(req.body?.message ?? '').trim().slice(0, 5000);
+
+  if (!name || !isEmail(email) || !message) {
+    return res.status(400).json({ error: 'Name, a valid email and a message are all needed.' });
+  }
+
+  try {
+    // Written to the database BEFORE any attempt to email, so a mail outage
+    // cannot lose an enquiry.
+    await pool.query(
+      'INSERT INTO enquiries (name, email, subject, message) VALUES (?, ?, ?, ?)',
+      [name, email, subject || null, message],
+    );
+
+    if (SHOP_EMAIL) {
+      await send({
+        to: SHOP_EMAIL,
+        subject: `Enquiry: ${subject || 'no subject'} — ${name}`,
+        text: `${name} <${email}>\n\n${message}`,
+      });
+    }
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[contact] failed:', err.message);
+    res.status(500).json({ error: 'Could not send that just now. Please try again.' });
+  }
+});
+
+/* ---------------------------------------------------------------------- boot */
+
+initDatabase()
+  .then(() => {
+    app.listen(PORT, () => console.log(`[boot] OTRACE API listening on ${PORT}`));
+  })
+  .catch((err) => {
+    console.error('[boot] database failed:', err.message);
+    process.exit(1);
+  });

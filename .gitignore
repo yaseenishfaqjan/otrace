@@ -1,0 +1,35 @@
+# Dependencies and build output
+node_modules/
+dist/
+.vite/
+
+# Real secrets. deploy/.env.example is committed; a real .env never is.
+.env
+.env.*
+!.env.example
+
+# Python scratch from the asset scripts
+__pycache__/
+*.pyc
+
+# OS noise
+.DS_Store
+Thumbs.db
+*.log
+
+# ---------------------------------------------------------------------------
+# Generated image intermediates - DELIBERATELY NOT COMMITTED.
+#
+# assets/generated (224MB) and assets/branded (39MB) are AI renders and
+# compositing output produced by the scripts in assets/*.py. Everything the
+# SITE actually serves was already copied into site/public, which IS committed,
+# so the shop builds and deploys from this repo alone.
+#
+# They are excluded because git handles hundreds of 6MB PNGs badly: every clone
+# would pull 263MB forever, even after they are deleted. They live only on the
+# build machine, so if they matter, archive them somewhere that is not git.
+# assets/brand (the real wordmark sources) IS committed - that one is
+# irreplaceable.
+# ---------------------------------------------------------------------------
+assets/generated/
+assets/branded/

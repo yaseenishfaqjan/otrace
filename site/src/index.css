@@ -1,0 +1,467 @@
+@import 'tailwindcss';
+
+/* ==========================================================================
+   OTRACE design tokens
+   Palette is taken from the AW2026 brand sheet. One deliberate correction:
+   the sheet lists "charcoal #2A88FF", which is a mid BLUE, not a charcoal —
+   almost certainly a transposed hex. Charcoal here is #2A2A2A, and it is only
+   ever used for surfaces and hairlines, never for type.
+   ========================================================================== */
+@theme {
+  --color-onyx: #0d0c0b;
+  --color-onyx-lift: #141312;
+  --color-charcoal: #2a2a2a;
+  --color-cream: #f0ebe0;
+  --color-cream-dim: #b9b3a8;
+  --color-muted: #8a8681;
+  --color-line: #262523;
+
+  /* One neutral grotesque for the whole site. A quiet typeface is what makes
+     the clothes look expensive — the type gets out of the way and the
+     photography carries the page. */
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: 'Inter', ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* Luxury display type is LIGHT and WIDE, not heavy and tight — measured off
+     amiri.com, which sets its headings at weight 400 with +0.06em. Heavy and
+     tight is what sportswear does; it shouts, and shouting reads cheaper. */
+  --tracking-display: 0.05em;
+  --tracking-wide: 0.18em;
+}
+
+/* --------------------------------------------------------------- base ---- */
+/* Inside @layer base on purpose. In Tailwind v4 the utilities live in a
+   cascade layer, and UNLAYERED CSS beats layered CSS whatever the
+   specificity. Left unlayered, `img { max-width: 100% }` silently overrode
+   `max-w-none` and clamped the zoomed gallery image to the screen, and
+   `* { scrollbar-width }` overrode `no-scrollbar`. */
+@layer base {
+  html {
+    background-color: var(--color-onyx);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--color-onyx);
+    color: var(--color-cream);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    overscroll-behavior-y: none;
+
+    /* Light type on a near-black ground renders too heavy with subpixel
+       antialiasing — strokes bloom and the page looks muddy. Greyscale
+       smoothing is what keeps cream-on-onyx crisp. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-synthesis-weight: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Prices and quantities must not jitter as they change. */
+  .tabular-nums,
+  [class*='tabular'] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background: var(--color-cream);
+    color: var(--color-onyx);
+  }
+
+  /* A dark site with a bright scrollbar looks unfinished on desktop. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-charcoal) var(--color-onyx);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-cream);
+    outline-offset: 3px;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+}
+
+/* ------------------------------------------------------------ utilities -- */
+/* The logo (src/components/wordmark.tsx): the vector used as a mask over
+   currentColor. A component-layer class so height utilities still size it. */
+@layer components {
+  .wordmark-logo {
+    display: inline-block;
+    aspect-ratio: 3712 / 2612;
+    background-color: currentColor;
+    -webkit-mask: url('/brand/otrace-wordmark.svg') center / contain no-repeat;
+    mask: url('/brand/otrace-wordmark.svg') center / contain no-repeat;
+  }
+}
+
+/* The house heading: heavy, uppercase, tightly tracked, tight leading. */
+@utility display {
+  font-family: var(--font-display);
+  /* 500 rather than the 400 of the reference: that site sets dark type on
+     light, where strokes hold. Cream on onyx optically thins, so one step up
+     lands at the same apparent weight. */
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-display);
+  /* Open tracking needs open leading or the lines lock together. */
+  line-height: 1.02;
+}
+
+/* Small all-caps labels — section eyebrows, buttons, nav. */
+/* Named `eyebrow` on purpose: the previous name is also a built-in Tailwind
+   text-decoration class, and the clash drew a line over every label. Do not
+   write that old name anywhere in source, comments included — Tailwind scans
+   comments too and will regenerate the rule.
+   Small all-caps need MORE tracking, not less — at 11px the letters crowd.
+   Inter's caps are even enough to carry it without looking gappy. */
+@utility eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  line-height: 1.2;
+}
+
+@utility rule {
+  border-top: 1px solid var(--color-line);
+}
+
+/* Edge-to-edge on a phone, contained on a desktop. Used everywhere so the
+   rhythm of the page stays consistent. */
+@utility shell {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  max-width: 90rem;
+  @media (min-width: 768px) {
+    padding-inline: 2.5rem;
+  }
+  @media (min-width: 1280px) {
+    padding-inline: 4rem;
+  }
+}
+
+/* ------------------------------------------------------------- motion ---- */
+@keyframes otrace-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes otrace-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes otrace-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.rise {
+  animation: otrace-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.fade {
+  animation: otrace-fade 0.8s ease both;
+}
+
+/* Headline letters (src/components/split-headline.tsx): each glyph rises out
+   of its clipped line with a slight lean that settles as it lands. */
+@keyframes otrace-char-in {
+  from {
+    transform: translateY(110%) rotate(5deg);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.split-line {
+  /* Every letter is its own inline-block, so without this the browser may
+     break a word between any two letters ("CONCRET / E"). */
+  white-space: nowrap;
+  /* A sliver of room so the clip never shaves the top of a capital. */
+  padding-top: 0.04em;
+  margin-top: -0.04em;
+}
+
+.split-char {
+  animation: otrace-char-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: 0 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .split-char {
+    animation: none;
+  }
+}
+
+/* Reveal-on-scroll. Hiding is gated on html.js-reveal, which main.tsx sets
+   before React renders. If the script never runs - a crawler, a social-card
+   renderer, a failed bundle - the class is absent and every section simply
+   shows. (The previous version hid unconditionally, so a failed script left
+   the page blank, despite a comment claiming the opposite.) */
+.js-reveal .reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition:
+    opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.js-reveal .reveal.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+.ticker {
+  width: max-content;
+  animation: otrace-marquee 48s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .fade,
+  .ticker {
+    animation: none;
+  }
+  .reveal,
+  .js-reveal .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* --------------------------------------------------------------- parts --- */
+
+/* Primary action. Cream on onyx, inverting on press — no gradients, no glow;
+   the restraint is the point. */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.125rem 2rem;
+  background: var(--color-cream);
+  color: var(--color-onyx);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  border: 1px solid var(--color-cream);
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    opacity 0.25s ease;
+}
+
+@utility btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1.125rem 2rem;
+  background: transparent;
+  color: var(--color-cream);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  /* The old #262523 hairline disappeared the moment the button sat on a
+     photograph. A translucent cream edge reads on imagery AND on flat onyx,
+     and the faint backing keeps the label legible over busy frames. */
+  border: 1px solid color-mix(in srgb, var(--color-cream) 40%, transparent);
+  background: color-mix(in srgb, var(--color-onyx) 25%, transparent);
+  transition:
+    border-color 0.25s ease,
+    background 0.25s ease;
+}
+
+/* Hover only where a pointer actually exists — on touch these stick on. */
+@media (hover: hover) {
+  .btn:hover { background: transparent; color: var(--color-cream); }
+  .btn-ghost:hover { border-color: var(--color-cream); }
+}
+
+.btn:disabled,
+.btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ------------------------------------------------------------ gallery ---- */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Desktop hover-zoom on product images. Pointer-fine devices only: on touch a
+   hover state sticks after a tap and would leave the image frozen at 2x. The
+   transform origin follows the cursor and is set inline by the gallery. */
+.zoom-img {
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .zoom-wrap {
+    cursor: zoom-in;
+  }
+  .zoom-wrap:hover .zoom-img {
+    transform: scale(2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .zoom-img {
+    transition: none;
+  }
+}
+
+/* --------------------------------------------------- page transitions ---- */
+/* Driven by the View Transitions API (src/lib/view-transition.ts). The old
+   page lifts away quickly; the new one settles in a touch slower and slightly
+   later, which reads as calm rather than as a slideshow. */
+@keyframes otrace-page-out {
+  to {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes otrace-page-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+::view-transition-old(root) {
+  animation: 260ms cubic-bezier(0.4, 0, 1, 1) both otrace-page-out;
+}
+
+::view-transition-new(root) {
+  animation: 560ms cubic-bezier(0.22, 1, 0.36, 1) 80ms both otrace-page-in;
+}
+
+/* Shared elements (a product photo morphing into the product page). */
+::view-transition-group(*) {
+  animation-duration: 620ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* The header is captured on its own and must not move between pages. */
+.vt-header {
+  view-transition-name: site-header;
+}
+
+::view-transition-group(site-header) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* --------------------------------------------------------- hero drift ---- */
+/* Slow push-in and drift on the homepage still (src/components/hero-media.tsx).
+   Transform-only, so the compositor moves it at sub-pixel precision. */
+@keyframes otrace-hero-drift {
+  from {
+    transform: scale(1.04) translate3d(-0.6%, 0.3%, 0);
+  }
+  to {
+    transform: scale(1.12) translate3d(0.6%, -0.3%, 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-drift {
+    animation: otrace-hero-drift 26s ease-in-out infinite alternate;
+    will-change: transform;
+  }
+}
+
+/* ----------------------------------------------------------- lookbook ---- */
+/* Swiping between looks comes to rest on a look (src/pages/lookbook.tsx). */
+html.snap-looks {
+  scroll-snap-type: y proximity;
+}
+
+html.snap-looks .look {
+  scroll-snap-align: start;
+}
+
+/* Each photograph settles from a slight push-in as its look arrives. Scroll-
+   driven, so it tracks the finger exactly; browsers without scroll timelines
+   simply show the photograph at rest. */
+@keyframes otrace-look-settle {
+  from {
+    transform: scale(1.12);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .look-img {
+      animation: otrace-look-settle linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 45%;
+    }
+  }
+}
+
+/* The cover's "Scroll" cue: a short line that keeps drawing downward. */
+@keyframes otrace-cue {
+  0% {
+    transform: scaleY(0);
+    transform-origin: top;
+  }
+  50% {
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+  50.01% {
+    transform: scaleY(1);
+    transform-origin: bottom;
+  }
+  100% {
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+}
+
+.scroll-cue {
+  display: inline-block;
+  width: 1px;
+  height: 2.5rem;
+  background: currentColor;
+  animation: otrace-cue 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-cue {
+    animation: none;
+  }
+}
