@@ -567,14 +567,19 @@
           "type": "_product-grid",
           "settings": {
             "collection": "featured",
-            "products_count": 8,
-            "product_list": [],
+            "products_count": 4,
+            "product_list": [
+              "oversized-hoodie--onyx-black",
+              "oversized-hoodie--warm-cream",
+              "wide-leg-sweatpant--onyx-black",
+              "wide-leg-sweatpant--warm-cream"
+            ],
             "pr_border": "none",
             "product_des": "1",
             "image_ratio": "adapt_image",
             "image_size": true,
             "show_vendor": false,
-            "col_dk": "2",
+            "col_dk": "4",
             "col_tb": "2",
             "col_mb": "1",
             "space_items": "x",
@@ -614,7 +619,7 @@
             "sub_heading_section_AgmmgQ": {
               "type": "_sub_heading_section",
               "settings": {
-                "text": "<p><em>Hoodie and sweatpant, each at its catalogue price</em></p>",
+                "text": "<p><em>Onyx Black and Warm Cream. Each piece at its catalogue price.</em></p>",
                 "hidden_br_mobile": false,
                 "hidden_on_mobile": false,
                 "text_size": "base",
@@ -640,8 +645,8 @@
         "color_scheme": "scheme-1",
         "background_opacity": 0,
         "section_layout": "container",
-        "padding_top": 8,
-        "padding_bottom": 24,
+        "padding_top": 36,
+        "padding_bottom": 28,
         "padding_rate": 75
       }
     },
@@ -652,14 +657,14 @@
           "type": "_article-carousel",
           "settings": {
             "blog": "journal",
-            "limit": 8,
+            "limit": 3,
             "col_dk": "3",
             "col_tb": "2",
             "col_mb": "1",
             "loop": false,
             "autoplay": 0,
             "pauseOnHover": false,
-            "navUI": true,
+            "navUI": false,
             "nav_position": "default",
             "nav_visible": "hover",
             "nav_style": "default",
@@ -683,7 +688,7 @@
                 "show_cate": false,
                 "show_content": true,
                 "show_tags": false,
-                "show_author": true,
+                "show_author": false,
                 "show_comment": false,
                 "show_readmore": false,
                 "show_date": true,
@@ -705,7 +710,7 @@
             "horizontal": false,
             "alignment": "center",
             "heading_gap": 0,
-            "margin_bottom": 30
+            "margin_bottom": 16
           },
           "blocks": {
             "heading_section_UMR9jJ": {
@@ -747,8 +752,8 @@
         "color_scheme": "scheme-1",
         "background_opacity": 0,
         "section_layout": "container",
-        "padding_top": 8,
-        "padding_bottom": 32,
+        "padding_top": 36,
+        "padding_bottom": 20,
         "padding_rate": 75
       }
     },
@@ -1003,11 +1008,11 @@
         "lookbook_MwHq4E"
       ],
       "settings": {
-        "col_dk": "6",
-        "col_tb": "4",
+        "col_dk": "4",
+        "col_tb": "2",
         "col_mb": "2",
         "space_items": "0",
-        "image_ratio": "square",
+        "image_ratio": "portrait",
         "image_size": true,
         "loop": false,
         "autoplay": 0,
@@ -1029,8 +1034,8 @@
         "color_scheme": "",
         "background_opacity": 0,
         "section_layout": "full_width",
-        "padding_top": 16,
-        "padding_bottom": 16,
+        "padding_top": 28,
+        "padding_bottom": 28,
         "padding_rate": 75
       }
     },

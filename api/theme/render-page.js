@@ -95,6 +95,26 @@ export function createThemeRenderer({
       handle: 'footer',
       links: [link('Shipping', '/shipping'), link('Sizing', '/sizing'), link('Contact', '/contact'), link('Privacy', '/privacy')],
     },
+    'footer-categories': {
+      title: 'Categories',
+      handle: 'footer-categories',
+      links: [
+        link('Shop', '/shop'),
+        link('Hoodies', '/shop/hoodies'),
+        link('Bottoms', '/shop/bottoms'),
+        link('Lookbook', '/lookbook'),
+      ],
+    },
+    'footer-useful-links': {
+      title: 'Useful links',
+      handle: 'footer-useful-links',
+      links: [
+        link('Blog', '/blog'),
+        link('Garment dyed', '/garment-dyed'),
+        link('Sizing', '/sizing'),
+        link('Contact', '/contact'),
+      ],
+    },
   };
 
   const journalArticles = POSTS.map((post) => {
@@ -143,6 +163,25 @@ export function createThemeRenderer({
   const PRODUCTS_BY_HANDLE = Object.fromEntries(
     COLLECTIONS.fashion.products.map((product) => [product.handle, product]),
   );
+  // Homepage "THE SET" is one card per colourway so both hoodie colours and
+  // both bottoms are actually on the page. The handle and URL stay on the
+  // real product; only the card image and title are colour-specific.
+  for (const product of both) {
+    for (const colourName of product.colours ?? []) {
+      const colorway = (product.colorways ?? []).find((c) => c.name === colourName);
+      if (!colorway?.images?.length) continue;
+      const shaped = toShopifyProduct({ ...product, images: colorway.images }, { siteUrl });
+      const slug = colourName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      shaped.handle = product.slug;
+      shaped.url = `/product/${product.slug}`;
+      shaped.id = `${product.sku}--${slug}`;
+      shaped.title = `${product.name.replace(/^OTRACE\s+/, '')} — ${colourName}`;
+      shaped.variants = shaped.variants.filter((variant) => variant.option1 === colourName);
+      shaped.first_available_variant = shaped.variants[0] ?? shaped.first_available_variant;
+      shaped.selected_or_first_available_variant = shaped.first_available_variant;
+      PRODUCTS_BY_HANDLE[`${product.slug}--${slug}`] = shaped;
+    }
+  }
 
   const GLOBALS = {
     settings,

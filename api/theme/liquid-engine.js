@@ -241,9 +241,14 @@ export function resolveLinkListSettings(schema, settings, linklists, themeRoot, 
       if (typeof handle === 'string') out[setting.id] = linklists?.[handle] ?? null;
     }
     // LiquidJS treats [] as truthy, so an empty product_list skips the
-    // collection branch and the grid renders nothing.
-    if (setting.type === 'product_list' && Array.isArray(out[setting.id]) && out[setting.id].length === 0) {
-      out[setting.id] = null;
+    // collection branch and the grid renders nothing. A list of handles has
+    // to become product objects; a leftover demo handle is dropped so the
+    // card does not fall through to the $19.99 placeholder.
+    if (setting.type === 'product_list' && Array.isArray(out[setting.id])) {
+      const resolved = out[setting.id]
+        .map((item) => (typeof item === 'string' ? productsByHandle?.[item] ?? null : item))
+        .filter(Boolean);
+      out[setting.id] = resolved.length ? resolved : null;
     }
     if (setting.type === 'image_picker' && typeof out[setting.id] === 'string' && out[setting.id]) {
       out[setting.id] = imageSetting(themeRoot, out[setting.id]);
@@ -366,6 +371,16 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
   };
 
   engine.registerFilter('money', money);
+  // Shopify's time_tag prints a <time> in a strftime pattern. The journal
+  // cards use "%b %d". Anything else falls back to that same short date.
+  engine.registerFilter('time_tag', (date, format) => {
+    const d = new Date(date);
+    if (Number.isNaN(d.getTime())) return '';
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const text = `${months[d.getUTCMonth()]} ${String(d.getUTCDate()).padStart(2, '0')}`;
+    const iso = d.toISOString().slice(0, 10);
+    return `<time datetime="${iso}">${text}</time>`;
+  });
   engine.registerFilter('money_with_currency', (c) => money(c) + ' USD');
   engine.registerFilter('money_without_currency', (c) => (Number(c) / 100).toFixed(2));
   engine.registerFilter('money_without_trailing_zeros', (c) => money(c).replace('.00', ''));

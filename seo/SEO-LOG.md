@@ -485,3 +485,17 @@ proxied to the theme by the external nginx snippet
 `deploy/nginx-theme-routes.conf`. This change does not edit nginx. `/blog`
 and `/llms.txt` stay on the static site. Then `sh deploy/after-deploy.sh`
 for IndexNow.
+
+## 2026-10-26 — Lower homepage: the set, the journal, the footer
+
+Same branch, still not deployed. Live otrace.co still shows the old page.
+
+**Removed.** The homepage Accessories carousel (Tech / Design, “Your post's title”, the Shopify “hasn't published any blog posts” line, CONTINUE READING) is gone. Nothing empty was left in its place.
+
+**Replaced.**
+- THE SET is four catalogue cards: Oversized Hoodie in Onyx Black and Warm Cream ($148 each), Wide-Leg Sweatpant in Onyx Black and Warm Cream ($128 each). Photos are the existing flat fronts (`hoodie-onyx-front`, `hoodie-cream-front`, `pant-onyx-front`, `pant-cream-front`). The subtitle names the two colourways and the catalogue price of each piece.
+- FROM THE STUDIO is the three live journal posts — 450 GSM hoodie meaning, Garment dyed vs piece dyed, Oversized hoodie fit — with their real images, dates, and excerpts, linking to `/blog/:slug`. The article card is passed into `{% render %}`, so the image keeps its ratio and the excerpt prints.
+- @OTRACE is the lookbook strip (looks 07, 06, 05, 04, 01, 03). The stairwell and tunnel frames stay off this carousel. Section padding above and below is 28–36px.
+- Footer Categories is Shop, Hoodies, Bottoms, Lookbook. Useful links is Blog, Garment dyed, Sizing, Contact. Information stays Shipping, Sizing, Contact, Privacy. The trust row is unchanged: free US delivery, ships in 3–5 days, 30 day returns, Stripe.
+
+**Verified locally.** `node --test api/theme/theme.test.mjs` 15/15. Rendered homepage has no “Your post”, ACCESSORIES, “hasn't published”, CONTINUE READING, $140, fashionshop, look-08, or look-10. Chrome screenshots at 1440 and 390 show the four colourway photos, the three journal cards, the lookbook frames, and a filled footer.
