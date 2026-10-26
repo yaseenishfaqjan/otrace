@@ -37,7 +37,7 @@ const NOT_FOUND_PROBE = '/__otrace-not-found__';
 // Pages nothing links to directly (utility pages) plus the main entry points.
 // Products and categories are discovered by following links, so a new product
 // is prerendered without touching this file.
-const SEEDS = ['/', '/shop', '/lookbook', '/about', '/sizing', '/garment-dyed', '/contact', '/shipping', '/terms', '/privacy', '/cart', '/account', '/order/success'];
+const SEEDS = ['/', '/shop', '/lookbook', '/about', '/sizing', '/garment-dyed', '/blog', '/contact', '/shipping', '/terms', '/privacy', '/cart', '/account', '/order/success'];
 
 const shellPath = path.join(DIST, 'index.html');
 const shell = fs.readFileSync(shellPath, 'utf8');

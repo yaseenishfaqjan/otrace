@@ -274,3 +274,29 @@ The index has the blockquote, `## What We Do Not Do`, `## Contact` (`info@otrace
 **Commit:** 7013f2d
 
 **Still blocked:** no real social, Wikipedia, or Wikidata URL is on file, so `sameAs` stays empty. Currency is still not implemented. IndexNow still cannot submit until the key file is on the live host.
+
+## [2026-10-26] Journal — /blog and three posts
+
+**Why:** The shop had no URL for the informational queries people type around GSM, dye order, and oversized fit, and https://otrace.co/blog returned 404.
+
+**Files changed:** `site/src/content/posts.mjs`, `site/src/pages/blog.tsx`, `site/src/components/blog-diagrams.tsx`, `site/src/App.tsx`, footer and mobile-menu Journal links, `site/scripts/prerender.mjs` seed, `seo/build-discovery.mjs`, `seo/pages/blog/`, `seo/llms.txt` Optional links, `seo/research/blog-queries.md`. Markdown is also copied to `/llms/pages/`.
+
+**Before (live):** `curl -o /dev/null -w '%{http_code}' https://otrace.co/blog` → 404. Sitemap on the previous deploy had 13 URLs and no `/blog`. Local sitemap before this entry had 14 URLs.
+
+**After (local dist):** prerender lists `/blog` and the three posts as indexable. Sitemap `<loc>` count 18. `node seo/verify.mjs --root site/dist/public` → 0 problems. Article word counts (visible `<article>` text): 450 GSM post 454, dye comparison 473, fit note 464. Each post has 3 images, all with width and height, plus one inline SVG diagram. BlogPosting and Article are on each post. H1s: “450 GSM hoodie meaning”, “Garment dyed vs piece dyed”, “Oversized hoodie fit”.
+
+Images: `detail-fabric.jpg`, `detail-stitch.jpg`, `products/hoodie-onyx-front.jpg`, `products/hoodie-cream-front.jpg`, `products/hoodie-onyx-worn-front.jpg`, `lookbook/look-02.jpg`. WebP siblings already exist. Diagrams are SVG, not photographs of people.
+
+**Verified live:** no. https://otrace.co/blog is still 404 until deploy. IndexNow will pick the new sitemap URLs up only after the key file is hosted and `sh deploy/after-deploy.sh` runs.
+
+**Screenshot:** `seo/shots/2026-10-26-blog-375.png`, `seo/shots/2026-10-26-blog-1440.png`, `seo/shots/2026-10-26-blog-gsm-375.png`, `seo/shots/2026-10-26-blog-gsm-1440.png`, `seo/shots/2026-10-26-blog-dye-375.png`, `seo/shots/2026-10-26-blog-fit-375.png`, `seo/shots/2026-10-26-blog-fit-1440.png`. Overflow 0 at 375 and 1440.
+
+**Commit:**  recorded with this entry’s commit.
+
+## [2026-10-26] /llms/pages mirrors
+
+**Why:** The v2 page mirrors already lived beside each HTML route. The plan also asked for a single folder an agent can open.
+
+**Before:** no `/llms/pages/` files. **After:** the same markdown is copied to `/llms/pages/` during the build, including the journal notes. `https://otrace.co/llms/pages/index.md` is linked from `llms.txt`. Local file returns 200 on the preview server. Live is still 404 until deploy.
+
+**Commit:** same commit as the journal entry.

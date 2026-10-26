@@ -45,7 +45,8 @@ function syncDiscoveryLinks(pathname: string) {
   described.href = absoluteUrl('/llms.txt');
   described.dataset.discovery = '';
   document.head.appendChild(described);
-  const md = MARKDOWN_BY_PATH[pathname];
+  const md = MARKDOWN_BY_PATH[pathname]
+    ?? (pathname === '/blog' ? '/blog/index.md' : pathname.startsWith('/blog/') ? `${pathname}.md` : undefined);
   if (!md) return;
   const alt = document.createElement('link');
   alt.rel = 'alternate';

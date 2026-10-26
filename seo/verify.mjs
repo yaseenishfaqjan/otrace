@@ -25,7 +25,7 @@ export function pageProblems(html, label) {
   const bare = imgs.filter((tag) => !/\bwidth="\d+"/.test(tag) || !/\bheight="\d+"/.test(tag));
   if (bare.length) problems.push(`${label}: ${bare.length} of ${imgs.length} img tags lack width and height`);
   const blocks = [...html.matchAll(/<script type="application\/ld\+json"[^>]*>(.*?)<\/script>/gs)].map((m) => m[1]);
-  if (label.includes('product') || label.endsWith('/sizing') || label.includes('garment') || label.endsWith('/shipping')) {
+  if (label.includes('product') || label.endsWith('/sizing') || label.includes('garment') || label.endsWith('/shipping') || label.includes('/blog')) {
     if (blocks.length === 0) problems.push(`${label}: no JSON-LD`);
   }
   for (const [i, block] of blocks.entries()) {
@@ -168,6 +168,10 @@ function checkRoot(dir) {
       'shipping.md',
       'product/oversized-hoodie.md',
       'product/wide-leg-sweatpant.md',
+      'llms/pages/index.md',
+      'llms/pages/what-is-a-450-gsm-hoodie.md',
+      'llms/pages/garment-dyed-vs-piece-dyed.md',
+      'llms/pages/how-an-oversized-hoodie-should-fit.md',
       'llms-full.txt',
       'identity.json',
       'ai.txt',
@@ -179,6 +183,22 @@ function checkRoot(dir) {
       if (!llms.includes(urlPath) && !llms.includes(`https://otrace.co${urlPath}`)) {
         problems.push(`llms.txt does not link ${urlPath}`);
       }
+    }
+    for (const rel of [
+      'blog/index.md',
+      'blog/what-is-a-450-gsm-hoodie.md',
+      'blog/garment-dyed-vs-piece-dyed.md',
+      'blog/how-an-oversized-hoodie-should-fit.md',
+    ]) {
+      if (!fs.existsSync(path.join(dir, rel))) problems.push(`missing blog mirror ${rel}`);
+    }
+    const gsmPost = path.join(dir, 'blog', 'what-is-a-450-gsm-hoodie.html');
+    if (!fs.existsSync(gsmPost)) problems.push('blog post was not prerendered');
+    else {
+      const html = fs.readFileSync(gsmPost, 'utf8');
+      if (!html.includes('450 GSM hoodie meaning')) problems.push('blog H1 missing');
+      if (!html.includes('BlogPosting')) problems.push('blog post missing BlogPosting');
+      if (!html.includes('/blog/what-is-a-450-gsm-hoodie.md')) problems.push('blog post missing markdown alternate');
     }
   }
   const robots = fs.readFileSync(path.join(dir, 'robots.txt'), 'utf8');

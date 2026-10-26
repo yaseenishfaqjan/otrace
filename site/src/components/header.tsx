@@ -129,6 +129,7 @@ export function Header() {
               <div className="rule mt-10 pt-8 flex flex-col gap-5">
                 <Link href="/account" className="eyebrow text-cream-dim">Account</Link>
                 <Link href="/sizing" className="eyebrow text-cream-dim">Size Guide</Link>
+                <Link href="/blog" className="eyebrow text-cream-dim">Journal</Link>
                 <Link href="/shipping" className="eyebrow text-cream-dim">Shipping &amp; Returns</Link>
                 <Link href="/contact" className="eyebrow text-cream-dim">Contact</Link>
               </div>

@@ -124,6 +124,7 @@ export function Footer() {
           <nav className="flex flex-col gap-3">
             <span className="eyebrow text-muted mb-1">Help</span>
             <Link href="/sizing" className="text-cream-dim hover:text-cream text-sm transition-colors">Size guide</Link>
+            <Link href="/blog" className="text-cream-dim hover:text-cream text-sm transition-colors">Journal</Link>
             <Link href="/garment-dyed" className="text-cream-dim hover:text-cream text-sm transition-colors">Garment dyed</Link>
             <Link href="/shipping" className="text-cream-dim hover:text-cream text-sm transition-colors">Shipping &amp; returns</Link>
             <Link href="/contact" className="text-cream-dim hover:text-cream text-sm transition-colors">Contact</Link>

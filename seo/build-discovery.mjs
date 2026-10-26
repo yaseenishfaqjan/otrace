@@ -7,6 +7,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { POSTS, journalBlurb } from '../site/src/content/posts.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ORIGIN = 'https://otrace.co';
@@ -290,7 +291,34 @@ ${faqBlock(faqs.PANT_FAQS)}`,
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     fs.writeFileSync(dest, body);
   }
-  return { summary, products: products.map((p) => `${p.name} ${p.price}`), faqCount: allFaqs.length };
+
+  const blogIndex = [
+    '# Journal',
+    '',
+    `HTML: ${ORIGIN}/blog`,
+    '',
+    journalBlurb,
+    '',
+    ...POSTS.map((post) => `- [${post.h1}](${ORIGIN}/blog/${post.slug}.md): ${post.description}`),
+    '',
+  ].join('\n');
+  const blogIndexPath = path.join(outDir, 'pages', 'blog', 'index.md');
+  fs.mkdirSync(path.dirname(blogIndexPath), { recursive: true });
+  fs.writeFileSync(blogIndexPath, blogIndex);
+  for (const post of POSTS) {
+    const body = [
+      `# ${post.h1}`,
+      '',
+      `HTML: ${ORIGIN}/blog/${post.slug}`,
+      '',
+      post.answer,
+      '',
+      ...post.sections.flatMap((section) => [`## ${section.h2}`, '', ...section.paragraphs, '']),
+    ].join('\n');
+    fs.writeFileSync(path.join(outDir, 'pages', 'blog', `${post.slug}.md`), body.endsWith('\n') ? body : `${body}\n`);
+  }
+
+  return { summary, products: products.map((p) => `${p.name} ${p.price}`), faqCount: allFaqs.length, posts: POSTS.length };
 }
 
 const isCli = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);

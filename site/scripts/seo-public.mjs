@@ -37,6 +37,21 @@ export const DISCOVERY_FILES = [
   ['seo/pages/shipping.md', 'shipping.md'],
   ['seo/pages/product/oversized-hoodie.md', 'product/oversized-hoodie.md'],
   ['seo/pages/product/wide-leg-sweatpant.md', 'product/wide-leg-sweatpant.md'],
+  ['seo/pages/index.md', 'llms/pages/index.md'],
+  ['seo/pages/about.md', 'llms/pages/about.md'],
+  ['seo/pages/sizing.md', 'llms/pages/sizing.md'],
+  ['seo/pages/garment-dyed.md', 'llms/pages/garment-dyed.md'],
+  ['seo/pages/shipping.md', 'llms/pages/shipping.md'],
+  ['seo/pages/product/oversized-hoodie.md', 'llms/pages/oversized-hoodie.md'],
+  ['seo/pages/product/wide-leg-sweatpant.md', 'llms/pages/wide-leg-sweatpant.md'],
+  ['seo/pages/blog/index.md', 'blog/index.md'],
+  ['seo/pages/blog/index.md', 'llms/pages/journal.md'],
+  ['seo/pages/blog/what-is-a-450-gsm-hoodie.md', 'blog/what-is-a-450-gsm-hoodie.md'],
+  ['seo/pages/blog/what-is-a-450-gsm-hoodie.md', 'llms/pages/what-is-a-450-gsm-hoodie.md'],
+  ['seo/pages/blog/garment-dyed-vs-piece-dyed.md', 'blog/garment-dyed-vs-piece-dyed.md'],
+  ['seo/pages/blog/garment-dyed-vs-piece-dyed.md', 'llms/pages/garment-dyed-vs-piece-dyed.md'],
+  ['seo/pages/blog/how-an-oversized-hoodie-should-fit.md', 'blog/how-an-oversized-hoodie-should-fit.md'],
+  ['seo/pages/blog/how-an-oversized-hoodie-should-fit.md', 'llms/pages/how-an-oversized-hoodie-should-fit.md'],
 ];
 
 /**

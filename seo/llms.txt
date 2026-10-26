@@ -47,9 +47,13 @@ Google Search has said it does not use llms.txt. This file is for other agents, 
 - [Identity](https://otrace.co/identity.json): Organization name, URL, email, and logo. sameAs is empty because no public profile URL is on file.
 - [Citation rules](https://otrace.co/ai.txt): Canonical names, and what not to invent.
 - [FAQ answers](https://otrace.co/faq-ai.txt): The same answer strings as the on-site FAQPage schema.
+- [Page folder](https://otrace.co/llms/pages/index.md): The same page mirrors, collected under /llms/pages/.
 
 ## Optional
 
+- [450 GSM hoodie meaning](https://otrace.co/llms/pages/what-is-a-450-gsm-hoodie.md): What the grams measure. The product page keeps the price.
+- [Garment dyed vs piece dyed](https://otrace.co/llms/pages/garment-dyed-vs-piece-dyed.md): The comparison. The definition stays at /garment-dyed.
+- [Oversized hoodie fit](https://otrace.co/llms/pages/how-an-oversized-hoodie-should-fit.md): Fit and the boxy cut. Measurements stay on /sizing.
 - [Lookbook](https://otrace.co/lookbook): Campaign images. HTML only.
 - [Terms](https://otrace.co/terms): Payment, tax, and colour variation. HTML only.
 - [Privacy](https://otrace.co/privacy): What the order form collects. HTML only.
