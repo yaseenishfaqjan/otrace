@@ -368,3 +368,56 @@ The footer, an 8 second popup (off `/cart`, the cart drawer, and `/order/success
 **Screenshot:** `seo/shots/2026-10-26-weight-scale-375.png`, `seo/shots/2026-10-26-crossfade-375.png`, `seo/shots/2026-10-26-set-add-375.png`.
 
 **Waiting on the owner:** a 24–36 frame shoot per colourway, named in `site/public/turntable/manifest.json`. A real `site/public/models/hoodie.glb` only if AR or model-viewer is wanted later. No dates for a production timeline.
+
+## [2026-10-26 09:05 UTC] PR #1 merged and deployed to production
+
+**Why:** PR #1 (`cursor/seo-aeo-geo-c03b`) carried the SEO/AEO/GEO surfaces,
+lead capture and product motion. It was opened before three fixes had landed
+on `main` (image URLs built from SITE_URL, Resend email, webhook hardening),
+so it was merged only after a trial merge proved those survived.
+
+**Approach:** Trial-merged into a scratch branch first. No conflicts, and all
+five earlier fixes verified present afterwards. Merged fast-forward to `main`
+(`eecfc93`), GitHub closed PR #1 as merged (`55f889b2`). Static build deployed
+by writing INTO `/opt/otrace/web/dist` (bind mount - replacing the directory
+detaches it), two orphaned asset hashes removed, backup at
+`/root/otrace-dist-backup-*.tgz`. `deploy/nginx.conf` truncate-written over the
+single-file bind mount and reloaded, for the `text/markdown` location block.
+API rebuilt.
+
+**Two build defects found and fixed, both the same root cause.** The repo
+stores LF and git here runs `core.autocrlf=true`, so a Windows checkout is
+CRLF. `seo/build-discovery.mjs` split products on a pattern needing a bare LF
+and died with "expected 2 products, parsed 1" before vite ran - the build could
+not complete on this machine at all. `seo/verify.mjs` then reported FAIL 4
+against byte-correct output for the same reason. Both now normalise line
+endings at read. Identical commits had been passing on Linux and failing here.
+
+**Verified on LIVE https://otrace.co, not exit codes:**
+
+- `/llms.txt` 200 3569B · `/llms-full.txt` 200 7218B · `/identity.json` 200 384B
+  · `/ai.txt` 200 1043B · `/faq-ai.txt` 200 3019B · `/robots.txt` 200 ·
+  `/sitemap.xml` 200 8308B · IndexNow key file 200
+- `/blog` and all three posts 200
+- Markdown mirrors serve as `text/markdown; charset=utf-8` (`/index.md`,
+  `/product/oversized-hoodie.md`, `/llms/pages/index.md`)
+- PreOrder count 0 on both product pages and `/shop`; 14x `schema.org/InStock`
+- Product page live: angle scrub, GSM scale, "Buy both pieces", notify-me and
+  email-my-size with consent copy. No console errors.
+- Checkout still creates a live Stripe session after the deploy
+- `/api/subscribe` with Klaviyo unset: HTTP 200 `{"esp":"skipped"}`, row stored
+  in MySQL with consent recorded. Test rows deleted afterwards.
+- `node --test api/leads.test.mjs` 7/7; `node seo/verify.mjs --root
+  site/dist/public` 0 problems, exit 0
+- IndexNow: accepted, `{"ok":true,"status":202,"count":18}` - on the 4th
+  attempt. Three failed with `EAI_AGAIN`.
+
+**Known infrastructure fault, not caused by this deploy:** container DNS on
+this VPS fails intermittently with `EAI_AGAIN`, hitting Stripe, Resend and
+IndexNow alike. The webhook was hardened for it beforehand; IndexNow needs
+retrying by hand when it fails.
+
+**Waiting on the owner:** `KLAVIYO_PRIVATE_API_KEY` and `KLAVIYO_LIST_ID` (lead
+capture stores to MySQL until then, nothing is lost); the WhatsApp number env;
+`VITE_INSTAGRAM` / `VITE_TIKTOK` (footer renders nothing without them);
+currency decision; turntable frames and `hoodie.glb` if ever wanted.

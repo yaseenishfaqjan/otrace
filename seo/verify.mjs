@@ -12,6 +12,17 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+/**
+ * Text is read with line endings normalised.
+ *
+ * Several checks here compare a built file against its source, or match a
+ * regex that requires a bare LF. git runs core.autocrlf=true and the repo
+ * stores LF, so on Windows the working tree is CRLF and the built output is
+ * LF - and every one of those checks failed on content that was byte-correct.
+ * A verifier that always fails is not a verifier.
+ */
+const readText = (file) =>
+  fs.readFileSync(file, 'utf8').replace(/\r\n/g, '\n');
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -99,12 +110,12 @@ function checkRoot(dir) {
   const files = walkHtml(dir);
   if (files.length < 5) problems.push(`only ${files.length} html files under ${dir}`);
   for (const file of files) {
-    const html = fs.readFileSync(file, 'utf8');
+    const html = readText(file);
     const label = file.slice(dir.length) || '/';
     if (label.includes('404')) continue;
     problems.push(...pageProblems(html, label));
   }
-  const index = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
+  const index = readText(path.join(dir, 'index.html'));
   if (!/InStock/.test(index) && !/in stock/i.test(index)) problems.push('home does not say in stock');
   if (!index.includes('rel="describedby"') || !index.includes('/llms.txt')) problems.push('home is missing the llms.txt describedby link');
   if (!index.includes('type="text/markdown"') || !index.includes('/index.md')) problems.push('home is missing the markdown alternate');
@@ -114,7 +125,7 @@ function checkRoot(dir) {
   const hoodie = files.find((f) => f.endsWith(`${path.sep}product${path.sep}oversized-hoodie.html`) || f.endsWith('product/oversized-hoodie.html'));
   if (!hoodie) problems.push('missing prerendered hoodie page');
   else {
-    const html = fs.readFileSync(hoodie, 'utf8');
+    const html = readText(hoodie);
     const stock = (html.match(/InStock/g) || []).length;
     if (stock < 1) problems.push(`hoodie InStock count ${stock}, want >0`);
     if (!html.includes('Do heavyweight hoodies shrink?')) problems.push('hoodie FAQ heading missing');
@@ -122,21 +133,21 @@ function checkRoot(dir) {
   const llmsPath = path.join(dir, 'llms.txt');
   if (!fs.existsSync(llmsPath)) problems.push('llms.txt missing from build');
   else {
-    const llms = fs.readFileSync(llmsPath, 'utf8');
-    const source = fs.readFileSync(path.join(root, 'seo', 'llms.txt'), 'utf8');
+    const llms = readText(llmsPath);
+    const source = readText(path.join(root, 'seo', 'llms.txt'));
     if (llms !== source) problems.push('dist llms.txt differs from seo/llms.txt');
     if (llms.split('\n').length > 120) problems.push(`llms.txt is ${llms.split('\n').length} lines, want an index under 120`);
     if (Buffer.byteLength(llms) > 10240) problems.push('llms.txt is over 10 KB');
     for (const needle of ['> OTRACE sells', '## What We Do Not Do', '## Contact', '## AI Discovery Files', 'info@otrace.co']) {
       if (!llms.includes(needle)) problems.push(`llms.txt missing ${needle}`);
     }
-    const entity = fs.readFileSync(path.join(root, 'site', 'src', 'lib', 'entity.ts'), 'utf8');
+    const entity = readText(path.join(root, 'site', 'src', 'lib', 'entity.ts'));
     const summary = entity.match(/ENTITY_SUMMARY =\n\s*'([^']+)'/)?.[1];
     if (!summary || !llms.includes(`> ${summary}`)) problems.push('llms.txt blockquote does not match ENTITY_SUMMARY');
     const identityPath = path.join(dir, 'identity.json');
     if (!fs.existsSync(identityPath)) problems.push('identity.json missing from build');
     else {
-      const identity = JSON.parse(fs.readFileSync(identityPath, 'utf8'));
+      const identity = JSON.parse(readText(identityPath));
       if (identity.description !== summary) problems.push('identity.json description does not match ENTITY_SUMMARY');
       if (identity.email !== 'info@otrace.co' || identity.name !== 'OTRACE') problems.push('identity.json name or email drifted');
       if (!Array.isArray(identity.sameAs) || identity.sameAs.length !== 0) problems.push('identity.json sameAs must stay empty until a real profile exists');
@@ -145,16 +156,16 @@ function checkRoot(dir) {
         if (banned.includes(host)) problems.push(`identity.json invents ${host}`);
       }
     }
-    const faqs = fs.readFileSync(path.join(root, 'site', 'src', 'lib', 'faqs.ts'), 'utf8');
-    const full = fs.readFileSync(path.join(dir, 'llms-full.txt'), 'utf8');
-    const faqAi = fs.readFileSync(path.join(dir, 'faq-ai.txt'), 'utf8');
-    if (full !== fs.readFileSync(path.join(root, 'seo', 'llms-full.txt'), 'utf8')) problems.push('dist llms-full.txt differs from seo/llms-full.txt');
-    if (faqAi !== fs.readFileSync(path.join(root, 'seo', 'faq-ai.txt'), 'utf8')) problems.push('dist faq-ai.txt differs from seo/faq-ai.txt');
+    const faqs = readText(path.join(root, 'site', 'src', 'lib', 'faqs.ts'));
+    const full = readText(path.join(dir, 'llms-full.txt'));
+    const faqAi = readText(path.join(dir, 'faq-ai.txt'));
+    if (full !== readText(path.join(root, 'seo', 'llms-full.txt'))) problems.push('dist llms-full.txt differs from seo/llms-full.txt');
+    if (faqAi !== readText(path.join(root, 'seo', 'faq-ai.txt'))) problems.push('dist faq-ai.txt differs from seo/faq-ai.txt');
     for (const answer of faqs.matchAll(/answer:\s*\n?\s*'([^']+)'/g)) {
       if (!full.includes(answer[1])) problems.push(`llms-full.txt missing FAQ answer: ${answer[1].slice(0, 60)}`);
       if (!faqAi.includes(answer[1])) problems.push(`faq-ai.txt missing FAQ answer: ${answer[1].slice(0, 60)}`);
     }
-    const chart = fs.readFileSync(path.join(root, 'site', 'src', 'lib', 'products.ts'), 'utf8');
+    const chart = readText(path.join(root, 'site', 'src', 'lib', 'products.ts'));
     if (/450gsm/.test(chart) || /400–450/.test(chart)) problems.push('products.ts still has a non-canonical GSM string');
     const block = chart.slice(chart.indexOf('export const SIZE_CHART'));
     for (const num of block.matchAll(/\b(\d{2,3})\b/g)) {
@@ -195,13 +206,13 @@ function checkRoot(dir) {
     const gsmPost = path.join(dir, 'blog', 'what-is-a-450-gsm-hoodie.html');
     if (!fs.existsSync(gsmPost)) problems.push('blog post was not prerendered');
     else {
-      const html = fs.readFileSync(gsmPost, 'utf8');
+      const html = readText(gsmPost);
       if (!html.includes('450 GSM hoodie meaning')) problems.push('blog H1 missing');
       if (!html.includes('BlogPosting')) problems.push('blog post missing BlogPosting');
       if (!html.includes('/blog/what-is-a-450-gsm-hoodie.md')) problems.push('blog post missing markdown alternate');
     }
   }
-  const robots = fs.readFileSync(path.join(dir, 'robots.txt'), 'utf8');
+  const robots = readText(path.join(dir, 'robots.txt'));
   for (const needle of [
     'User-agent: GPTBot',
     'User-agent: OAI-SearchBot',
@@ -218,17 +229,17 @@ function checkRoot(dir) {
   }
   const gpt = robots.split(/User-agent: GPTBot\n/)[1]?.split(/\nUser-agent:/)[0] ?? '';
   if (!gpt.includes('Disallow: /api/')) problems.push('GPTBot group does not disallow /api/');
-  const key = fs.readFileSync(path.join(root, 'api', 'indexnow.js'), 'utf8').match(/INDEXNOW_KEY = '([0-9a-f]+)'/)[1];
+  const key = readText(path.join(root, 'api', 'indexnow.js')).match(/INDEXNOW_KEY = '([0-9a-f]+)'/)[1];
   const keyFile = path.join(dir, `${key}.txt`);
   if (!fs.existsSync(keyFile)) problems.push(`IndexNow key file missing: ${key}.txt`);
-  else if (fs.readFileSync(keyFile, 'utf8').trim() !== key) problems.push('IndexNow key file body does not match INDEXNOW_KEY');
-  const sitemap = fs.readFileSync(path.join(dir, 'sitemap.xml'), 'utf8');
+  else if (readText(keyFile).trim() !== key) problems.push('IndexNow key file body does not match INDEXNOW_KEY');
+  const sitemap = readText(path.join(dir, 'sitemap.xml'));
   const today = new Date().toISOString().slice(0, 10);
   const mods = [...sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((m) => m[1]);
   if (mods.some((day) => day !== today)) problems.push(`sitemap lastmod ${mods[0]} is not ${today}`);
   if (!sitemap.includes('/garment-dyed')) problems.push('sitemap missing /garment-dyed');
 
-  const sizeTs = fs.readFileSync(path.join(root, 'site', 'src', 'lib', 'image-size.ts'), 'utf8');
+  const sizeTs = readText(path.join(root, 'site', 'src', 'lib', 'image-size.ts'));
   const recorded = [...sizeTs.matchAll(/'([^']+)': \{ width: (\d+), height: (\d+) \}/g)];
   if (recorded.length < 20) problems.push(`image-size map has ${recorded.length} entries`);
   for (const [, rel, w, h] of recorded) {
