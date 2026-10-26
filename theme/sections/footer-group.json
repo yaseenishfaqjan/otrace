@@ -36,7 +36,7 @@
             "footer_image_d8wFnT": {
               "type": "_footer-image",
               "settings": {
-                "img": "shopify://shop_images/kalles.svg",
+                "img": "/brand/otrace-wordmark.svg",
                 "custom_width": "default",
                 "image_w": 110,
                 "image_w_tb": 110,
@@ -289,7 +289,7 @@
             "footer_image_TVmt7r": {
               "type": "_footer-image",
               "settings": {
-                "img": "shopify://shop_images/payment_2022-03-16.png",
+                "img": "",
                 "custom_width": "default",
                 "image_w": 100,
                 "image_w_tb": 100,

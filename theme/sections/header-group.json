@@ -93,7 +93,7 @@
             "show_language": true,
             "use_location": true,
             "txt_location": "Location",
-            "url_location": "shopify://pages/contact",
+            "url_location": "/contact",
             "open_link": "_self",
             "hide": true
           }
@@ -227,7 +227,7 @@
         "header_layout": "logo_left",
         "header_fullwidth": true,
         "header_height": 70,
-        "logo": "shopify://shop_images/kalles.svg",
+        "logo": "/brand/otrace-wordmark.svg",
         "logo_width": 95,
         "header_colors": "",
         "main_menu": "main-menu",

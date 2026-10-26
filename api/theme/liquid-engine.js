@@ -140,8 +140,28 @@ export function readSchema(themeRoot, dir, name) {
  * header prints its empty-menu notice: no error, no warning, just no menu.
  */
 export function resolveLinkListSettings(schema, settings, linklists) {
-  if (!schema || !settings) return settings;
-  const out = { ...settings };
+  if (!schema) return settings ?? {};
+
+  // Template JSON stores only the settings that were CHANGED, so everything
+  // else arrives undefined and renders as an empty string. That is not just
+  // cosmetic: the add-to-cart block writes its animation setting into a JSON
+  // attribute, and an empty one becomes classList.add('') inside a setInterval
+  // - an exception every tick, forever, which starves the page's other JS.
+  const out = {};
+  for (const setting of schema.settings ?? []) {
+    if (!setting?.id) continue;
+    if ('default' in setting) out[setting.id] = setting.default;
+    // A select or radio with no declared default takes its FIRST option, as
+    // Shopify does. The add-to-cart animation is one of these: its "off" value
+    // is the string "none", and leaving it undefined is what produced
+    // classList.add('') rather than a harmless unused class.
+    else if ((setting.type === 'select' || setting.type === 'radio') && setting.options?.length) {
+      out[setting.id] = setting.options[0].value;
+    }
+  }
+  Object.assign(out, settings ?? {});
+
+  // A `link_list` setting is stored as a handle and must become the menu.
   for (const setting of schema.settings ?? []) {
     if (setting?.type !== 'link_list' || !setting.id) continue;
     const handle = out[setting.id];
@@ -149,6 +169,19 @@ export function resolveLinkListSettings(schema, settings, linklists) {
   }
   return out;
 }
+
+/**
+ * Shopify wraps every rendered section in this element, and themes depend on
+ * it: CSS selectors are written against `.shopify-section`, and the theme's JS
+ * finds a section by `#shopify-section-<id>`. Omitting it costs layout and
+ * behaviour with nothing to indicate why.
+ */
+/** Template JSON stores blocks keyed by id; Liquid wants a list that carries it. */
+export const blockList = (blocks) =>
+  Object.entries(blocks || {}).map(([id, block]) => ({ id, ...block }));
+
+export const wrapSection = (id, type, html) =>
+  `<div id="shopify-section-${id}" class="shopify-section shopify-section-${type}">${html}</div>`;
 
 export function createEngine(themeRoot, { assetBase = '/theme-assets', globals = {} } = {}) {
   const translations = loadTranslations(themeRoot);
@@ -232,11 +265,20 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
   engine.registerFilter('file_url', (file) => `${assetBase}/${file}`);
   engine.registerFilter('shopify_asset_url', (file) => `${assetBase}/${file}`);
 
+  /**
+   * `shopify://` is a reference into a Shopify store's own files and pages. It
+   * resolves to nothing here, and emitting it leaves a dead `src` in the page
+   * rather than a visible error - so drop it and let the alt text show. Theme
+   * config should carry real paths; this only catches what was missed.
+   */
+  const resolveImage = (src) => {
+    const url = typeof src === 'string' ? src : (src && (src.src || src.url)) || '';
+    return String(url).startsWith('shopify://') ? '' : url;
+  };
+
   // image_url takes named args (width:, height:) in Shopify; ours are already sized.
-  engine.registerFilter('image_url', (src) =>
-    typeof src === 'string' ? src : (src && (src.src || src.url)) || '');
-  engine.registerFilter('img_url', (src) =>
-    typeof src === 'string' ? src : (src && (src.src || src.url)) || '');
+  engine.registerFilter('image_url', resolveImage);
+  engine.registerFilter('img_url', resolveImage);
   engine.registerFilter('image_tag', (src, ...rest) => `<img src="${src}" ${rest.join(' ')}>`);
 
   engine.registerFilter('stylesheet_tag', (href) => `<link rel="stylesheet" href="${href}">`);
@@ -288,13 +330,57 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
   // {% content_for 'blocks' %} renders a section's theme-editor blocks. We have
   // no editor, so it renders the blocks the template JSON declares.
   engine.registerTag('content_for', {
-    parse(token) { this.what = token.args; },
+    parse(token) { this.what = token.args || ''; },
     * render(ctx, emitter) {
       const section = ctx.get(['section']);
       const blocks = (section && section.blocks) || [];
-      for (const block of blocks) {
-        const type = block && block.type;
+
+      /**
+       * {% content_for 'blocks' %} renders the blocks that have NOT already
+       * been placed by name. main-product.liquid places the media block itself
+       * and then calls 'blocks' for the rest; rendering everything both times
+       * puts a SECOND complete product block on the page - no error, no
+       * warning, just the whole page twice.
+       */
+      const args = String(this.what);
+      const kind = (/'([^']*)'|"([^"]*)"/.exec(args) || [])[1] || 'blocks';
+      const wantType = (/\btype:\s*'([^']*)'/.exec(args) || [])[1];
+      const wantId = (/\bid:\s*'([^']*)'/.exec(args) || [])[1];
+
+      if (!ctx.registers.contentFor) ctx.registers.contentFor = new Set();
+      const placed = ctx.registers.contentFor;
+      const keyOf = (b) => `${section && section.id}|${b.id || b.type}`;
+
+      let list;
+      if (kind === 'block') {
+        const found =
+          (wantId && blocks.find((b) => b.id === wantId)) ||
+          (wantType && blocks.find((b) => b.type === wantType)) ||
+          null;
+        // A named block the section JSON does not define is still rendered:
+        // the theme asks for it by type and it may need no settings.
+        list = found
+          ? [found]
+          : wantType
+            ? [{ id: wantId || wantType, type: wantType, settings: {} }]
+            : [];
+      } else {
+        list = blocks.filter((b) => !placed.has(keyOf(b)));
+      }
+
+      const linklists = ctx.get(['linklists']) || (ctx.globals && ctx.globals.linklists) || {};
+      for (const rawBlock of list) {
+        const type = rawBlock && rawBlock.type;
         if (!type) continue;
+        placed.add(keyOf(rawBlock));
+        const block = {
+          ...rawBlock,
+          settings: resolveLinkListSettings(
+            readSchema(themeRoot, 'blocks', type),
+            rawBlock.settings,
+            linklists,
+          ),
+        };
         try {
           // theme/blocks is already a search root, so the bare type resolves.
           // 'blocks/<type>' only worked while the theme root was also a root,
@@ -406,7 +492,7 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
           section: {
             id: key,
             settings: resolveLinkListSettings(schema, sec.settings || {}, linklists),
-            blocks: Object.values(sec.blocks || {}),
+            blocks: blockList(sec.blocks),
           },
         };
         try {
@@ -416,7 +502,10 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
           // scope, so without this the snippet sees no section, the menu guard
           // fails, and the nav renders as nothing at all - silently.
           const sectionGlobals = { ...(ctx.globals || {}), ...all, section: scope.section };
-          emitter.write(yield renderThemeFile(engine, themeRoot, 'sections', sec.type, scope, sectionGlobals));
+          emitter.write(
+            wrapSection(key, sec.type,
+              yield renderThemeFile(engine, themeRoot, 'sections', sec.type, scope, sectionGlobals)),
+          );
         } catch (err) {
           console.warn('[theme] group section "' + key + '" (' + sec.type + ') failed: '
             + String(err.message).split(String.fromCharCode(10))[0]);

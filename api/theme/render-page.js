@@ -17,7 +17,9 @@ import {
   readSchema,
   readThemeJson,
   renderThemeFile,
+  blockList,
   resolveLinkListSettings,
+  wrapSection,
 } from './liquid-engine.js';
 import { toShopifyProduct, themeSettings } from './shopify-shape.js';
 
@@ -133,15 +135,19 @@ export function createThemeRenderer({ themeRoot, siteUrl = '', assetBase = '/the
         section: {
           id: key,
           settings: resolveLinkListSettings(schema, sec.settings ?? {}, LINKLISTS),
-          blocks: Object.values(sec.blocks ?? {}),
+          blocks: blockList(sec.blocks),
         },
       };
       try {
         out.push(
-          await renderThemeFile(engine, themeRoot, 'sections', sec.type, scope, {
-            ...withGlobals(globals),
-            section: scope.section,
-          }),
+          wrapSection(
+            key,
+            sec.type,
+            await renderThemeFile(engine, themeRoot, 'sections', sec.type, scope, {
+              ...withGlobals(globals),
+              section: scope.section,
+            }),
+          ),
         );
       } catch (err) {
         console.warn(`[theme] section "${key}" (${sec.type}) failed: ${String(err.message).split('\n')[0]}`);

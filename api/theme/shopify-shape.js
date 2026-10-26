@@ -119,7 +119,13 @@ export function themeSettings(settingsData, settingsSchema) {
   const defaults = {};
   for (const group of Array.isArray(settingsSchema) ? settingsSchema : []) {
     for (const setting of group?.settings ?? []) {
-      if (setting?.id && 'default' in setting) defaults[setting.id] = setting.default;
+      if (!setting?.id) continue;
+      if ('default' in setting) defaults[setting.id] = setting.default;
+      // Same rule as block settings: a select with no default takes its first
+      // option rather than rendering as an empty string.
+      else if ((setting.type === 'select' || setting.type === 'radio') && setting.options?.length) {
+        defaults[setting.id] = setting.options[0].value;
+      }
     }
   }
   return { ...defaults, ...saved };
