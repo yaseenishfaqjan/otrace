@@ -246,7 +246,7 @@ ${chartLines(chart, ['Sleeve / waist'])}`,
 
 ${faqBlock(faqs.GARMENT_DYE_FAQS)}
 
-The Oversized Hoodie is 148 USD on the catalogue date ${UPDATED}. The Wide-Leg Sweatpant is 128 USD on that date. Check the live product pages before quoting a price.`,
+The Oversized Hoodie is 100 USD on the catalogue date ${UPDATED}. The Wide-Leg Sweatpant is 100 USD on that date. Check the live product pages before quoting a price.`,
     ),
     'shipping.md': page(
       'Shipping and returns',

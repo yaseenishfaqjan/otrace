@@ -25,7 +25,7 @@ export const PRODUCTS = {
     name: 'OTRACE Oversized Hoodie',
     description:
       'Boxy oversized hoodie in 450 GSM garment-dyed heavyweight fleece. Self-lined hood, split kangaroo pocket, metal drawcord tips.',
-    priceCents: 14800,
+    priceCents: 10000,
     image: '/products/hoodie-onyx-worn-front.jpg',
     sizes: SIZES,
     colours: COLORWAYS,
@@ -37,7 +37,7 @@ export const PRODUCTS = {
     name: 'OTRACE Wide-Leg Sweatpant',
     description:
       'Wide-leg sweatpant in the same 450 GSM garment-dyed fleece. Drawcord waist with metal tips, ribbed ankle cuff.',
-    priceCents: 12800,
+    priceCents: 10000,
     image: '/products/pant-onyx-worn.jpg',
     sizes: SIZES,
     colours: COLORWAYS,

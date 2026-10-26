@@ -97,7 +97,7 @@ export const PRODUCTS: Product[] = [
     sku: 'OT-HOOD',
     name: 'Oversized Hoodie',
     line: 'Heavyweight fleece — AW2026',
-    price: 148,
+    price: 100,
     category: 'Hoodies',
     categorySlug: 'hoodies',
     tagline:
@@ -137,7 +137,7 @@ export const PRODUCTS: Product[] = [
     sku: 'OT-PANT',
     name: 'Wide-Leg Sweatpant',
     line: 'Heavyweight fleece — AW2026',
-    price: 128,
+    price: 100,
     category: 'Bottoms',
     categorySlug: 'bottoms',
     tagline:

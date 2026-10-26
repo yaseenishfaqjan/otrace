@@ -99,7 +99,29 @@ export function syncPublicSeo() {
     if (!llms.includes(needle)) throw new Error(`seo/llms.txt missing ${needle}`);
   }
   const full = fs.readFileSync(path.join(REPO_ROOT, 'seo', 'llms-full.txt'), 'utf8');
-  if (!full.includes('148 USD') || !full.includes('450 GSM')) {
+  /**
+   * Assert that the CATALOGUE prices reach llms-full.txt - not that one
+   * particular number does.
+   *
+   * This used to require the literal '148 USD'. Changing the hoodie price made
+   * it throw, which is the build working as designed, except the message read
+   * 'missing required facts' and `npm run build | tail` hid the exit code. The
+   * previous dist was deployed while the API charged the new price: the page
+   * said 148 and Stripe took 100. A guard that freezes a price is a guard that
+   * breaks every price change.
+   */
+  const productsSrc = fs.readFileSync(
+    path.join(REPO_ROOT, 'site', 'src', 'lib', 'products.ts'),
+    'utf8',
+  );
+  const prices = [...productsSrc.matchAll(/\n\s*price: (\d+),/g)].map((m) => m[1]);
+  if (!prices.length) throw new Error('no prices parsed from site/src/lib/products.ts');
+  for (const price of new Set(prices)) {
+    if (!full.includes(`${price} USD`)) {
+      throw new Error(`seo/llms-full.txt does not quote the catalogue price ${price} USD`);
+    }
+  }
+  if (!full.includes('450 GSM')) {
     throw new Error('seo/llms-full.txt is missing required facts');
   }
   fs.mkdirSync(PUBLIC_DIR, { recursive: true });

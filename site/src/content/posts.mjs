@@ -84,7 +84,7 @@ export const POSTS = [
         h2: 'A garment dyed hoodie, on this label',
         paragraphs: [
           'The [Oversized Hoodie](/product/oversized-hoodie) is a garment dyed hoodie in 450 GSM cotton fleece. So is the [Wide-Leg Sweatpant](/product/wide-leg-sweatpant), cut from the same cloth. The colorways are Onyx Black and Warm Cream. Two pieces from the same lot match. A later lot can sit a step lighter or darker. That shift is the process, not a fault, and the terms say the same thing.',
-          'People also search “garment dyed hoodie” when they want to buy one. The product page is that page. This note does not replace it, and it does not set the price. The catalogue figure on 26 October 2026 is 148 USD for the hoodie and 128 USD for the sweatpant. Check the live pages before you quote either number. Both are in the [shop](/shop).',
+          'People also search “garment dyed hoodie” when they want to buy one. The product page is that page. This note does not replace it, and it does not set the price. The catalogue figure on 26 October 2026 is 100 USD for the hoodie and 100 USD for the sweatpant. Check the live pages before you quote either number. Both are in the [shop](/shop).',
         ],
         image: {
           src: '/products/hoodie-cream-worn-front.jpg',

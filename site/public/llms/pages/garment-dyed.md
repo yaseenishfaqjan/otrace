@@ -14,4 +14,4 @@ Piece dyed means the fabric is dyed before it is cut and sewn. Garment dyed mean
 
 Garment dye softens with wear rather than fading out. OTRACE dyes the hoodie and sweatpant after sewing. Wash cold, inside out, and tumble dry low.
 
-The Oversized Hoodie is 148 USD on the catalogue date 2026-10-26. The Wide-Leg Sweatpant is 128 USD on that date. Check the live product pages before quoting a price.
+The Oversized Hoodie is 100 USD on the catalogue date 2026-10-26. The Wide-Leg Sweatpant is 100 USD on that date. Check the live product pages before quoting a price.
