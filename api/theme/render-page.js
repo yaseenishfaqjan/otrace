@@ -12,7 +12,7 @@
  * found.
  */
 import path from 'node:path';
-import { createEngine, readThemeJson } from './liquid-engine.js';
+import { createEngine, readThemeJson, renderThemeFile } from './liquid-engine.js';
 import { toShopifyProduct, themeSettings } from './shopify-shape.js';
 
 export function createThemeRenderer({ themeRoot, siteUrl = '', assetBase = '/theme-assets' }) {
@@ -56,7 +56,7 @@ export function createThemeRenderer({ themeRoot, siteUrl = '', assetBase = '/the
         section: { id: key, settings: sec.settings ?? {}, blocks: Object.values(sec.blocks ?? {}) },
       };
       try {
-        out.push(await engine.renderFile(sec.type, scope));
+        out.push(await renderThemeFile(engine, themeRoot, 'sections', sec.type, scope));
       } catch (err) {
         console.warn(`[theme] section "${key}" (${sec.type}) failed: ${String(err.message).split('\n')[0]}`);
       }
@@ -85,7 +85,7 @@ export function createThemeRenderer({ themeRoot, siteUrl = '', assetBase = '/the
   async function wrap(contentForLayout, extra) {
     const scope = { ...baseScope(), ...extra, content_for_layout: contentForLayout,
       content_for_header: '', content_for_index: '' };
-    return engine.renderFile('theme', scope);
+    return renderThemeFile(engine, themeRoot, 'layout', 'theme', scope);
   }
 
   return { engine, renderTemplate, renderProduct, wrap, settings };

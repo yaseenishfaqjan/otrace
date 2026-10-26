@@ -19,19 +19,43 @@ import { Liquid } from 'liquidjs';
 export const readThemeJson = (file) =>
   JSON.parse(fs.readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, ''));
 
+
+/**
+ * Render one theme file from a NAMED directory.
+ *
+ * Deliberately not engine.renderFile(name): that searches the roots, and the
+ * roots are snippets-only on purpose (see createEngine). A section and a
+ * snippet may share a name, and on Shopify they never collide because each tag
+ * looks in exactly one place. This keeps that guarantee.
+ */
+export async function renderThemeFile(engine, themeRoot, dir, name, scope) {
+  const overridden = path.join(themeRoot, '..', 'theme-overrides', `${name}.liquid`);
+  const file = fs.existsSync(overridden) ? overridden : path.join(themeRoot, dir, `${name}.liquid`);
+  if (!fs.existsSync(file)) throw new Error(`theme file not found: ${dir}/${name}.liquid`);
+  return engine.parseAndRender(fs.readFileSync(file, 'utf8'), scope);
+}
+
 export function createEngine(themeRoot, { assetBase = '/theme-assets' } = {}) {
+  /**
+   * The search path is SNIPPETS ONLY, which is what {% render %} means on
+   * Shopify. Flattening sections/, snippets/ and blocks/ into one path looks
+   * harmless until two of them share a name: the theme ships both
+   * sections/popover-currencies.liquid and snippets/popover-currencies.liquid,
+   * and the section's only line is {% render 'popover-currencies' %} meaning
+   * the snippet. With sections ahead of snippets that render resolved back to
+   * the section and recursed forever - a synchronous hang with no error, which
+   * cost a long bisect to find.
+   *
+   * Sections, blocks and layouts are therefore rendered by explicit path
+   * through renderThemeFile below, never by bare name.
+   */
   const engine = new Liquid({
     root: [
-      // Ours first: anything in theme-overrides/ replaces the vendor file of
-      // the same name, so the theme itself is never edited.
+      // ours first, so a vendor file can be replaced without editing the theme
       path.join(themeRoot, '..', 'theme-overrides'),
-      path.join(themeRoot, 'sections'),
       path.join(themeRoot, 'snippets'),
-      path.join(themeRoot, 'blocks'),
-      path.join(themeRoot, 'layout'),
     ],
     extname: '.liquid',
-    // A missing variable in a 500-file theme is normal; a crash is not.
     strictVariables: false,
     strictFilters: false,
     jsTruthy: true,
@@ -133,8 +157,19 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets' } = {}) {
           // 'blocks/<type>' only worked while the theme root was also a root,
           // and silently rendered nothing once it was not - the section fell
           // from 5573 bytes to 509 with no error at all.
-          const html = yield this.liquid.renderFile(type, { ...ctx.getAll(), block });
-          emitter.write(html);
+          /**
+           * A block's own children become the block list for anything nested
+           * inside it. Passing the SECTION's list down instead means a block
+           * that itself calls content_for re-renders all of its siblings,
+           * including itself - blocks/_footer-column.liquid does exactly that,
+           * and five footer columns recursed until the heap died.
+           */
+          const childScope = {
+            ...ctx.getAll(),
+            block,
+            section: { ...(section || {}), blocks: block.blocks ? Object.values(block.blocks) : [] },
+          };
+          emitter.write(yield renderThemeFile(engine, themeRoot, 'blocks', type, childScope));
         } catch {
           // A block the theme ships but we cannot resolve is skipped rather
           // than fatal - one missing block must not blank the page.
@@ -219,7 +254,7 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets' } = {}) {
           section: { id: key, settings: sec.settings || {}, blocks: Object.values(sec.blocks || {}) },
         };
         try {
-          emitter.write(yield this.liquid.renderFile(sec.type, scope));
+          emitter.write(yield renderThemeFile(engine, themeRoot, 'sections', sec.type, scope));
         } catch (err) {
           console.warn('[theme] group section "' + key + '" (' + sec.type + ') failed: '
             + String(err.message).split(String.fromCharCode(10))[0]);
