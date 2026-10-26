@@ -4,6 +4,8 @@ import { X, Plus, Minus } from 'lucide-react';
 import { useCart } from '@/lib/cart';
 import { useCheckout } from '@/lib/use-checkout';
 import { money } from '@/lib/products';
+import { SiteImage } from '@/components/site-image';
+import { imageSize } from '@/lib/image-size';
 
 /**
  * Slide-out cart. Opens itself whenever something is added, because "added to
@@ -62,7 +64,14 @@ export function CartDrawer() {
                     onClick={closeCart}
                     className="w-24 shrink-0 bg-charcoal/40 aspect-[4/5] overflow-hidden"
                   >
-                    <img src={item.image} alt="" className="w-full h-full object-cover" />
+                    <SiteImage
+                      src={item.image}
+                      alt=""
+                      width={imageSize(item.image).width}
+                      height={imageSize(item.image).height}
+                      pictureClassName="block w-full h-full"
+                      className="w-full h-full object-cover"
+                    />
                   </Link>
 
                   <div className="flex-1 min-w-0 flex flex-col">

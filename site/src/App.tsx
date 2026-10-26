@@ -5,6 +5,7 @@ import { CartProvider } from '@/lib/cart';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { CartDrawer } from '@/components/cart-drawer';
+import { CapturePopup } from '@/components/capture-popup';
 import { ScrollToTop } from '@/components/scroll-to-top';
 
 import Home from '@/pages/home';
@@ -14,6 +15,8 @@ import Cart from '@/pages/cart';
 import About from '@/pages/about';
 import Lookbook from '@/pages/lookbook';
 import Sizing from '@/pages/sizing';
+import GarmentDyed from '@/pages/garment-dyed';
+import { BlogIndex, BlogPost } from '@/pages/blog';
 import Contact from '@/pages/contact';
 import Account from '@/pages/account';
 import OrderSuccess from '@/pages/order-success';
@@ -31,6 +34,7 @@ function Shell({ children }: { children: ReactNode }) {
       <main>{children}</main>
       <Footer />
       <CartDrawer />
+      <CapturePopup />
     </CartProvider>
   );
 }
@@ -53,6 +57,9 @@ export default function App() {
           <Route path="/lookbook" component={Lookbook} />
           <Route path="/about" component={About} />
           <Route path="/sizing" component={Sizing} />
+          <Route path="/garment-dyed" component={GarmentDyed} />
+          <Route path="/blog" component={BlogIndex} />
+          <Route path="/blog/:slug" component={BlogPost} />
           <Route path="/contact" component={Contact} />
           <Route path="/account" component={Account} />
           <Route path="/order/success" component={OrderSuccess} />

@@ -1,15 +1,22 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useRoute, useSearch } from 'wouter';
 import { ChevronDown, Check } from 'lucide-react';
 import { useCart } from '@/lib/cart';
 import { useReveal } from '@/lib/use-reveal';
 import NotFound from '@/pages/not-found';
-import { getProduct, money, PRODUCTS, SIZES, IN_STOCK_SHIPS_IN } from '@/lib/products';
+import { getProduct, money, PRODUCTS, SIZES, SIZE_CHART, IN_STOCK_SHIPS_IN } from '@/lib/products';
 import { ProductCard } from '@/components/product-card';
 import { ProductGallery } from '@/components/product-gallery';
+import { FaqList } from '@/components/faq-list';
+import { FitHelp } from '@/components/fit-help';
+import { FabricFeel } from '@/components/fabric-feel';
+import { SetSwitcher } from '@/components/set-switcher';
+import { SiteImage, webpSrc } from '@/components/site-image';
+import { imageSize } from '@/lib/image-size';
+import { faqsForProduct } from '@/lib/faqs';
 
 import { usePageMeta } from '@/lib/use-page-meta';
-import { breadcrumbLd, productLd } from '@/lib/structured-data';
+import { breadcrumbLd, faqLd, productLd } from '@/lib/structured-data';
 function Accordion({ title, children, open = false }: { title: string; children: React.ReactNode; open?: boolean }) {
   return (
     <details className="group border-b border-line" open={open}>
@@ -23,6 +30,22 @@ function Accordion({ title, children, open = false }: { title: string; children:
 }
 
 // Search-facing product titles (the page H1 keeps the short product name).
+const FLAT_ROWS: Record<string, string[]> = {
+  'oversized-hoodie': ['Chest', 'Body length', 'Shoulder'],
+  'wide-leg-sweatpant': ['Outseam', 'Inseam', 'Leg opening'],
+};
+
+function flatLine(slug: string, size: string) {
+  const index = SIZES.indexOf(size as (typeof SIZES)[number]);
+  if (index < 0) return '';
+  return (FLAT_ROWS[slug] ?? [])
+    .flatMap((label) => {
+      const value = SIZE_CHART.find((row) => row.label === label)?.values[index];
+      return value == null ? [] : [`${label.toLowerCase()} ${value} cm`];
+    })
+    .join(', ');
+}
+
 const PRODUCT_SEO_TITLE: Record<string, string> = {
   'oversized-hoodie': 'Oversized Heavyweight Hoodie, 450 GSM',
   'wide-leg-sweatpant': 'Wide-Leg Heavyweight Sweatpant, 450 GSM',
@@ -31,6 +54,7 @@ const PRODUCT_SEO_TITLE: Record<string, string> = {
 export default function Product() {
   const [, params] = useRoute('/product/:slug');
   const product = getProduct(params?.slug);
+  const faqs = product ? faqsForProduct(product.slug) : [];
   usePageMeta(
     product ? PRODUCT_SEO_TITLE[product.slug] ?? product.name : 'Page not found',
     product
@@ -51,6 +75,7 @@ export default function Product() {
               { name: product.category, path: `/shop/${product.categorySlug}` },
               { name: product.name, path: `/product/${product.slug}` },
             ]),
+            faqLd(faqs),
           ],
         }
       : { noindex: true },
@@ -68,6 +93,13 @@ export default function Product() {
   const [colorIndex, setColorIndex] = useState(wanted);
   const [size, setSize] = useState<string | null>(null);
   const [needsSize, setNeedsSize] = useState(false);
+  const [pastAdd, setPastAdd] = useState(false);
+  const [engaged, setEngaged] = useState(false);
+  const [asSet, setAsSet] = useState(false);
+  const [addedFlash, setAddedFlash] = useState(false);
+  const addButtonRef = useRef<HTMLButtonElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const addedTimer = useRef(0);
 
   useReveal([params?.slug]);
 
@@ -77,36 +109,91 @@ export default function Product() {
     setColorIndex(wanted);
     setSize(null);
     setNeedsSize(false);
+    setPastAdd(false);
+    setEngaged(false);
+    setAsSet(false);
+    setAddedFlash(false);
   }, [params?.slug]);
+
+  useEffect(() => {
+    // A button that starts below the fold and later sits above it is
+    // "not intersecting" in both places, so IntersectionObserver may not
+    // fire the second time. Read the box on scroll instead.
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      const button = addButtonRef.current;
+      const gallery = galleryRef.current;
+      const buttonGone = button ? button.getBoundingClientRect().bottom < 0 : false;
+      const galleryLeft = gallery ? gallery.getBoundingClientRect().top < 0 : false;
+      const next = buttonGone || (engaged && galleryLeft);
+      setPastAdd((current) => (current === next ? current : next));
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(read);
+    };
+    read();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [params?.slug, engaged]);
 
   // Preload the other colorway so switching paints instantly instead of
   // holding the previous image while the new JPEG downloads.
   useEffect(() => {
     product?.colorways.forEach((c) =>
-      c.images.forEach((img) => { const p = new Image(); p.src = img.src; }),
+      c.images.forEach((img) => { const p = new Image(); p.src = webpSrc(img.src); }),
     );
   }, [product]);
+
+  useEffect(() => () => window.clearTimeout(addedTimer.current), []);
 
   if (!product) return <NotFound />;
 
   const colorway = product.colorways[colorIndex];
   const gallery = colorway.images;
+  const partner = PRODUCTS.find((item) => item.slug !== product.slug);
+  const setPrice = partner ? product.price + partner.price : product.price;
+  const singleLabel = `${product.preorder ? 'Pre-order' : 'Add to cart'} — ${money(product.price)}`;
+  const buyLabel = addedFlash ? 'Added' : asSet && partner ? `Add the set — ${money(setPrice)}` : singleLabel;
 
   const add = () => {
     if (!size) {
       setNeedsSize(true);
       return;
     }
+    const line = {
+      size,
+      quantity: 1,
+      shipsIn: product.preorder?.shipsIn,
+    };
     addItem({
+      ...line,
       sku: product.sku,
       name: product.name,
       price: product.price,
-      size,
       colour: colorway.name,
-      quantity: 1,
       image: gallery[0].src,
-      shipsIn: product.preorder?.shipsIn,
     });
+    if (asSet && partner) {
+      const match = partner.colorways.find((c) => c.name === colorway.name) ?? partner.colorways[0];
+      addItem({
+        ...line,
+        sku: partner.sku,
+        name: partner.name,
+        price: partner.price,
+        colour: match.name,
+        image: match.images[0].src,
+        shipsIn: partner.preorder?.shipsIn,
+      });
+    }
+    setAddedFlash(true);
+    window.clearTimeout(addedTimer.current);
+    addedTimer.current = window.setTimeout(() => setAddedFlash(false), 1400);
   };
 
   const others = PRODUCTS.filter((p) => p.slug !== product.slug);
@@ -123,12 +210,16 @@ export default function Product() {
 
       <div className="shell grid lg:grid-cols-2 gap-8 lg:gap-16 pb-20">
         {/* --------------------------------------------------------- gallery */}
-        <ProductGallery
-          images={gallery}
-          badge={product.preorder ? 'Pre-order' : undefined}
-          resetKey={`${product.slug}-${colorway.name}`}
-          transitionName={`product-${product.slug}`}
-        />
+        <div ref={galleryRef}>
+          <ProductGallery
+            images={gallery}
+            badge={product.preorder ? 'Pre-order' : undefined}
+            resetKey={`${product.slug}-${colorway.name}`}
+            transitionName={`product-${product.slug}`}
+            onEngage={() => setEngaged(true)}
+            turntable={{ slug: product.slug, colour: colorway.name }}
+          />
+        </div>
 
         {/* ------------------------------------------------------------ buy */}
         <div className="lg:py-4">
@@ -175,6 +266,8 @@ export default function Product() {
             </div>
           </div>
 
+          <SetSwitcher product={product} colour={colorway.name} />
+
           {/* size */}
           <div className="mt-9">
             <div className="flex items-baseline justify-between mb-4">
@@ -189,7 +282,7 @@ export default function Product() {
                   key={s}
                   onClick={() => { setSize(s); setNeedsSize(false); }}
                   aria-pressed={size === s}
-                  className={`h-12 text-xs font-semibold tracking-wider border transition-colors ${
+                  className={`size-pick h-12 text-xs font-semibold tracking-wider border transition-colors ${
                     size === s
                       ? 'bg-cream text-onyx border-cream'
                       : 'border-line text-cream-dim hover:border-cream-dim'
@@ -200,12 +293,37 @@ export default function Product() {
               ))}
             </div>
             {needsSize && <p className="text-red-400 text-xs mt-3">Choose a size first.</p>}
+            {size && flatLine(product.slug, size) && (
+              <p className="text-muted text-xs mt-3 leading-relaxed">
+                {size}, laid flat: {flatLine(product.slug, size)}.
+              </p>
+            )}
+            <FitHelp
+              productSlug={product.slug}
+              productName={product.name}
+              size={size}
+              colour={colorway.name}
+            />
           </div>
+
+          {partner && (
+            <button
+              type="button"
+              aria-pressed={asSet}
+              onClick={() => setAsSet((current) => !current)}
+              className={`mt-8 w-full border px-4 py-3 text-left ${asSet ? 'border-cream' : 'border-line'}`}
+            >
+              <span className="eyebrow text-cream">{asSet ? 'Set selected' : 'Buy both pieces'}</span>
+              <span className="block text-cream-dim text-sm mt-2 leading-relaxed">
+                {product.name} {money(product.price)} and {partner.name} {money(partner.price)}. Together {money(setPrice)}, full price, same colour and the same size.
+              </span>
+            </button>
+          )}
 
           {/* Desktop action. On mobile the same action is pinned to the bottom
               of the screen so it is reachable without scrolling back up. */}
-          <button onClick={add} className="btn w-full mt-9 hidden sm:flex">
-            {product.preorder ? 'Pre-order' : 'Add to cart'} — {money(product.price)}
+          <button ref={addButtonRef} onClick={add} className="btn w-full mt-9 hidden sm:flex">
+            {buyLabel}
           </button>
 
           <ul className="mt-8 space-y-2">
@@ -213,7 +331,7 @@ export default function Product() {
               'Free delivery on every order',
               product.preorder
                 ? `Ships in ${product.preorder.shipsIn}`
-                : `Ships in ${IN_STOCK_SHIPS_IN}`,
+                : `In stock · ships in ${IN_STOCK_SHIPS_IN}`,
               product.preorder
                 ? 'Cancel any time before it ships'
                 : '30-day returns, unworn with tags',
@@ -240,37 +358,8 @@ export default function Product() {
               <p><span className="text-cream">Fabric.</span> {product.fabric}</p>
               <p><span className="text-cream">Fit.</span> {product.fit}</p>
               <p><span className="text-cream">Care.</span> {product.care}</p>
-            </Accordion>
-            <Accordion title="Pre-order questions">
-              {/* Asking someone to pay now and wait two months invites five
-                  questions. Answering them here, rather than on a policy page
-                  nobody opens, is the difference between a sale and a tab that
-                  gets closed. */}
               <p>
-                <span className="text-cream">Why pre-order?</span> Each colorway is
-                cut in one small run. Pre-ordering is what tells us how many to make, so
-                nothing is wasted and nothing sits in a warehouse.
-              </p>
-              <p>
-                <span className="text-cream">When does it arrive?</span>{' '}
-                {product.preorder ? `About ${product.preorder.shipsIn} from today.` : 'Within a few days.'}{' '}
-                We email tracking the moment it leaves us, and we write if anything slips.
-              </p>
-              <p>
-                <span className="text-cream">Can I change my mind?</span> Yes. Cancel any
-                time before it ships and you are refunded in full — no email chain, no
-                restocking fee.
-              </p>
-              <p>
-                <span className="text-cream">How does it fit?</span> Everything is cut
-                oversized on purpose. Take your usual size for the intended look, or size
-                down for something closer.{' '}
-                <Link href="/sizing" className="text-cream underline underline-offset-4">Flat measurements</Link>{' '}
-                are on the size guide.
-              </p>
-              <p>
-                <span className="text-cream">Will it come back?</span> Not in this run.
-                Drops are small and we do not restock a colorway once it is gone.
+                <Link href="/garment-dyed" className="text-cream underline underline-offset-4">What does garment dyed mean?</Link>
               </p>
             </Accordion>
             <Accordion title="Shipping &amp; returns">
@@ -290,15 +379,40 @@ export default function Product() {
               </p>
             </Accordion>
           </div>
+          <FaqList faqs={faqs} />
+          <p className="text-cream-dim text-sm mt-6">
+            <Link href="/sizing" className="text-cream underline underline-offset-4">Flat measurements</Link>
+            {' '}are on the size guide.
+          </p>
         </div>
       </div>
+
+      <FabricFeel />
 
       {/* ---------------------------------------------------- mobile buy bar */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-onyx/95 backdrop-blur-xl border-t border-line px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <button onClick={add} className="btn w-full">
-          {product.preorder ? 'Pre-order' : 'Add to cart'} — {money(product.price)}
+          {buyLabel}
         </button>
       </div>
+
+      {/* Desktop only, and only once the in-page button has scrolled away.
+          No entrance animation, so reduced motion has nothing to disable. */}
+      {pastAdd && (
+        <div className="hidden sm:block fixed bottom-0 left-0 right-0 z-40 bg-onyx/95 backdrop-blur-xl border-t border-line">
+          <div className="shell py-3 flex items-center justify-between gap-6">
+            <div className="min-w-0">
+              <p className="text-cream text-sm truncate">{product.name}</p>
+              <p className="text-muted text-xs mt-1 truncate">
+                {colorway.name}{size ? ` · ${size}` : ''} · {money(product.price)}
+              </p>
+            </div>
+            <button onClick={add} className="btn shrink-0">
+              {buyLabel}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ------------------------------------------------------------ others */}
       <section className="shell pb-32 sm:pb-24">
@@ -318,11 +432,14 @@ export default function Product() {
               href="/shop"
               className="reveal group relative block aspect-[4/5] overflow-hidden bg-charcoal/30"
             >
-              <img
+              <SiteImage
                 src="/campaign.jpg"
                 alt="Both OTRACE pieces worn together as a set"
+                width={imageSize('/campaign.jpg').width}
+                height={imageSize('/campaign.jpg').height}
                 loading="lazy"
-                className="absolute inset-0 w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.03]"
+                pictureClassName="absolute inset-0 block"
+                className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.03]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-onyx via-onyx/20 to-transparent" />
               <div className="absolute inset-x-0 bottom-0 p-6 md:p-8">

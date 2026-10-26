@@ -1,33 +1,15 @@
-import { useState } from 'react';
-import { CONTACT_EMAIL, SOCIAL, hasSocial } from '@/lib/brand';
+import { Instagram, MessageCircle } from 'lucide-react';
+import { CONTACT_EMAIL, SOCIAL, WHATSAPP_URL, hasSocial } from '@/lib/brand';
 import { Link } from 'wouter';
 import { CATEGORIES } from '@/lib/products';
-import { postJson } from '@/lib/api';
 import { Wordmark } from '@/components/wordmark';
+import { LeadForm } from '@/components/lead-form';
+
+const SOCIAL_ICON = {
+  Instagram,
+} as const;
 
 export function Footer() {
-  const [email, setEmail] = useState('');
-  const [state, setState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
-  const [message, setMessage] = useState('');
-
-  const subscribe = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (state === 'sending') return;
-    setState('sending');
-    try {
-      const data = await postJson<{ alreadySubscribed?: boolean }>('/api/subscribe', {
-        email,
-        source: 'footer',
-      });
-      setState('done');
-      setMessage(data.alreadySubscribed ? "You're already on the list." : 'You’re on the list.');
-      setEmail('');
-    } catch (err) {
-      setState('error');
-      setMessage(err instanceof Error ? err.message : 'That did not work.');
-    }
-  };
-
   return (
     <footer className="rule">
       {/* ------------------------------------------------------- list join */}
@@ -45,31 +27,7 @@ export function Footer() {
             </p>
           </div>
 
-          <form onSubmit={subscribe} className="w-full">
-            <div className="flex items-end gap-4 border-b border-line focus-within:border-cream transition-colors pb-3">
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => { setEmail(e.target.value); setState('idle'); }}
-                placeholder="Email address"
-                aria-label="Email address"
-                className="flex-1 bg-transparent text-cream placeholder:text-muted text-base md:text-lg outline-none py-2"
-              />
-              <button
-                type="submit"
-                disabled={state === 'sending'}
-                className="eyebrow text-cream shrink-0 disabled:opacity-50 -mx-3 -mt-3 -mb-3 px-3 pt-3 pb-4"
-              >
-                {state === 'sending' ? 'Joining' : 'Join'}
-              </button>
-            </div>
-            {message && (
-              <p className={`text-xs mt-3 ${state === 'error' ? 'text-red-400' : 'text-cream-dim'}`}>
-                {message}
-              </p>
-            )}
-          </form>
+          <LeadForm formId="footer" source="footer" submitLabel="Join" pendingLabel="Joining" variant="underline" />
         </div>
       </div>
 
@@ -93,19 +51,34 @@ export function Footer() {
                 {CONTACT_EMAIL}
               </a>
             )}
-            {hasSocial && (
+            {(hasSocial || WHATSAPP_URL) && (
               <div className="flex flex-wrap gap-4 mt-4">
-                {SOCIAL.map((s) => (
+                {SOCIAL.map((s) => {
+                  const Icon = SOCIAL_ICON[s.name as keyof typeof SOCIAL_ICON];
+                  return (
+                    <a
+                      key={s.name}
+                      href={s.href}
+                      target="_blank"
+                      rel="noreferrer me"
+                      className="inline-flex items-center gap-2 eyebrow text-muted hover:text-cream transition-colors"
+                    >
+                      {Icon && <Icon className="w-3.5 h-3.5" strokeWidth={1.5} aria-hidden />}
+                      {s.name}
+                    </a>
+                  );
+                })}
+                {WHATSAPP_URL && (
                   <a
-                    key={s.name}
-                    href={s.href}
+                    href={WHATSAPP_URL}
                     target="_blank"
-                    rel="noreferrer me"
-                    className="eyebrow text-muted hover:text-cream transition-colors"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 eyebrow text-muted hover:text-cream transition-colors"
                   >
-                    {s.name}
+                    <MessageCircle className="w-3.5 h-3.5" strokeWidth={1.5} aria-hidden />
+                    WhatsApp
                   </a>
-                ))}
+                )}
               </div>
             )}
           </div>
@@ -124,6 +97,8 @@ export function Footer() {
           <nav className="flex flex-col gap-3">
             <span className="eyebrow text-muted mb-1">Help</span>
             <Link href="/sizing" className="text-cream-dim hover:text-cream text-sm transition-colors">Size guide</Link>
+            <Link href="/blog" className="text-cream-dim hover:text-cream text-sm transition-colors">Journal</Link>
+            <Link href="/garment-dyed" className="text-cream-dim hover:text-cream text-sm transition-colors">Garment dyed</Link>
             <Link href="/shipping" className="text-cream-dim hover:text-cream text-sm transition-colors">Shipping &amp; returns</Link>
             <Link href="/contact" className="text-cream-dim hover:text-cream text-sm transition-colors">Contact</Link>
             <Link href="/account" className="text-cream-dim hover:text-cream text-sm transition-colors">Your account</Link>

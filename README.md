@@ -23,6 +23,18 @@ cd site && npm install && npm run dev      # http://localhost:5180
 cd site && npm run build                   # -> site/dist/public
 ```
 
+The build copies `seo/llms.txt` and the other discovery files (`llms-full.txt`,
+`identity.json`, `ai.txt`, `faq-ai.txt`, and the `.md` page mirrors) into the
+site root, and writes `robots.txt` with the AI crawler lines. After the new
+files are live on https://otrace.co, submit them to IndexNow (the API also
+does this when it boots):
+
+```bash
+sh deploy/after-deploy.sh                  # node api/indexnow.js
+```
+
+SEO / AEO / GEO notes, the query research, and the change log live in `seo/`.
+
 ## Before it can take real money
 
 1. Point the domain at the VPS and issue SSL.
@@ -37,3 +49,10 @@ cd site && npm run build                   # -> site/dist/public
    to sit where this quality of fleece normally sells; they are set in TWO
    places and must match: `api/catalog.js` (authoritative) and
    `site/src/lib/products.ts` (display).
+6. List and fit capture. See `seo/LEAD-CAPTURE.md`. The API stores signups in
+   MySQL either way. Set `KLAVIYO_PRIVATE_API_KEY` and `KLAVIYO_LIST_ID` on the
+   API, then rebuild the storefront with `VITE_WHATSAPP_NUMBER` (E.164 digits,
+   no plus; `PUBLIC_WHATSAPP_NUMBER` is an alias) and `VITE_INSTAGRAM` (or
+   `VITE_INSTAGRAM_URL`) only when those are real. If the WhatsApp number is
+   unset, the “Ask about fit” button is hidden. If Instagram is unset, the
+   footer icon is hidden. Neither is invented in the repo.

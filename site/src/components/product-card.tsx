@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import { Link } from 'wouter';
 import { money, type Product } from '@/lib/products';
+import { SiteImage } from '@/components/site-image';
+import { imageSize } from '@/lib/image-size';
 
 /**
  * One tile. Hovering (desktop) or the colorway dots (touch) swap the image, so
@@ -40,24 +42,29 @@ export function ProductCard({
             Pre-order
           </span>
         )}
-        <img
-          ref={photo}
+        <SiteImage
+          imgRef={photo}
           src={colorway.images[0].src}
           alt={colorway.images[0].alt}
+          width={imageSize(colorway.images[0].src).width}
+          height={imageSize(colorway.images[0].src).height}
           loading={priority ? 'eager' : 'lazy'}
           fetchPriority={priority ? 'high' : 'auto'}
           decoding="async"
+          pictureClassName="block w-full h-full"
           className="w-full h-full object-cover transition-transform duration-[900ms] ease-out group-hover:scale-[1.03]"
         />
         {/* Second image cross-fades in on hover — desktop only, since on touch
             there is no hover state to leave. */}
         {colorway.images[1] && (
-          <img
+          <SiteImage
             src={colorway.images[1].src}
             alt=""
+            width={imageSize(colorway.images[1].src).width}
+            height={imageSize(colorway.images[1].src).height}
             loading="lazy"
-            aria-hidden="true"
-            className="hidden md:block absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            pictureClassName="absolute inset-0 hidden md:block"
+            className="w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500"
           />
         )}
       </Link>

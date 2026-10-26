@@ -8,6 +8,7 @@
  * 30-day return window from the Shipping & returns page — so nothing is
  * promised to a search engine that the store does not promise a customer.
  */
+import { CONTACT_EMAIL_PUBLIC, ENTITY_SUMMARY } from '@/lib/entity';
 import { SIZES, type Product } from '@/lib/products';
 import { SITE_NAME, SITE_URL, absoluteUrl } from '@/lib/use-page-meta';
 
@@ -19,7 +20,11 @@ export const organizationLd = () => ({
   '@id': `${SITE_URL}/#organization`,
   name: SITE_NAME,
   url: SITE_URL,
+  description: ENTITY_SUMMARY,
+  email: CONTACT_EMAIL_PUBLIC,
   logo: absoluteUrl('/icon-512.png'),
+  // Empty on purpose: no verified Wikipedia, Wikidata, or social profile URL exists in the repo.
+  sameAs: [] as string[],
 });
 
 export const websiteLd = () => ({
@@ -74,8 +79,25 @@ const RETURN_POLICY = {
   returnMethod: 'https://schema.org/ReturnByMail',
 };
 
+/**
+ * FAQPage from the same strings the page renders. Google stopped showing FAQ
+ * rich results on 7 May 2026; this is for page understanding and AI extraction,
+ * not a promised snippet.
+ */
+export const faqLd = (faqs: { question: string; answer: string }[]) => ({
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((faq) => ({
+    '@type': 'Question',
+    name: faq.question,
+    acceptedAnswer: { '@type': 'Answer', text: faq.answer },
+  })),
+});
+
 export const productLd = (product: Product) => {
   const url = absoluteUrl(`/product/${product.slug}`);
+  // No per-variant quantity exists in the catalogue. `preorder` is the only
+  // availability flag the API reports; absent means every variant is in stock.
   const availability = product.preorder ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock';
 
   return {

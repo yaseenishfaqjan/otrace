@@ -54,6 +54,8 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SHOP_EMAIL: ${SHOP_EMAIL:-}
+      KLAVIYO_PRIVATE_API_KEY: ${KLAVIYO_PRIVATE_API_KEY:-}
+      KLAVIYO_LIST_ID: ${KLAVIYO_LIST_ID:-}
     networks: [otrace-internal, scalaro-net]
 
 volumes:

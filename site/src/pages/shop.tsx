@@ -17,7 +17,7 @@ const SHOP_SEO = {
   hoodies: {
     title: 'Heavyweight Oversized Hoodies',
     description:
-      'Oversized 450 GSM heavyweight fleece hoodies with a dropped shoulder and double-layer hood, garment dyed in Onyx Black and Warm Cream. Pre-order with free US shipping.',
+      'Oversized 450 GSM heavyweight fleece hoodies with a dropped shoulder and double-layer hood, garment dyed in Onyx Black and Warm Cream. In stock, free US shipping.',
   },
   bottoms: {
     title: 'Wide-Leg Sweatpants',
@@ -66,8 +66,7 @@ export default function Shop() {
             : 'Two pieces, two colorways, one fleece. Cut oversized and dyed after they are sewn.'}
         </p>
         <p className="text-cream text-sm mt-4 max-w-lg">
-          AW2026 is open for pre-order. Your card is charged today to reserve
-          your size, and orders ship in 6&ndash;8 weeks.
+          AW2026 is in stock. Free US delivery, and orders ship in 3&ndash;5 business days.
         </p>
 
         <nav aria-label="Categories" className="flex flex-wrap gap-2 mt-9">

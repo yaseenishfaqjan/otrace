@@ -23,9 +23,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import puppeteer from 'puppeteer-core';
 import { createServer, DIST } from './serve.mjs';
+import { copyDiscovery, robotsTxt } from './seo-public.mjs';
 
-const SITE_URL = (process.env.VITE_SITE_URL ?? 'https://otrace.com').replace(/\/$/, '');
-const CHROME = process.env.CHROME_PATH ?? 'C:/Program Files/Google/Chrome/Application/chrome.exe';
+const SITE_URL = (process.env.VITE_SITE_URL ?? 'https://otrace.co').replace(/\/$/, '');
+const CHROME = process.env.CHROME_PATH
+  ?? (fs.existsSync('/usr/bin/google-chrome')
+    ? '/usr/bin/google-chrome'
+    : 'C:/Program Files/Google/Chrome/Application/chrome.exe');
 const PORT = 5199;
 const ORIGIN = `http://127.0.0.1:${PORT}`;
 const NOT_FOUND_PROBE = '/__otrace-not-found__';
@@ -33,7 +37,7 @@ const NOT_FOUND_PROBE = '/__otrace-not-found__';
 // Pages nothing links to directly (utility pages) plus the main entry points.
 // Products and categories are discovered by following links, so a new product
 // is prerendered without touching this file.
-const SEEDS = ['/', '/shop', '/lookbook', '/about', '/sizing', '/contact', '/shipping', '/terms', '/privacy', '/cart', '/account', '/order/success'];
+const SEEDS = ['/', '/shop', '/lookbook', '/about', '/sizing', '/garment-dyed', '/blog', '/contact', '/shipping', '/terms', '/privacy', '/cart', '/account', '/order/success'];
 
 const shellPath = path.join(DIST, 'index.html');
 const shell = fs.readFileSync(shellPath, 'utf8');
@@ -134,21 +138,32 @@ const urlEntries = indexable
     return `  <url>\n    <loc>${escapeXml(SITE_URL + (p.route === '/' ? '/' : p.route))}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>${priority}</priority>${imageXml}\n  </url>`;
   })
   .join('\n');
-fs.writeFileSync(
-  path.join(DIST, 'sitemap.xml'),
-  `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${urlEntries}\n</urlset>\n`,
-);
+const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${urlEntries}\n</urlset>\n`;
+fs.writeFileSync(path.join(DIST, 'sitemap.xml'), sitemapXml);
+const lastmods = [...sitemapXml.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((m) => m[1]);
+if (lastmods.length === 0 || lastmods.some((day) => day !== today)) {
+  throw new Error(`sitemap lastmod check failed: expected ${today}, got ${lastmods.join(',') || '(none)'}`);
+}
 
 // noindex pages stay crawlable so search engines can SEE the noindex; only the API is off limits.
-fs.writeFileSync(
-  path.join(DIST, 'robots.txt'),
-  `User-agent: *\nAllow: /\nDisallow: /api/\n\nSitemap: ${SITE_URL}/sitemap.xml\n`,
-);
+const robots = robotsTxt(SITE_URL);
+fs.writeFileSync(path.join(DIST, 'robots.txt'), robots);
+if (
+  !robots.includes('User-agent: GPTBot') ||
+  !robots.includes('User-agent: Bingbot') ||
+  !robots.includes(`LLMs: ${SITE_URL}/llms.txt`) ||
+  !robots.includes(`Discovery: ${SITE_URL}/identity.json`) ||
+  !robots.includes('Disallow: /api/')
+) {
+  throw new Error('robots.txt is missing the AI crawler block, Discovery line, or the API disallow');
+}
+
+copyDiscovery(DIST);
 
 // Google Merchant Center feed (free product listings), one item per colour and size.
 const feedItems = [];
-// Pre-order items must carry an availability date. The site promises shipping in
-// 6–8 weeks, so the feed uses the LATE end: 8 weeks from the build date.
+// A pre-order offer must carry an availability date. Only variants whose
+// schema availability is PreOrder get one; in-stock variants do not.
 const availabilityDate = new Date(Date.now() + 56 * 864e5).toISOString().slice(0, 10) + 'T00:00:00Z';
 for (const p of pages.filter((pg) => pg.route.startsWith('/product/'))) {
   // usePageMeta writes a page's structured data as one array; flatten it.

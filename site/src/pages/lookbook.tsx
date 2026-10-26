@@ -8,6 +8,8 @@ import { SplitHeadline } from '@/components/split-headline';
 import { useReveal } from '@/lib/use-reveal';
 
 import { usePageMeta } from '@/lib/use-page-meta';
+import { SiteImage } from '@/components/site-image';
+import { imageSize } from '@/lib/image-size';
 const pad = (n: number) => String(n).padStart(2, '0');
 
 /* ------------------------------------------------------------ pieces ---- */
@@ -42,20 +44,24 @@ function Pieces({ look }: { look: Look }) {
 /* ----------------------------------------------------------- picture ---- */
 
 function LookPicture({ look, eager = false, sizes }: { look: Look; eager?: boolean; sizes?: string }) {
+  const frame = imageSize(look.src);
   return (
-    <picture>
-      {look.wide && <source media="(min-width: 768px)" srcSet={look.wide} />}
-      <img
-        src={look.src}
-        alt={look.alt}
-        sizes={sizes}
-        loading={eager ? 'eager' : 'lazy'}
-        fetchPriority={eager ? 'high' : 'auto'}
-        decoding="async"
-        style={look.position ? { objectPosition: look.position } : undefined}
-        className="look-img absolute inset-0 w-full h-full object-cover"
-      />
-    </picture>
+    <div className="look-shift absolute inset-0">
+    <SiteImage
+      src={look.src}
+      sources={look.wide ? [{ src: look.wide, media: '(min-width: 768px)' }] : undefined}
+      alt={look.alt}
+      width={frame.width}
+      height={frame.height}
+      sizes={sizes}
+      loading={eager ? 'eager' : 'lazy'}
+      fetchPriority={eager ? 'high' : 'auto'}
+      decoding="async"
+      pictureClassName="absolute inset-0 block"
+      style={look.position ? { objectPosition: look.position } : undefined}
+      className="look-img w-full h-full object-cover"
+    />
+    </div>
   );
 }
 
@@ -162,6 +168,35 @@ export default function Lookbook() {
     const root = document.documentElement;
     root.classList.add('snap-looks');
     return () => root.classList.remove('snap-looks');
+  }, []);
+
+  // A few pixels of shift on desktop. Phones and reduced motion stay still.
+  useEffect(() => {
+    const fine = window.matchMedia('(min-width: 768px) and (prefers-reduced-motion: no-preference)').matches;
+    if (!fine) return;
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      document.querySelectorAll<HTMLElement>('[data-look]').forEach((el) => {
+        const shift = el.querySelector<HTMLElement>('.look-shift');
+        if (!shift) return;
+        const rect = el.getBoundingClientRect();
+        const place = (rect.top + rect.height / 2) / window.innerHeight - 0.5;
+        const px = Math.max(-16, Math.min(16, place * -16));
+        shift.style.setProperty('--look-shift', px.toFixed(2));
+      });
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(read);
+    };
+    read();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   return (

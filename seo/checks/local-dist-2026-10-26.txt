@@ -1,0 +1,23 @@
+=== local dist after rebuild 2026-10-26 ===
+node seo/verify.mjs --root site/dist/public
+self-test: dirty fixture failed on purpose (PreOrder count 1; img without width/height)
+self-test: clean fixture produced 0 problems
+verify: 0 problems
+
+hoodie PreOrder occ 0
+hoodie InStock lines 1
+hoodie InStock occ 14
+pant PreOrder occ 0
+shop PreOrder 0
+shop pre-order ci 0
+home pre-order ci 0
+llms bytes 6663 (matches seo/llms.txt)
+GPTBot 1
+sitemap locs 14
+sitemap lastmod 2026-10-26
+internal hrefs missing 0
+merchant preorder 0
+merchant in_stock 28
+sizing main words 700
+html files containing pre-order: 0
+html files containing aggregateRating: 0

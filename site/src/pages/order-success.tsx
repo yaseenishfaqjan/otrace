@@ -25,9 +25,8 @@ export default function OrderSuccess() {
           your inbox now, and we email tracking the moment it ships.
         </p>
         <p className="text-cream-dim leading-relaxed mt-4">
-          Anything bought as a pre-order is reserved in your size and made to
-          order — reply to that email to change or cancel it any time before it
-          ships.
+          In-stock orders ship within 3–5 business days. We email tracking the
+          moment the parcel leaves us.
         </p>
         <div className="flex flex-wrap gap-3 mt-9">
           <Link href="/shop" className="btn">Keep shopping</Link>

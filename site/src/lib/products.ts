@@ -78,7 +78,7 @@ export const CATEGORIES: Category[] = [
     slug: 'hoodies',
     name: 'Hoodies',
     blurb:
-      'Boxy through the body, dropped at the shoulder, cut long enough to sit where it should. 450gsm and garment dyed.',
+      'Boxy through the body, dropped at the shoulder, cut long enough to sit where it should. 450 GSM and garment dyed.',
   },
   {
     slug: 'bottoms',
@@ -110,10 +110,9 @@ export const PRODUCTS: Product[] = [
       'Ribbed cuffs and hem that hold their shape',
       'OTRACE wordmark embroidered at the chest in 40wt matte thread',
     ],
-    fabric: '400–450 GSM heavyweight fleece. 100% cotton, pre-shrunk, garment dyed.',
+    fabric: '450 GSM heavyweight fleece. 100% cotton, pre-shrunk, garment dyed.',
     fit: 'Oversized. Take your usual size for the intended fit, or size down for a cleaner line.',
     care: 'Machine wash cold, inside out. Tumble dry low. Do not iron the embroidery.',
-    preorder: { shipsIn: '6–8 weeks' },
     colorways: [
       {
         name: 'Onyx Black',
@@ -153,12 +152,11 @@ export const PRODUCTS: Product[] = [
       'Ribbed ankle cuff built to stack',
       'Side seam pockets',
       'OTRACE monogram embroidered at the thigh',
-      'Cut from the same 450gsm fleece as the hoodie',
+      'Cut from the same 450 GSM fleece as the hoodie',
     ],
-    fabric: '400–450 GSM heavyweight fleece. 100% cotton, pre-shrunk, garment dyed.',
+    fabric: '450 GSM heavyweight fleece. 100% cotton, pre-shrunk, garment dyed.',
     fit: 'Relaxed and wide. True to size at the waist.',
     care: 'Machine wash cold, inside out. Tumble dry low.',
-    preorder: { shipsIn: '6–8 weeks' },
     colorways: [
       {
         name: 'Onyx Black',

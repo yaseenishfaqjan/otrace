@@ -3,6 +3,8 @@ import { Plus, Minus } from 'lucide-react';
 import { useCart } from '@/lib/cart';
 import { useCheckout } from '@/lib/use-checkout';
 import { money, PRODUCTS } from '@/lib/products';
+import { SiteImage } from '@/components/site-image';
+import { imageSize } from '@/lib/image-size';
 import { ProductCard } from '@/components/product-card';
 
 import { usePageMeta } from '@/lib/use-page-meta';
@@ -42,7 +44,14 @@ export default function Cart() {
             {items.map((item) => (
               <div key={item.id} className="flex gap-5 py-7 border-t border-line">
                 <Link href={`/product/${slugFor(item.sku)}`} className="w-28 sm:w-32 shrink-0 bg-charcoal/30 aspect-[4/5] overflow-hidden">
-                  <img src={item.image} alt="" className="w-full h-full object-cover" />
+                  <SiteImage
+                    src={item.image}
+                    alt=""
+                    width={imageSize(item.image).width}
+                    height={imageSize(item.image).height}
+                    pictureClassName="block w-full h-full"
+                    className="w-full h-full object-cover"
+                  />
                 </Link>
 
                 <div className="flex-1 min-w-0 flex flex-col">

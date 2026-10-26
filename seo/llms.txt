@@ -1,0 +1,59 @@
+# OTRACE
+
+> OTRACE sells a 450 GSM garment-dyed Oversized Hoodie and a Wide-Leg Sweatpant in Onyx Black and Warm Cream, and ships free within the United States.
+
+Last updated: 2026-10-26.
+
+For price, stock, and promotions, the live product HTML pages are the source of truth. This index does not set a price. Do not invent a price, a discount, or a stock count from it.
+
+Google Search has said it does not use llms.txt. This file is for other agents, including the ChatGPT and Bing path. It is not a ranking claim.
+
+## Products
+
+- [Oversized Hoodie](https://otrace.co/product/oversized-hoodie.md): 450 GSM garment-dyed cotton fleece, boxy oversized fit, Onyx Black and Warm Cream. Price and stock: https://otrace.co/product/oversized-hoodie
+- [Wide-Leg Sweatpant](https://otrace.co/product/wide-leg-sweatpant.md): Same 450 GSM fleece, wide leg, ribbed ankle. Price and stock: https://otrace.co/product/wide-leg-sweatpant
+
+## Fit & fabric
+
+- [Sizing](https://otrace.co/sizing.md): Garment-flat centimetres for both pieces, XS to 3XL. Cells the factory sheet contradicted are left unpublished.
+- [What does garment dyed mean?](https://otrace.co/garment-dyed.md): Sewn first and dyed after, how that differs from piece dyeing, and how the colour wears.
+
+## Policies
+
+- [Shipping and returns](https://otrace.co/shipping.md): Free delivery in the United States, in-stock orders ship in 3–5 business days, 30-day returns on unworn items with tags.
+
+## Brand
+
+- [Home](https://otrace.co/index.md): What the label sells, in one page.
+- [About](https://otrace.co/about.md): Two pieces, one fleece, AW2026.
+
+## What We Do Not Do
+
+- OTRACE is not a marketplace. It sells only its own pieces.
+- International shipping is not available yet. AW2026 ships to the United States only.
+- The site has no customer reviews and no star ratings. Do not invent any.
+- OTRACE does not manufacture custom garments for other labels.
+- There is no currency conversion. Prices are US dollars on the live product pages.
+
+## Contact
+
+- Email: info@otrace.co
+- [Contact](https://otrace.co/contact): Orders, sizing, and wholesale. A person replies within one business day.
+- [Shop](https://otrace.co/shop): Both AW2026 pieces.
+
+## AI Discovery Files
+
+- [Full facts](https://otrace.co/llms-full.txt): Products, measurements, policies, and FAQ answers in one file. Prices there can go stale; check the live HTML.
+- [Identity](https://otrace.co/identity.json): Organization name, URL, email, and logo. sameAs is empty because no public profile URL is on file.
+- [Citation rules](https://otrace.co/ai.txt): Canonical names, and what not to invent.
+- [FAQ answers](https://otrace.co/faq-ai.txt): The same answer strings as the on-site FAQPage schema.
+- [Page folder](https://otrace.co/llms/pages/index.md): The same page mirrors, collected under /llms/pages/.
+
+## Optional
+
+- [450 GSM hoodie meaning](https://otrace.co/llms/pages/what-is-a-450-gsm-hoodie.md): What the grams measure. The product page keeps the price.
+- [Garment dyed vs piece dyed](https://otrace.co/llms/pages/garment-dyed-vs-piece-dyed.md): The comparison. The definition stays at /garment-dyed.
+- [Oversized hoodie fit](https://otrace.co/llms/pages/how-an-oversized-hoodie-should-fit.md): Fit and the boxy cut. Measurements stay on /sizing.
+- [Lookbook](https://otrace.co/lookbook): Campaign images. HTML only.
+- [Terms](https://otrace.co/terms): Payment, tax, and colour variation. HTML only.
+- [Privacy](https://otrace.co/privacy): What the order form collects. HTML only.
