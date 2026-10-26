@@ -66,3 +66,42 @@
   opacity: 1 !important;
   transform: none !important;
 }
+
+/*
+ * The size chart.
+ *
+ * Seven sizes do not fit the page column, and a table that silently runs off
+ * the right edge hides 2XL and 3XL from exactly the customers most likely to
+ * need them. Scroll it instead, and keep the first column pinned so a row stays
+ * identifiable once you have scrolled away from its label.
+ */
+.hdt-size-chart {
+  display: block;
+  overflow-x: auto;
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0 2rem;
+  white-space: nowrap;
+}
+.hdt-size-chart th,
+.hdt-size-chart td {
+  padding: 0.6rem 1.1rem;
+  text-align: left;
+  border-bottom: 1px solid currentColor;
+  border-color: color-mix(in srgb, currentColor 14%, transparent);
+}
+.hdt-size-chart thead th { font-weight: 600; }
+.hdt-size-chart tbody th { font-weight: 500; position: sticky; left: 0; background: inherit; }
+
+/* The lookbook: a simple two-up grid that collapses to one on a phone. */
+.hdt-lookbook-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 2rem 0;
+}
+.hdt-lookbook-grid figure { margin: 0; }
+.hdt-lookbook-grid img { display: block; width: 100%; height: auto; }
+@media (max-width: 749px) {
+  .hdt-lookbook-grid { grid-template-columns: minmax(0, 1fr); }
+}

@@ -208,7 +208,7 @@ export function createThemeRenderer({
       template: { name: templateName, suffix: null },
       // Templates print {{ page.title }} as their heading. With no `page` the
       // heading renders the literal braces, which reads as a broken page.
-      page: { title, handle: templateName, content: '', url: `/${templateName}` },
+      page: { title, handle: extra.handle ?? templateName, content: extra.content ?? '', url: `/${extra.handle ?? templateName}` },
       // The heading block's own default is {{ page_title }}, not page.title.
       page_title: title,
     });
