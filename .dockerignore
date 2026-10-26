@@ -18,3 +18,10 @@ docs
 *.md
 .claude
 .vscode
+
+# On the server the build context is /opt/otrace, which also holds the built
+# storefront that the web container serves from a bind mount. The API image
+# never needs it.
+web
+deploy
+.env
