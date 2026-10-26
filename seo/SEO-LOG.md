@@ -499,3 +499,35 @@ Same branch, still not deployed. Live otrace.co still shows the old page.
 - Footer Categories is Shop, Hoodies, Bottoms, Lookbook. Useful links is Blog, Garment dyed, Sizing, Contact. Information stays Shipping, Sizing, Contact, Privacy. The trust row is unchanged: free US delivery, ships in 3–5 days, 30 day returns, Stripe.
 
 **Verified locally.** `node --test api/theme/theme.test.mjs` 15/15. Rendered homepage has no “Your post”, ACCESSORIES, “hasn't published”, CONTINUE READING, $140, fashionshop, look-08, or look-10. Chrome screenshots at 1440 and 390 show the four colourway photos, the three journal cards, the lookbook frames, and a filled footer.
+
+## 2026-10-26 — Shop and lookbook
+
+Same branch, still not deployed. Live otrace.co still shows two back-view cards, the −20% badge, and the masonry lookbook until this is deployed.
+
+**Shop (`/shop`).** The listing is four colourway cards, in this order, using the flat files in `site/public/products/`:
+
+| Card | Primary | Hover |
+| --- | --- | --- |
+| Oversized Hoodie — Onyx Black | `hoodie-onyx-front.jpg` | `hoodie-onyx-back.jpg` |
+| Oversized Hoodie — Warm Cream | `hoodie-cream-front.jpg` | `hoodie-cream-back.jpg` |
+| Wide-Leg Sweatpant — Onyx Black | `pant-onyx-front.jpg` | `pant-onyx-back.jpg` |
+| Wide-Leg Sweatpant — Warm Cream | `pant-cream-front.jpg` | `pant-cream-back.jpg` |
+
+Prices are the catalogue: hoodie $148, sweatpant $128. `listPriceCents` equals `priceCents`, so there is no compare-at price and no −20% badge. Each card links to the real product (`/product/oversized-hoodie`, `/product/wide-leg-sweatpant`). The column switch, sort, and filter are off, and the empty toolbar is hidden. The AW2026 heading padding is 16px / 4px, and the collection list strip above it is out of the template order, so the four fronts sit under the nav. `/shop/hoodies` and `/shop/bottoms` use the same colourway cards, two each.
+
+**Lookbook (`/lookbook`).** The theme page (the one live otrace.co/lookbook already renders) keeps eight frames in a 3:4 crop, two across:
+
+1. `look-10-tall.jpg` — Onyx hoodie with the Warm Cream sweatpant
+2. `look-06.jpg` — Warm Cream hoodie with the Onyx sweatpant
+3. `look-01-tall.jpg` — Onyx set, corridor
+4. `look-02.jpg` — Warm Cream set, seated
+5. `look-04-tall.jpg` — both colourways
+6. `look-03.jpg` — Onyx set, hood up
+7. `look-09.jpg` — Onyx hoodie, logo
+8. `look-05.jpg` — Warm Cream hoodie, logo
+
+Dropped `look-08.jpg` (stairwell, mostly architecture) and `look-07-tall.jpg` (a second cream-seated frame). The heading is 2xl with 12px of padding. Header announcement, email row, and the $140 line stay out of the render order, same as the homepage. Footer Categories and Useful links are the same filled menus as the homepage.
+
+`deploy/nginx-theme-routes.conf` now documents `/lookbook` → `/api/theme-preview/page/lookbook`. Live already serves the theme lookbook; the snippet had still listed it as a React page. The file is not loaded automatically. Applying it means truncate-write `/opt/scalaro/nginx.conf`, `nginx -t`, then reload.
+
+**Verified locally.** Theme tests 15/15. Rendered `/shop` has the four fronts, hover backs, `$148.00` and `$128.00`, and no −20%, `$100`, `$80`, or layout switch. Rendered `/lookbook` has the eight frames above and neither look-07 nor look-08. Chrome at 1440 and 390: shop cards start under the nav; lookbook rows share one height (about 792px at 1440).

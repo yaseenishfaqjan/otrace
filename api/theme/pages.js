@@ -100,27 +100,33 @@ const garmentDyed = () => {
 
 /* ------------------------------------------------------------- lookbook */
 
+/*
+ * Eight frames, paired.
+ *
+ * The first row is the two mixed sets: Onyx hoodie with the cream sweatpant,
+ * and the cream hoodie with the Onyx sweatpant. The stairwell (look-08) and
+ * the second cream-seated frame (look-07) are left out — one is mostly the
+ * architecture, the other repeats look-02. Width and height are the files.
+ */
 const LOOKBOOK = [
-  ['/lookbook/look-01-tall.jpg', 'The AW2026 set in Onyx Black'],
-  ['/lookbook/look-02.jpg', 'The Oversized Hoodie in Warm Cream'],
-  ['/lookbook/look-03.jpg', 'Wide-Leg Sweatpant, stacked at the ankle'],
-  ['/lookbook/look-04-tall.jpg', 'Hoodie and sweatpant worn as a set'],
-  ['/lookbook/look-05.jpg', '450 GSM garment-dyed fleece'],
-  ['/lookbook/look-06.jpg', 'Onyx Black, full length'],
-  ['/lookbook/look-07-tall.jpg', 'Warm Cream, full length'],
-  ['/lookbook/look-08.jpg', 'The set, from behind'],
-  ['/lookbook/look-09.jpg', 'Oversized through the body, dropped at the shoulder'],
-  ['/lookbook/look-10-tall.jpg', 'AW2026'],
+  ['/lookbook/look-10-tall.jpg', 1005, 1800, 'A model at the end of a concrete tunnel in the Onyx Black hoodie and Warm Cream sweatpant'],
+  ['/lookbook/look-06.jpg', 1344, 1800, 'A model leans on a concrete wall in the Warm Cream hoodie and Onyx Black sweatpant'],
+  ['/lookbook/look-01-tall.jpg', 1005, 1800, 'A model walks down a long concrete corridor in the Onyx Black hoodie and sweatpant'],
+  ['/lookbook/look-02.jpg', 1344, 1800, 'A model sits on concrete steps in the Warm Cream hoodie and sweatpant'],
+  ['/lookbook/look-04-tall.jpg', 1005, 1800, 'Two models in a vast concrete hall, one in Onyx Black and one in Warm Cream'],
+  ['/lookbook/look-03.jpg', 1344, 1800, 'A model stands in window light, hood up, in the Onyx Black set'],
+  ['/lookbook/look-09.jpg', 1344, 1800, 'Detail of the Onyx Black hoodie, logo and white moulded drawcord tips'],
+  ['/lookbook/look-05.jpg', 1344, 1800, 'Close crop of the Warm Cream hoodie, logo and white moulded drawcord tips'],
 ];
 
 const lookbook = () =>
   [
-    `<p>Two pieces, two colourways, photographed as they are worn. `,
+    `<p class="hdt-lookbook-lead">Two pieces, two colourways, photographed as they are worn. `,
     `<a href="/shop">Shop AW2026</a>.</p>`,
     `<div class="hdt-lookbook-grid">`,
     ...LOOKBOOK.map(
-      ([src, alt]) =>
-        `<figure><img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" width="1200" height="1500"></figure>`,
+      ([src, width, height, alt]) =>
+        `<figure><img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" width="${width}" height="${height}"></figure>`,
     ),
     `</div>`,
   ].join('');

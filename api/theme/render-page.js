@@ -163,22 +163,47 @@ export function createThemeRenderer({
   const PRODUCTS_BY_HANDLE = Object.fromEntries(
     COLLECTIONS.fashion.products.map((product) => [product.handle, product]),
   );
-  // Homepage "THE SET" is one card per colourway so both hoodie colours and
-  // both bottoms are actually on the page. The handle and URL stay on the
-  // real product; only the card image and title are colour-specific.
+  /**
+   * One card per colourway.
+   *
+   * The catalogue is two SKUs. A shop grid of those two shows a single back
+   * view of each and leaves the other colour off the page. The card image is
+   * that colourway's flat front (logo side); the next frame is the back, which
+   * is what the card fades to on hover. The handle and URL stay on the real
+   * product, and the variant ids stay on the real SKU so checkout still
+   * prices the piece the catalogue charges.
+   */
+  const shapeColourway = (product, colorway) => {
+    const slug = colorway.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    const shaped = toShopifyProduct(
+      { ...product, images: colorway.images, colours: [colorway.name] },
+      { siteUrl },
+    );
+    shaped.handle = product.slug;
+    shaped.url = `/product/${product.slug}`;
+    shaped.id = `${product.sku}--${slug}`;
+    shaped.title = `${product.name.replace(/^OTRACE\s+/, '')} — ${colorway.name}`;
+    shaped.variants = shaped.variants.filter((variant) => variant.option1 === colorway.name);
+    shaped.first_available_variant = shaped.variants[0] ?? shaped.first_available_variant;
+    shaped.selected_or_first_available_variant = shaped.first_available_variant;
+    return { slug, shaped };
+  };
+  const colourwayCards = (products) => {
+    const cards = [];
+    for (const product of products) {
+      for (const colorway of product.colorways ?? []) {
+        if (!colorway?.images?.length) continue;
+        cards.push(shapeColourway(product, colorway).shaped);
+      }
+    }
+    return cards;
+  };
+  // Homepage "THE SET" looks these up by colourway handle.
   for (const product of both) {
     for (const colourName of product.colours ?? []) {
       const colorway = (product.colorways ?? []).find((c) => c.name === colourName);
       if (!colorway?.images?.length) continue;
-      const shaped = toShopifyProduct({ ...product, images: colorway.images }, { siteUrl });
-      const slug = colourName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-      shaped.handle = product.slug;
-      shaped.url = `/product/${product.slug}`;
-      shaped.id = `${product.sku}--${slug}`;
-      shaped.title = `${product.name.replace(/^OTRACE\s+/, '')} — ${colourName}`;
-      shaped.variants = shaped.variants.filter((variant) => variant.option1 === colourName);
-      shaped.first_available_variant = shaped.variants[0] ?? shaped.first_available_variant;
-      shaped.selected_or_first_available_variant = shaped.first_available_variant;
+      const { slug, shaped } = shapeColourway(product, colorway);
       PRODUCTS_BY_HANDLE[`${product.slug}--${slug}`] = shaped;
     }
   }
@@ -313,9 +338,27 @@ export function createThemeRenderer({
     return wrap(content, { ...globals, page_title: extra.page_title ?? title }, globals);
   }
 
-  /** The shop listing. */
+  /** The shop listing. One card per colourway, front flat first. */
   async function renderCollection({ handle, title, description, products }) {
-    const collection = toShopifyCollection({ handle, title, description, products }, { siteUrl });
+    const shaped = colourwayCards(products);
+    const collection = {
+      id: handle,
+      handle,
+      title,
+      name: title,
+      description: description ?? '',
+      url: handle === 'all' ? '/shop' : `/shop/${handle}`,
+      products: shaped,
+      all_products_count: shaped.length,
+      products_count: shaped.length,
+      all_tags: [],
+      tags: [],
+      sort_by: null,
+      default_sort_by: 'manual',
+      featured_image: shaped[0]?.featured_image ?? null,
+      image: shaped[0]?.featured_image ?? null,
+      filters: [],
+    };
     return renderPage(
       'collection',
       { collection, title, page_title: `${title} — OTRACE` },

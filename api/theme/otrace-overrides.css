@@ -114,15 +114,41 @@
 .hdt-size-chart thead th { font-weight: 600; }
 .hdt-size-chart tbody th { font-weight: 500; position: sticky; left: 0; background: inherit; }
 
-/* The lookbook: a simple two-up grid that collapses to one on a phone. */
+/* The lookbook: equal 3:4 cells so a short frame cannot open a white void.
+   Page copy sits in .hdt-rte, whose img rule is height:auto. The photo is
+   taken out of flow so that rule cannot stretch the cell. */
+.hdt-lookbook-lead {
+  margin: 0 0 0.75rem;
+}
 .hdt-lookbook-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1rem;
-  margin: 2rem 0;
+  gap: 0.75rem;
+  margin: 0 0 2rem;
 }
-.hdt-lookbook-grid figure { margin: 0; }
-.hdt-lookbook-grid img { display: block; width: 100%; height: auto; }
+.hdt-rte .hdt-lookbook-grid figure,
+.hdt-lookbook-grid figure {
+  margin: 0;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  min-height: 0;
+  position: relative;
+}
+.hdt-rte .hdt-lookbook-grid img,
+.hdt-lookbook-grid img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: center 22%;
+  border-radius: 0;
+}
 @media (max-width: 749px) {
   .hdt-lookbook-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Shop has no filter, sort, or column switch. The wrapper still prints. */
+.hdt-shop-control { display: none; }
