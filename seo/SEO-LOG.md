@@ -291,7 +291,7 @@ Images: `detail-fabric.jpg`, `detail-stitch.jpg`, `products/hoodie-onyx-front.jp
 
 **Screenshot:** `seo/shots/2026-10-26-blog-375.png`, `seo/shots/2026-10-26-blog-1440.png`, `seo/shots/2026-10-26-blog-gsm-375.png`, `seo/shots/2026-10-26-blog-gsm-1440.png`, `seo/shots/2026-10-26-blog-dye-375.png`, `seo/shots/2026-10-26-blog-fit-375.png`, `seo/shots/2026-10-26-blog-fit-1440.png`. Overflow 0 at 375 and 1440.
 
-**Commit:**  recorded with this entry’s commit.
+**Commit:** a01bdc4
 
 ## [2026-10-26] /llms/pages mirrors
 
@@ -299,4 +299,4 @@ Images: `detail-fabric.jpg`, `detail-stitch.jpg`, `products/hoodie-onyx-front.jp
 
 **Before:** no `/llms/pages/` files. **After:** the same markdown is copied to `/llms/pages/` during the build, including the journal notes. `https://otrace.co/llms/pages/index.md` is linked from `llms.txt`. Local file returns 200 on the preview server. Live is still 404 until deploy.
 
-**Commit:** same commit as the journal entry.
+**Commit:** a01bdc4
