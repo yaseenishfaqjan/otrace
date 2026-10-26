@@ -182,9 +182,34 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
   if (event.type !== 'checkout.session.completed') return;
 
   try {
-    const session = await stripe.checkout.sessions.retrieve(event.data.object.id, {
-      expand: ['line_items'],
-    });
+    /**
+     * We have ALREADY told Stripe 200, so it will never retry this event. That
+     * makes every network call below a place where a paid order can vanish:
+     * measured 26 Oct 2026, this container intermittently fails DNS with
+     * EAI_AGAIN, and the failure landed inside this very handler.
+     *
+     * Stripe sends the whole session in the event, and the only reason to
+     * re-fetch is freshness - `line_items` is expanded here and never read.
+     * So: try the fetch a few times, and if DNS is still broken, fall back to
+     * what the event already carried rather than losing the order.
+     */
+    let session = event.data.object;
+    for (let attempt = 1; attempt <= 3; attempt += 1) {
+      try {
+        session = await stripe.checkout.sessions.retrieve(event.data.object.id, {
+          expand: ['line_items'],
+        });
+        break;
+      } catch (err) {
+        const cause = err?.cause?.code || err?.code || err?.message;
+        console.warn(`[webhook] session retrieve attempt ${attempt} failed (${cause})`);
+        if (attempt === 3) {
+          console.warn('[webhook] using the session from the event payload instead');
+        } else {
+          await new Promise((r) => setTimeout(r, 500 * attempt));
+        }
+      }
+    }
 
     const items = unpackItems(session.metadata);
     const shipping =
