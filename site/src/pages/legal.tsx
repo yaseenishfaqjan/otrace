@@ -106,7 +106,9 @@ export function Privacy() {
         <p>
           When you order: your name, email, delivery address and phone number,
           so we can ship to you and reach you about the order. When you join the
-          list: your email only.
+          list: your email, the page you joined from, and any size, colour or
+          phone number you choose to add. SMS and WhatsApp stay off unless you
+          tick them separately.
         </p>
       </section>
       <section>
@@ -120,7 +122,9 @@ export function Privacy() {
         <h2>Who else sees it</h2>
         <p>
           Stripe for payment, our carrier for delivery, and our email provider
-          for order confirmations. Nobody else. We do not sell data.
+          for order confirmations. When the list is connected to an email
+          platform, that platform receives the same signup so it can send what
+          you asked for. We do not sell data.
         </p>
       </section>
       <section>

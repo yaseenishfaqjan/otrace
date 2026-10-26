@@ -31,6 +31,8 @@ import {
   formatMoney,
 } from './catalog.js';
 import { submitIndexNow } from './indexnow.js';
+import { ensureLeadColumns, handleContact, handleSubscribe, inquiryLabel } from './leads.js';
+import { klaviyoConfig } from './klaviyo.js';
 
 const {
   PORT = 3000,
@@ -95,24 +97,39 @@ async function initDatabase() {
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS subscribers (
-      id           INT AUTO_INCREMENT PRIMARY KEY,
-      email        VARCHAR(255) NOT NULL UNIQUE,
-      source       VARCHAR(64)  NOT NULL DEFAULT 'footer',
-      unsubscribed TINYINT(1)   NOT NULL DEFAULT 0,
-      created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      id                        INT AUTO_INCREMENT PRIMARY KEY,
+      email                     VARCHAR(255) NOT NULL UNIQUE,
+      source                    VARCHAR(64)  NOT NULL DEFAULT 'footer',
+      path                      VARCHAR(255) NULL,
+      product_slug              VARCHAR(128) NULL,
+      size                      VARCHAR(32)  NULL,
+      colour                    VARCHAR(64)  NULL,
+      phone                     VARCHAR(32)  NULL,
+      form_id                   VARCHAR(64)  NULL,
+      marketing_consent_at      DATETIME NULL,
+      marketing_consent_method  VARCHAR(64) NULL,
+      sms_consent               TINYINT(1) NOT NULL DEFAULT 0,
+      whatsapp_consent          TINYINT(1) NOT NULL DEFAULT 0,
+      unsubscribed              TINYINT(1) NOT NULL DEFAULT 0,
+      created_at                DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
 
   await pool.query(`
     CREATE TABLE IF NOT EXISTS enquiries (
-      id         INT AUTO_INCREMENT PRIMARY KEY,
-      name       VARCHAR(255) NOT NULL,
-      email      VARCHAR(255) NOT NULL,
-      subject    VARCHAR(255) NULL,
-      message    TEXT NOT NULL,
-      created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      id           INT AUTO_INCREMENT PRIMARY KEY,
+      name         VARCHAR(255) NOT NULL,
+      email        VARCHAR(255) NOT NULL,
+      subject      VARCHAR(255) NULL,
+      message      TEXT NOT NULL,
+      inquiry_type VARCHAR(64) NULL,
+      created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
   `);
+
+  // CREATE TABLE IF NOT EXISTS does not add columns to a table that already
+  // exists. Older databases get the lead columns here.
+  await ensureLeadColumns(pool);
 
   console.log('[boot] database ready');
 }
@@ -150,7 +167,12 @@ async function send({ to, subject, html, text }) {
   }
 }
 
-const isEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(v ?? '').trim());
+async function sendWelcome(email) {
+  // One SMTP note, and only when SMTP is configured. The three-email welcome
+  // sequence is a Klaviyo Flow, not this function. See seo/LEAD-CAPTURE.md.
+  const built = welcomeEmail({ siteUrl: SITE_URL.replace(/\/$/, '') });
+  await send({ to: email, subject: built.subject, html: built.html, text: built.text });
+}
 
 /* -------------------------------------------- webhook (raw body must be first) */
 
@@ -248,6 +270,7 @@ app.get('/api/health', (_req, res) => {
     ok: true,
     stripe: stripe ? 'configured' : 'not configured',
     mail: mailer ? 'configured' : 'not configured',
+    klaviyo: klaviyoConfig().configured ? 'configured' : 'not configured',
   });
 });
 
@@ -303,51 +326,39 @@ app.post('/api/checkout', async (req, res) => {
   }
 });
 
-app.post('/api/subscribe', async (req, res) => {
-  const email = String(req.body?.email ?? '').trim().toLowerCase();
-  const source = String(req.body?.source ?? 'footer').slice(0, 64);
-  if (!isEmail(email)) return res.status(400).json({ error: 'That email does not look right.' });
-
+async function respondSubscribe(req, res, defaults = {}) {
   try {
-    // affectedRows lies for a no-op ON DUPLICATE KEY UPDATE, so ask first.
-    const [[existing]] = await pool.query('SELECT id FROM subscribers WHERE email = ? LIMIT 1', [email]);
-    if (existing) return res.json({ ok: true, alreadySubscribed: true });
-
-    await pool.query('INSERT INTO subscribers (email, source) VALUES (?, ?)', [email, source]);
-
-    const built = welcomeEmail({ siteUrl: SITE_URL.replace(/\/$/, '') });
-    await send({ to: email, subject: built.subject, html: built.html, text: built.text });
-
-    res.json({ ok: true, alreadySubscribed: false });
+    const result = await handleSubscribe(pool, { ...defaults, ...(req.body ?? {}) }, { sendWelcome });
+    res.status(result.status).json(result.json);
   } catch (err) {
     console.error('[subscribe] failed:', err.message);
     res.status(500).json({ error: 'Could not add you just now. Please try again.' });
   }
-});
+}
+
+app.post('/api/subscribe', (req, res) => respondSubscribe(req, res));
+
+// Same store and the same Klaviyo profile as /api/subscribe. The default
+// form id is waitlist when the client does not send one.
+app.post('/api/waitlist', (req, res) => respondSubscribe(req, res, {
+  source: 'waitlist',
+  formId: 'waitlist',
+}));
 
 app.post('/api/contact', async (req, res) => {
-  const name = String(req.body?.name ?? '').trim().slice(0, 255);
-  const email = String(req.body?.email ?? '').trim().slice(0, 255);
-  const subject = String(req.body?.subject ?? '').trim().slice(0, 255);
-  const message = String(req.body?.message ?? '').trim().slice(0, 5000);
-
-  if (!name || !isEmail(email) || !message) {
-    return res.status(400).json({ error: 'Name, a valid email and a message are all needed.' });
-  }
-
   try {
     // Written to the database BEFORE any attempt to email, so a mail outage
     // cannot lose an enquiry.
-    await pool.query(
-      'INSERT INTO enquiries (name, email, subject, message) VALUES (?, ?, ?, ?)',
-      [name, email, subject || null, message],
-    );
+    const result = await handleContact(pool, req.body);
+    if (result.status !== 200) return res.status(result.status).json(result.json);
 
+    const { lead } = result;
     if (SHOP_EMAIL) {
+      const type = inquiryLabel(lead.inquiryType);
       await send({
         to: SHOP_EMAIL,
-        subject: `Enquiry: ${subject || 'no subject'} — ${name}`,
-        text: `${name} <${email}>\n\n${message}`,
+        subject: `Enquiry${type ? ` (${type})` : ''}: ${lead.subject || 'no subject'} — ${lead.name}`,
+        text: `${type ? `Type: ${type}\n` : ''}${lead.name} <${lead.email}>\n\n${lead.message}`,
       });
     }
     res.json({ ok: true });

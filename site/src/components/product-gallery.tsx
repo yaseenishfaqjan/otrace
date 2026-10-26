@@ -62,6 +62,9 @@ export function ProductGallery({ images, badge, resetKey, transitionName }: Prop
   const track = useRef<HTMLDivElement>(null);
   const index = useSnapIndex(track, images.length);
   const [viewer, setViewer] = useState<number | null>(null);
+  const [scrubbing, setScrubbing] = useState(false);
+  const scrub = useRef<{ x: number; index: number; id: number } | null>(null);
+  const suppressClick = useRef(false);
 
   // New product or colorway: straight back to the first frame, no animation.
   useEffect(() => {
@@ -113,9 +116,43 @@ export function ProductGallery({ images, badge, resetKey, transitionName }: Prop
 
   const many = images.length > 1;
 
+  // Mouse drag steps through the existing photographs. Touch keeps the native
+  // swipe. The jump is instant either way, so reduced motion does not animate.
+  const onScrubDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!many || e.pointerType !== 'mouse') return;
+    if ((e.target as HTMLElement).closest('[data-gallery-control]')) return;
+    scrub.current = { x: e.clientX, index, id: e.pointerId };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onScrubMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const origin = scrub.current;
+    if (!origin || origin.id !== e.pointerId) return;
+    const dx = e.clientX - origin.x;
+    if (Math.abs(dx) < 12) return;
+    suppressClick.current = true;
+    setScrubbing(true);
+    const width = track.current?.clientWidth || 1;
+    const span = Math.max(1, images.length - 1);
+    const next = Math.round(origin.index + (-dx / width) * span);
+    scrollToIndex(track.current, Math.max(0, Math.min(images.length - 1, next)), false);
+  };
+
+  const onScrubEnd = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (scrub.current?.id !== e.pointerId) return;
+    scrub.current = null;
+    setScrubbing(false);
+  };
+
   return (
     <div>
-      <div className="relative group/gallery">
+      <div
+        className={`relative group/gallery ${scrubbing ? 'gallery-scrubbing' : ''}`}
+        onPointerDown={onScrubDown}
+        onPointerMove={onScrubMove}
+        onPointerUp={onScrubEnd}
+        onPointerCancel={onScrubEnd}
+      >
         {badge && (
           <span className="absolute top-4 left-4 z-10 eyebrow bg-cream text-onyx px-3 py-2 leading-none pointer-events-none">
             {badge}
@@ -133,7 +170,13 @@ export function ProductGallery({ images, badge, resetKey, transitionName }: Prop
             <button
               key={img.src}
               type="button"
-              onClick={() => setViewer(i)}
+              onClick={() => {
+                if (suppressClick.current) {
+                  suppressClick.current = false;
+                  return;
+                }
+                setViewer(i);
+              }}
               onPointerMove={onPointerMove}
               aria-label={`Open ${img.label.toLowerCase()} image full screen`}
               className="zoom-wrap relative shrink-0 w-full snap-start snap-always aspect-[4/5] overflow-hidden"
@@ -166,6 +209,7 @@ export function ProductGallery({ images, badge, resetKey, transitionName }: Prop
             {/* Arrows are for pointers; phones swipe. */}
             <button
               type="button"
+              data-gallery-control=""
               onClick={() => go(index - 1)}
               aria-label="Previous image"
               className="hidden sm:grid absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 place-items-center bg-onyx/70 text-cream opacity-0 group-hover/gallery:opacity-100 focus-visible:opacity-100 transition-opacity"
@@ -174,6 +218,7 @@ export function ProductGallery({ images, badge, resetKey, transitionName }: Prop
             </button>
             <button
               type="button"
+              data-gallery-control=""
               onClick={() => go(index + 1)}
               aria-label="Next image"
               className="hidden sm:grid absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 place-items-center bg-onyx/70 text-cream opacity-0 group-hover/gallery:opacity-100 focus-visible:opacity-100 transition-opacity"
@@ -192,12 +237,35 @@ export function ProductGallery({ images, badge, resetKey, transitionName }: Prop
       </div>
 
       {many && (
+        <div className="mt-4 min-w-0">
+          <div className="flex items-baseline justify-between gap-4 mb-3">
+            <p className="eyebrow text-muted">Angles</p>
+            <p className="text-cream-dim text-xs">{images[index]?.label}</p>
+          </div>
+          <input
+            type="range"
+            className="scrub-range"
+            min={0}
+            max={images.length - 1}
+            step={1}
+            value={index}
+            aria-label="Drag across the angles"
+            aria-valuetext={images[index]?.label ?? ''}
+            onChange={(e) => scrollToIndex(track.current, Number(e.target.value), false)}
+          />
+          <p className="text-muted text-[11px] leading-relaxed mt-2">
+            Drag across the photographs. These are the shots we have, not a 3D model.
+          </p>
+        </div>
+      )}
+
+      {many && (
         <>
           <div className="sm:hidden flex justify-center gap-2 mt-4" aria-hidden="true">
             {images.map((img, i) => (
               <span
                 key={img.src}
-                className={`h-[3px] transition-all duration-300 ${i === index ? 'w-6 bg-cream' : 'w-3 bg-cream/25'}`}
+                className={`motion-dot h-[3px] transition-all duration-300 ${i === index ? 'w-6 bg-cream' : 'w-3 bg-cream/25'}`}
               />
             ))}
           </div>

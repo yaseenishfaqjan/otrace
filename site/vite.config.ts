@@ -4,6 +4,9 @@ import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vite';
 
 export default defineConfig({
+  // PUBLIC_ is limited to values that are safe in the bundle (the WhatsApp
+  // number). Secrets stay unprefixed and server-side.
+  envPrefix: ['VITE_', 'PUBLIC_'],
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: { '@': path.resolve(import.meta.dirname, 'src') },

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useRoute, useSearch } from 'wouter';
 import { ChevronDown, Check } from 'lucide-react';
 import { useCart } from '@/lib/cart';
@@ -8,6 +8,9 @@ import { getProduct, money, PRODUCTS, SIZES, IN_STOCK_SHIPS_IN } from '@/lib/pro
 import { ProductCard } from '@/components/product-card';
 import { ProductGallery } from '@/components/product-gallery';
 import { FaqList } from '@/components/faq-list';
+import { FitHelp } from '@/components/fit-help';
+import { FabricFeel } from '@/components/fabric-feel';
+import { SetSwitcher } from '@/components/set-switcher';
 import { SiteImage, webpSrc } from '@/components/site-image';
 import { imageSize } from '@/lib/image-size';
 import { faqsForProduct } from '@/lib/faqs';
@@ -74,6 +77,8 @@ export default function Product() {
   const [colorIndex, setColorIndex] = useState(wanted);
   const [size, setSize] = useState<string | null>(null);
   const [needsSize, setNeedsSize] = useState(false);
+  const [pastAdd, setPastAdd] = useState(false);
+  const addButtonRef = useRef<HTMLButtonElement>(null);
 
   useReveal([params?.slug]);
 
@@ -83,6 +88,32 @@ export default function Product() {
     setColorIndex(wanted);
     setSize(null);
     setNeedsSize(false);
+    setPastAdd(false);
+  }, [params?.slug]);
+
+  useEffect(() => {
+    // A button that starts below the fold and later sits above it is
+    // "not intersecting" in both places, so IntersectionObserver may not
+    // fire the second time. Read the box on scroll instead.
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      const button = addButtonRef.current;
+      if (!button) return;
+      const next = button.getBoundingClientRect().bottom < 0;
+      setPastAdd((current) => (current === next ? current : next));
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(read);
+    };
+    read();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, [params?.slug]);
 
   // Preload the other colorway so switching paints instantly instead of
@@ -181,6 +212,8 @@ export default function Product() {
             </div>
           </div>
 
+          <SetSwitcher product={product} colour={colorway.name} />
+
           {/* size */}
           <div className="mt-9">
             <div className="flex items-baseline justify-between mb-4">
@@ -206,11 +239,17 @@ export default function Product() {
               ))}
             </div>
             {needsSize && <p className="text-red-400 text-xs mt-3">Choose a size first.</p>}
+            <FitHelp
+              productSlug={product.slug}
+              productName={product.name}
+              size={size}
+              colour={colorway.name}
+            />
           </div>
 
           {/* Desktop action. On mobile the same action is pinned to the bottom
               of the screen so it is reachable without scrolling back up. */}
-          <button onClick={add} className="btn w-full mt-9 hidden sm:flex">
+          <button ref={addButtonRef} onClick={add} className="btn w-full mt-9 hidden sm:flex">
             {product.preorder ? 'Pre-order' : 'Add to cart'} — {money(product.price)}
           </button>
 
@@ -275,12 +314,32 @@ export default function Product() {
         </div>
       </div>
 
+      <FabricFeel />
+
       {/* ---------------------------------------------------- mobile buy bar */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-onyx/95 backdrop-blur-xl border-t border-line px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <button onClick={add} className="btn w-full">
           {product.preorder ? 'Pre-order' : 'Add to cart'} — {money(product.price)}
         </button>
       </div>
+
+      {/* Desktop only, and only once the in-page button has scrolled away.
+          No entrance animation, so reduced motion has nothing to disable. */}
+      {pastAdd && (
+        <div className="hidden sm:block fixed bottom-0 left-0 right-0 z-40 bg-onyx/95 backdrop-blur-xl border-t border-line">
+          <div className="shell py-3 flex items-center justify-between gap-6">
+            <div className="min-w-0">
+              <p className="text-cream text-sm truncate">{product.name}</p>
+              <p className="text-muted text-xs mt-1 truncate">
+                {colorway.name}{size ? ` · ${size}` : ''} · {money(product.price)}
+              </p>
+            </div>
+            <button onClick={add} className="btn shrink-0">
+              {product.preorder ? 'Pre-order' : 'Add to cart'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ------------------------------------------------------------ others */}
       <section className="shell pb-32 sm:pb-24">

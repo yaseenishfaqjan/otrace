@@ -5,6 +5,7 @@ import { CartProvider } from '@/lib/cart';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { CartDrawer } from '@/components/cart-drawer';
+import { CapturePopup } from '@/components/capture-popup';
 import { ScrollToTop } from '@/components/scroll-to-top';
 
 import Home from '@/pages/home';
@@ -33,6 +34,7 @@ function Shell({ children }: { children: ReactNode }) {
       <main>{children}</main>
       <Footer />
       <CartDrawer />
+      <CapturePopup />
     </CartProvider>
   );
 }

@@ -1,4 +1,5 @@
 import { SIZES, SIZE_CHART } from '@/lib/products';
+import { FitHelp } from '@/components/fit-help';
 import { SIZING_FAQS } from '@/lib/faqs';
 import { faqLd } from '@/lib/structured-data';
 
@@ -75,6 +76,7 @@ export default function Sizing() {
           garment laid flat.
         </p>
         <MeasureTable labels={['Chest', 'Body length', 'Shoulder']} />
+        <FitHelp />
 
         <section className="mt-14">
           <h2 className="text-cream text-xl font-medium">{pants.question}</h2>

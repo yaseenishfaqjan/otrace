@@ -49,3 +49,10 @@ SEO / AEO / GEO notes, the query research, and the change log live in `seo/`.
    to sit where this quality of fleece normally sells; they are set in TWO
    places and must match: `api/catalog.js` (authoritative) and
    `site/src/lib/products.ts` (display).
+6. List and fit capture. See `seo/LEAD-CAPTURE.md`. The API stores signups in
+   MySQL either way. Set `KLAVIYO_PRIVATE_API_KEY` and `KLAVIYO_LIST_ID` on the
+   API, then rebuild the storefront with `VITE_WHATSAPP_NUMBER` (E.164 digits,
+   no plus; `PUBLIC_WHATSAPP_NUMBER` is an alias) and `VITE_INSTAGRAM` (or
+   `VITE_INSTAGRAM_URL`) only when those are real. If the WhatsApp number is
+   unset, the “Ask about fit” button is hidden. If Instagram is unset, the
+   footer icon is hidden. Neither is invented in the repo.
