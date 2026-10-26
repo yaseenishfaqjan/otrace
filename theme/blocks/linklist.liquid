@@ -1,0 +1,88 @@
+{% if block.settings.menu != blank %}
+  <div class="hdt-{{ block.id }}" {{ block.shopify_attributes }}>
+    <ul class="hdt-menu-list {%- if block.settings.menu_inline == true %} hdt-flex hdt-justify-{{ block.settings.align_mb | replace: 'left', 'start' | replace: 'right', 'end' }} md:hdt-justify-{{ block.settings.align | replace: 'left', 'start' | replace: 'right', 'end' }} hdt-menu-inline{% endif %}">
+      {% for link in block.settings.menu.links %}
+        <li> <a href="{{ link.url }}" class="hdt--menu_item hdt-s-text2 hdt-text-{{ block.settings.text_size }}"> {{ link.title }}</a></li>
+      {% endfor %}
+    </ul>
+  </div>
+{% endif %}
+{% schema %}
+  {
+    "name": "Linklist",
+    "class": "hdt-menu",
+    "settings": [
+      {
+        "type":"checkbox",
+        "id":"menu_inline",
+        "label":"Menu inline",
+        "default": false
+      },
+      {
+        "type": "text_alignment",
+        "id": "align",
+        "label": "Alignment"
+      },
+      {
+        "type": "text_alignment",
+        "id": "align_mb",
+        "label": "Alignment mobile"
+      },
+      {
+        "type": "link_list",
+        "id": "menu",
+        "default": "footer",
+        "label": "Select menu"
+      },
+      {
+        "type": "select",
+        "id": "text_size",
+        "label": "Menu size",
+        "options": [
+          {
+            "value": "xs",
+            "label": "Extra Small"
+          },
+          {
+            "value": "sm",
+            "label": "Small"
+          },
+          {
+            "value": "base",
+            "label": "Medium"
+          },
+          {
+            "value": "lg",
+            "label": "Large"
+          },
+          {
+            "value": "xl",
+            "label": "Extra Large"
+          },
+          {
+            "value": "2xl",
+            "label": "2x Large"
+          },
+          {
+            "value": "4xl",
+            "label": "4x Large"
+          },
+          {
+            "value": "custom--1 hdt-text_custom",
+            "label": "Custom size 1"
+          },
+          {
+            "value": "custom--2 hdt-text_custom",
+            "label": "Custom size 2"
+          }
+        ],
+        "default": "base"
+      }
+    ],
+    "presets":[
+      {
+        "name":"Linklist"
+      }
+    ]
+  }
+{% endschema %}

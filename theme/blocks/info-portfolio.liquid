@@ -1,0 +1,63 @@
+{%- if block.settings.show_cate or block.settings.show_author or block.settings.show_tags -%}
+  <div class="hdt-article-infos">
+      <div class="hdt-row-grid hdt-grid-cols-1 lg:hdt-grid-cols-3 md:hdt-grid-cols-2 hdt-justify-center">
+          {%- if block.settings.show_cate -%}
+              <div class="hdt-portfolio-item hdt-text-center">
+              <span class="hdt-block hdt-portfolio-meta-text hdt-s-text hdt-text-base hdt-font-semibold">{{ 'blogs.portfolio.category' | t }}</span>
+              <a href="{{ blog.url }}" class="hdt-s-text2">{{ blog.title }}</a>
+          </div>
+          {%- endif -%}
+          {%- if block.settings.show_author -%}
+              <div class="hdt-portfolio-item hdt-text-center">
+              <span class="hdt-block hdt-portfolio-meta-text hdt-s-text hdt-text-base hdt-font-semibold">{{ 'blogs.portfolio.author' | t }}</span>
+              <span class="hdt-s-text2">{{ article.author | replace_first: 'ad clnt', 'admin' | capitalize }}</span>
+          </div>
+          {%- endif -%}
+          {%- if block.settings.show_tags and article.tags.size > 0 -%}
+              <div class="hdt-portfolio-item hdt-text-center">
+                  <span class="hdt-block hdt-portfolio-meta-text hdt-s-text hdt-text-base hdt-font-semibold">{{ 'blogs.portfolio.tags' | t }}</span>
+                  {%- for tag in article.tags %}<a class="hdt-s-text2" href="{{ blog.url }}/tagged/{{ tag | handle }}">{{ tag | remove : 'category_' | strip }}</a>{% unless forloop.last %}, {% endunless %}{% endfor -%}
+              </div>
+          {%- endif -%}
+      </div>
+  </div>
+{%- endif -%}
+<style>
+  .hdt-portfolio-meta-text{
+    margin-bottom:10px;
+  }
+  .hdt-article-infos div:not(:last-child){
+    border-right:1px solid rgb(var(--color-line-border));
+  }
+</style>
+{% schema %}
+  {
+    "name": "t:sections.main-article.info_name",
+    "tag":null,
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "show_cate",
+        "label": "t:sections.main-article.show_cate",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_author",
+        "label": "t:sections.main-article.show_au",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "show_tags",
+        "label": "t:sections.main-article.show_tags",
+        "default": true
+      }
+    ],
+    "presets":[
+      {
+        "name": "t:sections.main-article.info_name"
+      }
+    ]
+  }
+{% endschema %}

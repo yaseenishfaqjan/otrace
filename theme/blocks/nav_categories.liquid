@@ -1,0 +1,145 @@
+{%- if block.settings.menu_categories != blank -%}
+<button aria-current="false" class="hdt-mobile-title hdt-font-medium hdt-text-sm hdt-flex hdt-justify-center hdt-align-center">{{ block.settings.title_categories }}</button>
+<!-- nav_categories.liquid -->
+<div tab-item class="hdt-tab-item">
+  <div class="hdt-navigation-categories hdt-navigation-mobile">
+    <ul class="hdt-categories-list hdt-nav__ul-mb">
+      {%- for link in block.settings.menu_categories.links -%}
+        <li class="hdt-category-item hdt-relative hdt-flex hdt-justify-center hdt-flex-col{% if link.links != blank %} hdt-has-children hdt-relative{% endif %} {% if link.type == "collection_link" %}hdt-has-img{% endif %}">
+          {%- if link.links != blank -%}
+            <hdt-accordion class="hdt-contents" only-click-icon>
+              <details aria-expanded="false">
+                <summary id="hdt-menu-{{ link.handle }}" data-url="{{ link.url }}" class="hdt-menu-link hdt-flex hdt-align-center hdt-justify-between hdt-relative hdt-text-base hdt-font-medium">
+                  <span class="hdt-category-title hdt-flex hdt-align-center">
+                    {%- if link.type == "collection_link" -%}
+                      {%- assign image_item = link.object.metafields.theme.image_collection_list.value | default: link.object.image | default: link.object.featured_image | default: link.object.products.first.featured_image -%}
+                      {%- if image_item != null -%}
+                        <span class="hdt-category-img hdt-relative">
+                          {{ image_item | image_url: width: image_item.width | image_tag: loading: 'lazy', width: image_item.width, height: image_item.height, class: 'hdt-rounded-f hdt-rounded-full', sizes: '40px', widths: '40,34,30' }}
+                        </span>
+                      {%- endif -%}
+                    {%- endif -%}
+                    <span class="hdt-menu-link-text"> {{- link.title -}} </span>
+                  </span>
+                  {% if link.links != blank %}
+                    <span class="hdt-btn-open-sub hdt-relative" accordion-icon></span>
+                  {% endif %}
+                </summary>
+                <div id="hdt-categories-sub-menu{{ forloop.index }}" class="hdt-mb-sub-menu">
+                  <ul class="hdt-menu-list hdt-categories-sub-menu-lever-1" role="list"  >
+                    {%- for childlink in link.links -%}
+                      <li class="hdt-category-item hdt-relative hdt-flex hdt-justify-center hdt-flex-col{% if childlink.links != blank %} hdt-has-children hdt-relative{% endif %} {% if childlink.type == "collection_link" %}hdt-has-img{% endif %}">
+                        {% if childlink.links != blank %}
+                          <hdt-accordion class="hdt-contents" only-click-icon>
+                            <details aria-expanded="false">
+                              <summary id="hdt-menu-{{ childlink.handle }}" data-url="{{ childlink.url }}" class="hdt-menu-link hdt-flex hdt-align-center hdt-justify-between hdt-relative hdt-text-base hdt-font-medium">
+                                <span class="hdt-category-title hdt-flex hdt-align-center">
+                                  {%- if childlink.type == "collection_link" -%}
+                                    {%- assign image_item = childlink.object.image | default: childlink.object.featured_image | default: childlink.object.products.first.featured_image -%}
+                                    {%- if image_item != null -%}
+                                      <span class="hdt-category-img hdt-relative">
+                                        {{ image_item | image_url: width: image_item.width | image_tag: loading: 'lazy', width: image_item.width, height: image_item.height, class: 'hdt-rounded-f hdt-rounded-full', sizes: '40px', widths: '40,34,30' }}
+                                      </span>
+                                    {%- endif -%}
+                                  {%- endif -%}
+                                  <span class="hdt-menu-link-text"> {{- childlink.title -}} </span>
+                                </span>
+                                <span class="hdt-btn-open-sub hdt-relative" accordion-icon></span>
+                              </summary>
+                              <div id="hdt-categories-sub-menu{{ forloop.index }}" class="hdt-mb-sub-menu">
+                                <ul class="hdt-menu-list hdt-categories-sub-menu-lever-2" role="list">
+                                  {%- for grandchildlink in childlink.links -%}
+                                    <li class="hdt-category-item hdt-relative hdt-flex hdt-justify-center hdt-flex-col  {% if grandchildlink.type == "collection_link" %}hdt-has-img{% endif %}">
+                                      <a id="hdt-menu-{{ grandchildlink.handle }}" href="{{ grandchildlink.url }}" class="hdt-menu-link hdt-flex hdt-align-center hdt-justify-between hdt-relative hdt-text-base hdt-font-medium">
+                                        <span class="hdt-category-title hdt-flex hdt-align-center hdt-oh">
+                                          {% if grandchildlink.type == "collection_link" %}
+                                            {%- assign image_item = grandchildlink.object.image | default: grandchildlink.object.featured_image | default: grandchildlink.object.products.first.featured_image -%}
+                                            {% if image_item != null %}
+                                              <span class="hdt-category-img hdt-relative">
+                                                {{ image_item | image_url: width: image_item.width | image_tag: loading: 'lazy', width: image_item.width, height: image_item.height, class: 'hdt-rounded-f hdt-rounded-full', sizes: '40px', widths: '40,34,30' }}
+                                              </span>
+                                            {% endif %}
+                                          {% endif %}
+                                          <span class="hdt-menu-link-text"> {{ grandchildlink.title | escape }} </span>
+                                        </span>
+                                      </a>
+                                    </li>
+                                  {%- endfor -%}
+                                </ul>
+                              </div>
+                            </details>
+                          </hdt-accordion>
+                        {% else %}
+                          <a id="hdt-menu-{{ childlink.handle }}" href="{{ childlink.url }}" class="hdt-menu-link hdt-flex hdt-align-center hdt-justify-between hdt-relative hdt-text-base hdt-font-medium{% if childlink.current %} hdt-menu-link--active{% endif %}" {% if childlink.current %} aria-current="page" {% endif %}>
+                            <span class="hdt-category-title hdt-flex hdt-align-center">
+                              {%- if childlink.type == "collection_link" -%}
+                                {%- assign image_item = childlink.object.metafields.theme.image_collection_list.value | default: childlink.object.image | default: childlink.object.featured_image | default: childlink.object.products.first.featured_image -%}
+                                {%- if image_item != null -%}
+                                  <span class="hdt-category-img hdt-relative">
+                                    {{ image_item | image_url: width: image_item.width | image_tag: loading: 'lazy', width: image_item.width, height: image_item.height, class: 'hdt-rounded-f hdt-rounded-full', sizes: '40px', widths: '40,34,30' }}
+                                  </span>
+                                {%- endif -%}
+                              {%- endif -%}
+                              <span class="hdt-menu-link-text"> {{- childlink.title | escape -}} </span>
+                            </span>
+                          </a>
+                        {% endif %}
+                      </li>
+                    {%- endfor -%}
+                  </ul>
+                </div>
+              </details>
+            </hdt-accordion>
+          {%- else -%}
+              <a id="hdt-menu-{{ link.handle }}" href="{{ link.url }}" class="hdt-menu-link hdt-flex hdt-align-center hdt-justify-between hdt-relative hdt-text-base hdt-font-medium{% if link.current %} hdt-menu-link--active{% endif %}" {% if link.current %} aria-current="page" {% endif %}>
+                <span class="hdt-category-title hdt-flex hdt-align-center">
+                  {%- if link.type == "collection_link" -%}
+                    {%- assign image_item = link.object.metafields.theme.image_collection_list.value | default: link.object.image | default: link.object.featured_image | default: link.object.products.first.featured_image -%}
+                    {%- if image_item != null -%}
+                      <span class="hdt-category-img hdt-relative">
+                        {{ image_item | image_url: width: image_item.width | image_tag: loading: 'lazy', width: image_item.width, height: image_item.height, class: 'hdt-rounded-f hdt-rounded-full', sizes: '40px', widths: '40,34,30' }}
+                      </span>
+                    {%- endif -%}
+                  {%- endif -%}
+                  <span class="hdt-menu-link-text"> {{- link.title | escape -}} </span>
+                </span>
+              </a>
+            {%- endif -%}
+          </li>
+      {%- endfor -%}
+    </ul>
+  </div>	
+</div>
+{%- endif -%}
+{% schema %}
+{
+  "name": "Categories",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title_categories",
+      "label": "t:sections.header.settings.header_categories.title_categories",
+      "default": "All Categories"
+    },
+    {
+      "type": "link_list",
+      "id": "menu_categories",
+      "label": "t:sections.header.settings.header_categories.menu_categories"
+    },
+    {
+      "type": "textarea",
+      "id": "other_content",
+      "label": "t:sections.header.header_bottom.other_content"
+    }
+  ],
+  "blocks": [
+    {"type": "nav_categories"}
+  ],
+  "presets": [
+    {
+      "name": "Mobile Categories"
+    }
+  ]
+}
+{% endschema %}

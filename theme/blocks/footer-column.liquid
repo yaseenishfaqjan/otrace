@@ -1,0 +1,217 @@
+{% style %}
+  .hdt-group-block--{{ block.id }} {
+    --gap: var(--spacing-x);
+    {%- capture width -%}
+    --width-group-lg: {{ block.settings.width_lg }}%;
+    --width-group-md: {{ block.settings.width_md }}%;
+    --width-group: {{ block.settings.width }}%;
+    {%- endcapture -%}
+    {{ width | replace: '8%', '8.33333333%' | replace: '16%', '16.66666667%' | replace: '33%', '33.33333333%' | replace: '41%', '41.66666667%' | replace: '58%', '58.33333333%' | replace: '66%', '66.66666667%' | replace: '83%', '83.33333333%' | replace: '91%', '91.66666667%' }}
+    padding-block-start: {{ block.settings.padding_t }}px;
+    row-gap: {{ block.settings.space | times: 0.5 }}px;
+    width: var(--width-group);
+  }
+  @media (min-width: 768px) {
+    .hdt-group-block--{{ block.id }} {
+      width: var(--width-group-md);
+    }
+  }
+  @media (min-width: 1150px) {
+    .hdt-group-block--{{ block.id }} {
+      width: var(--width-group-lg);
+      row-gap: {{ block.settings.space }}px;
+    }
+  }
+  {%- if block.settings.only_mobile -%}
+    .hdt-group-block--{{ block.id }} .hdt-footer-heading {
+      display: none !important;
+    }
+    @media (max-width: 768px) {
+      .hdt-group-block--{{ block.id }} .hdt-footer-heading+.hdt-collapse-content {
+        display: block !important;
+        height: auto;
+        overflow: visible;
+      }
+    }
+  {%- endif -%}
+{% endstyle %}
+{%- capture visible -%}
+{%- if block.settings.width == 0 %} hdt-hidden{% endif -%}
+{%- if block.settings.width_md == 0 %} md:hdt-hidden{% else %} md:hdt-flex{% endif -%}
+{%- if block.settings.width_lg == 0 %} lg:hdt-hidden{% else %} lg:hdt-flex{% endif -%}
+{%- endcapture -%}
+<div color-scheme="{{ block.settings.color_scheme }}" class="hdt-group-block--{{ block.id }} hdt-footer-col-block hdt-s-gradient {{ visible }}" {{ block.shopify_attributes }}>
+  {%- if block.settings.col_heading != blank -%}
+    <div class="hdt-footer-heading hdt-text-{{ block.settings.sec_heading_size }} collapsible hdt-flex md:hdt-block hdt-align-center hdt-justify-between">
+      <span class="hdt-footer-heading-text">{{ block.settings.col_heading }}</span>
+      <span class="hdt-collapse-icon hdt-relative"></span>
+    </div>
+  {%- endif -%}
+  <div class="hdt-col-content{% if block.settings.col_heading != blank %} hdt-collapse-content{% endif %}">
+    {% content_for "blocks" %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Column",
+  "tag": null,
+  "blocks": [
+    {
+      "type": "text"
+    },
+    {
+      "type": "button"
+    },
+    {
+      "type": "heading"
+    },
+    {
+      "type": "spacer"
+    },
+    {
+      "type": "footer-image"
+    },
+    {
+      "type": "linklist"
+    },
+    {
+      "type": "_newsletter"
+    },
+    {
+      "type": "socials"
+    },
+    {
+      "type": "custom-liquid"
+    },
+    {
+      "type": "payment_icons"
+    },
+    {
+      "type": "_currency_language"
+    }
+  ],
+  "settings": [
+    {
+      "type": "text",
+      "id": "col_heading",
+      "label": "Text",
+      "default": "Touch to open"
+    },
+    {
+      "type": "checkbox",
+      "id": "only_mobile",
+      "label": "Only show on mobile"
+    },
+    {
+      "type": "select",
+      "id": "sec_heading_size",
+      "options": [
+        {
+          "value": "xs",
+          "label": "Extra Small"
+        },
+        {
+          "value": "sm",
+          "label": "Small"
+        },
+        {
+          "value": "base",
+          "label": "Medium"
+        },
+        {
+          "value": "lg",
+          "label": "Large"
+        },
+        {
+          "value": "xl",
+          "label": "Extra Large"
+        },
+        {
+          "value": "2xl",
+          "label": "2 Extra Large"
+        },
+        {
+          "value": "4xl",
+          "label": "4 Extra Large"
+        },
+        {
+          "value": "custom",
+          "label": "Custom size inline"
+        }
+      ],
+      "label": "t:sections.all.section_heading.settings.sec_heading_size.label",
+      "default": "lg"
+    },
+    {
+      "type": "range",
+      "id": "space",
+      "label": "Heading space",
+      "min": 0,
+      "max": 40,
+      "step": 1,
+      "unit": "px",
+      "default": 30
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "scheme-1"
+    },
+    {
+      "type": "header",
+      "content": "Size"
+    },
+    {
+      "type": "range",
+      "id": "width_lg",
+      "label": "Width",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "width_md",
+      "label": "Tablet width",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "range",
+      "id": "width",
+      "label": "Mobile width",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 100
+    },
+    {
+      "type": "header",
+      "content": "Spacing top"
+    },
+    {
+      "type": "range",
+      "id": "padding_t",
+      "label": "Padding top",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "default": 0
+    }
+  ],
+  "presets": [
+    {
+      "name": "Column"
+    }
+  ]
+}
+{% endschema %}

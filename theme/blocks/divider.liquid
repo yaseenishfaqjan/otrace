@@ -1,0 +1,21 @@
+<!-- divider.liquid -->
+<div class="divider" color-scheme="{{ block.settings.color_scheme }}" {{ block.shopify_attributes }}></div>
+{%- schema -%}
+  {
+    "name": "Divider",
+    "tag": null,
+    "settings": [
+      {
+        "type": "color_scheme",
+        "id": "color_scheme",
+        "label": "Color scheme",
+        "default": "scheme-1"
+      }
+    ],
+    "presets": [
+      {
+        "name": "Divider"
+      }
+    ]
+  }
+{%- endschema -%}

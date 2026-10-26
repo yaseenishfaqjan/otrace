@@ -1,0 +1,38 @@
+{%- comment -%}
+  Renders a btn compare
+
+  Accepts:
+  - product_id: {Number} The ID of the product. (required)
+  - class: {String} a list class. (optional)
+  - disable_sr_only: {Boolean} remove class sr_only (optional)
+  - placement: {String} position tooltip (optional)
+
+  Usage:
+  {%- render 'btn-compare', product_id: product.id, class: 'xxx' -%}
+{%- endcomment -%}
+ {% liquid
+  assign tooltip_inner = tooltip_inner | default: false
+  if section.id contains 'quick-view' or section.id contains 'quick-add' or section.id contains 'search'
+    assign tooltip_inner = true
+  endif
+-%}
+{%- if settings.compare_mode == "1" -%}
+<hdt-compare class="{{ class }}" role="button" data-id="{{ product_id }}" data-handle="{{ product_handle }}" action="add" placement="{{ placement | default: 'none' }}"{% if tooltip_inner %} inner{% endif %}>
+  <svg widht="24" height="24" aria-hidden="true" focusable="false" class="hdt-svg-pr-icon hdt-svg-cp" viewBox="0 0 24 24"><use xlink:href="#hdt-icon-pr-cp"></use></svg>
+  <span {% unless disable_sr_only %}class="sr-only"{% endunless %}>{{ 'general.compare.add_to_compare' | t }}</span>
+</hdt-compare>
+{%- elsif settings.compare_mode == "2" and shop.customer_accounts_enabled -%}
+  {%- if customer -%}
+    <hdt-compare class="{{ class }}" role="button" data-id="{{ product_id }}" data-handle="{{ product_handle }}" action="add" placement="{{ placement | default: 'none' }}"{% if tooltip_inner %} inner{% endif %}>
+      <svg widht="24" height="24" aria-hidden="true" focusable="false" class="hdt-svg-pr-icon hdt-svg-cp" viewBox="0 0 24 24"><use xlink:href="#hdt-icon-pr-cp"></use></svg>
+      <span {% unless disable_sr_only %}class="sr-only"{% endunless %}>{{ 'general.compare.add_to_compare' | t }}</span>
+    </hdt-compare>
+  {%- else -%}
+    <hdt-tooltip placement="{{ placement | default: 'none' }}"{% if tooltip_inner %} inner{% endif %}>
+      <a class="{{ class }}" type="button" href="{{ routes.account_login_url }}" {% unless customer or request.page_type contains 'customers' or settings.login_popup == false %} aria-controls="login-form-popup" {% endunless %} aria-expanded="false" placement="{{ placement | default: 'none' }}">
+        <svg widht="24" height="24" aria-hidden="true" focusable="false" class="hdt-svg-pr-icon hdt-svg-cp" viewBox="0 0 24 24"><use xlink:href="#hdt-icon-pr-cp"></use></svg>
+        <span {% unless disable_sr_only %}class="sr-only"{% endunless %}>{{ 'general.compare.login_to_use_compare' | t }}</span>
+      </a>
+    </hdt-tooltip>
+  {%- endif -%}
+{%- endif -%}

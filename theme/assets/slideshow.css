@@ -1,0 +1,24 @@
+hdt-slideshow.hdt-slider .hdt-navigation{
+  z-index: 3;
+  width: calc(100vw - 40px);
+  --nav-width-visible-hv: calc(100vw - 40px);
+}
+.hdt-slideshow {
+  overflow: hidden;
+}
+.hdt-slideshow .hdt-slider .hdt-pagination{
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: var(--margin-top);
+  margin: 0 auto;
+  margin-top: 0;
+  width: calc(100vw - 40px);
+  z-index: 3;
+  &.hdt-position-left{
+    justify-content: flex-start;
+  }
+  &.hdt-position-right{
+    justify-content: flex-end;
+  }
+}

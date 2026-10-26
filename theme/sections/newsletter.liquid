@@ -1,0 +1,77 @@
+{% style %}
+  #shopify-section-{{ section.id }}{
+    --section-pt: {{ section.settings.padding_top }}px;
+    --section-pb: {{ section.settings.padding_bottom }}px; 
+    --section-prate: {{ section.settings.padding_rate }};
+  }
+{% endstyle %}
+<div class="hdt-newsletter hdt-section-inner hdt-s-gradient hdt-section-spacing" color-scheme="{{ section.settings.color_scheme }}" hdt-reveal="fade-in">
+  <div class="hdt-container {%- if section.settings.section_layout == "full_width" -%}-full{%- endif %} hdt-section--custom--{{ section.id }} hdt-flex hdt-flex-{{ section.settings.direction }} hdt-flex-wrap {%- if section.settings.direction == 'row' %} hdt-justify-{{ section.settings.justify_content }}{%- else  %} hdt-align-{{ section.settings.justify_content }}{% endif %}">
+    {% content_for "blocks" %}
+  </div>
+</div>
+{% schema %}
+  {
+    "name": "Newsletter",
+    "class": "hdt-newsletter",
+    "blocks": [
+      {
+        "type": "@theme"
+      },
+      {
+        "type": "@app"
+      }
+    ],
+    "settings": [
+      {
+        "type": "color_scheme",
+        "id": "color_scheme",
+        "label": "t:sections.all.colors.label"
+      },
+      {
+        "type": "checkbox",
+        "id": "full_width",
+        "label": "t:sections.all.full_width.label",
+        "default": false
+      },
+      {
+        "type": "header",
+        "content": "t:sections.all.padding.section_padding_heading"
+      },
+      {
+        "type": "header",
+        "content": "t:sections.all.padding.section_padding_heading"
+      },
+      {
+        "type": "range",
+        "id": "padding_top",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "t:sections.all.padding.padding_top",
+        "default": 0
+      },
+      {
+        "type": "range",
+        "id": "padding_bottom",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "t:sections.all.padding.padding_bottom",
+        "default": 30
+      },
+      {
+        "type": "range",
+        "id": "padding_rate",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "%",
+        "label": "t:sections.all.padding.padding_rate",
+        "default": 75
+      },
+    ]
+  }
+{% endschema %}

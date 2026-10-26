@@ -1,0 +1,12 @@
+{%- comment -%}
+  OVERRIDE of snippets/popover-currencies.liquid.
+
+  The theme's own version renders Shopify's multi-currency and country picker.
+  It does not terminate under our Liquid engine - it hangs rather than erroring,
+  which took a bisect to find - and we are single-currency USD, so there is
+  nothing for it to draw.
+
+  Files in theme-overrides/ are searched BEFORE the theme's own directories, so
+  this replaces it without editing the vendor theme. Delete this file to get the
+  original back.
+{%- endcomment -%}

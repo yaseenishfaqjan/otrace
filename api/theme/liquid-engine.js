@@ -22,9 +22,13 @@ export const readThemeJson = (file) =>
 export function createEngine(themeRoot, { assetBase = '/theme-assets' } = {}) {
   const engine = new Liquid({
     root: [
+      // Ours first: anything in theme-overrides/ replaces the vendor file of
+      // the same name, so the theme itself is never edited.
+      path.join(themeRoot, '..', 'theme-overrides'),
       path.join(themeRoot, 'sections'),
       path.join(themeRoot, 'snippets'),
       path.join(themeRoot, 'blocks'),
+      path.join(themeRoot, 'layout'),
     ],
     extname: '.liquid',
     // A missing variable in a 500-file theme is normal; a crash is not.
@@ -125,7 +129,11 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets' } = {}) {
         const type = block && block.type;
         if (!type) continue;
         try {
-          const html = yield this.liquid.renderFile('blocks/' + type, { ...ctx.getAll(), block });
+          // theme/blocks is already a search root, so the bare type resolves.
+          // 'blocks/<type>' only worked while the theme root was also a root,
+          // and silently rendered nothing once it was not - the section fell
+          // from 5573 bytes to 509 with no error at all.
+          const html = yield this.liquid.renderFile(type, { ...ctx.getAll(), block });
           emitter.write(html);
         } catch {
           // A block the theme ships but we cannot resolve is skipped rather
@@ -187,6 +195,38 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets' } = {}) {
       },
     });
   }
+
+  /**
+   * {% sections 'header-group' %} renders a section GROUP: sections/<name>.json
+   * lists sections the way a template does. Shopify resolves this itself; here
+   * it is read off disk. A group member that throws is skipped, so a broken
+   * header costs the header and not the whole page.
+   */
+  engine.registerTag('sections', {
+    parse(token) { this.name = String(token.args || '').trim().replace(/^['"]|['"]$/g, ''); },
+    * render(ctx, emitter) {
+      const file = path.join(themeRoot, 'sections', this.name + '.json');
+      if (!fs.existsSync(file)) return;
+      let group;
+      try { group = JSON.parse(fs.readFileSync(file, 'utf8').replace(/[/][*][\s\S]*?[*][/]/g, '')); }
+      catch { return; }
+      const order = group.order || Object.keys(group.sections || {});
+      for (const key of order) {
+        const sec = (group.sections || {})[key];
+        if (!sec || !sec.type) continue;
+        const scope = {
+          ...ctx.getAll(),
+          section: { id: key, settings: sec.settings || {}, blocks: Object.values(sec.blocks || {}) },
+        };
+        try {
+          emitter.write(yield this.liquid.renderFile(sec.type, scope));
+        } catch (err) {
+          console.warn('[theme] group section "' + key + '" (' + sec.type + ') failed: '
+            + String(err.message).split(String.fromCharCode(10))[0]);
+        }
+      }
+    },
+  });
 
   return engine;
 }

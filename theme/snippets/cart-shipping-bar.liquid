@@ -1,0 +1,36 @@
+{%- comment -%}
+  Renders a free shipping bar
+
+  Accepts:
+  - shipping_amount: {Number} Free shipping amount (required)
+
+  Usage:
+  {%- render 'cart-shipping-bar', shipping_amount: shipping_amount -%}
+{%- endcomment -%}
+
+{%- liquid
+  assign calculated_total_price = cart.items | where: "requires_shipping", true | sum: 'final_line_price'
+  if settings.currency_code_enabled
+    assign money_need_add = shipping_amount | minus: calculated_total_price | money_with_currency
+  else
+    assign money_need_add = shipping_amount | minus: calculated_total_price | money
+  endif
+-%}
+
+{%- assign progress_shipping = calculated_total_price | times: 1.0 | divided_by: shipping_amount | at_most: 1 -%}
+<span class="hdt-progress-msg">
+  {%- if progress_shipping == 0 -%}
+    {{ 'sections.cart.free_shipping_bar.intial_html' | t: money: money_need_add }}
+  {%- elsif progress_shipping == 1 -%}
+    {{ 'sections.cart.free_shipping_bar.success' | t | replace: '[', '<span class="is--congratulations">' | replace: ']', '</span>'  }}
+  {%- else -%}
+    {{ 'sections.cart.free_shipping_bar.unreached_html' | t: money: money_need_add }}
+  {%- endif -%}
+</span>
+<hdt-free-shipping-bar class="hdt-free-shipping-bar is-{% if progress_shipping <= 0.6 %}intial{% elsif progress_shipping == 1 %}success{% else %}unreached{% endif %}">
+  <hdt-progress-bar data-hdt-percent="{{ progress_shipping }}" class="hdt-progress-bar hdt-progress-bar-svg{{ settings.des_shipbar }} hdt-relative hdt-radius-full" role="progressbar" aria-valuemin="0" aria-valuemax="{{ shipping_amount }}" aria-valuenow="{{ calculated_total_price }}" data-colors='{"0":"is-intial", "0.7":"is-unreached", "1":"is-success"}' style="--progress-rate: 0" reveal-in-view>
+    <div class="hdt-relative hdt-radius-full" style="width:calc(var(--progress-rate) * 100%);">
+      <svg class="hdt-free-shipping-bar-icon hdt-absolute hdt-top-0 hdt-right-0 hdt-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512" width="22"><path class="hdt-ship-primary" d="M64 48C64 21.49 85.49 0 112 0H368C394.5 0 416 21.49 416 48V96H466.7C483.7 96 499.1 102.7 512 114.7L589.3 192C601.3 204 608 220.3 608 237.3V352C625.7 352 640 366.3 640 384C640 401.7 625.7 416 608 416H574.9C567.1 361.7 520.4 320 464 320C407.6 320 360.9 361.7 353.1 416H286.9C279.1 361.7 232.4 320 176 320C127.9 320 86.84 350.4 70.99 392.1C66.56 385.7 64 377.1 64 368V256H208C216.8 256 224 248.8 224 240C224 231.2 216.8 224 208 224H64V192H240C248.8 192 256 184.8 256 176C256 167.2 248.8 160 240 160H64V128H272C280.8 128 288 120.8 288 112C288 103.2 280.8 96 272 96H64L64 48zM544 256V237.3L466.7 160H416V256H544z"></path><path class="hdt-ship-secondary" d="M272 128H16C7.164 128 0 120.8 0 112C0 103.2 7.164 96 16 96H272C280.8 96 288 103.2 288 112C288 120.8 280.8 128 272 128zM240 160C248.8 160 256 167.2 256 176C256 184.8 248.8 192 240 192H48C39.16 192 32 184.8 32 176C32 167.2 39.16 160 48 160H240zM208 224C216.8 224 224 231.2 224 240C224 248.8 216.8 256 208 256H16C7.164 256 0 248.8 0 240C0 231.2 7.164 224 16 224H208zM256 432C256 476.2 220.2 512 176 512C131.8 512 96 476.2 96 432C96 387.8 131.8 352 176 352C220.2 352 256 387.8 256 432zM544 432C544 476.2 508.2 512 464 512C419.8 512 384 476.2 384 432C384 387.8 419.8 352 464 352C508.2 352 544 387.8 544 432z"></path></svg>
+    </div>
+  </hdt-progress-bar>
+</hdt-free-shipping-bar>

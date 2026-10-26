@@ -1,0 +1,246 @@
+<!-- sections/heading-article.liquid -->
+{% style %}
+  #shopify-section-{{ section.id }}{
+    --section-pt: {{ section.settings.padding_top }}px;
+    --section-pb: {{ section.settings.padding_bottom }}px; 
+    --section-prate: {{ section.settings.padding_rate }};
+  }
+{% endstyle %}
+{%- liquid
+  assign page_type = request.page_type
+  if page_type contains 'customers'
+    assign page_type = 'customers'
+  endif
+  if article.image != blank and section.settings.use_specify_image 
+    assign image = article.image 
+  else
+    assign image = section.settings.image 
+  endif
+  if article.comments_count > 0 
+    assign cm_link = '#comments' 
+  else 
+    assign cm_link = '#comment_form' 
+  endif 
+-%}
+<div class="hdt-heading-template hdt-section-spacing hdt-s-gradient hdt-relative" color-scheme="{{ section.settings.color_scheme }}">
+  <div class="hdt-heading-banner hdt-full-width-link hdt-h-overlay hdt-pe-none" style="--bg-overlay:{{ section.settings.bg_overlay | divided_by: 100.00 }};">
+    {%- if image != blank -%}
+      {{ image | image_url: width: image.width | image_tag: loading: 'lazy', width: image.width, height: image.height, sizes: "100vw", widths: '375,550,750,1100,1500,1780,1920,2000,3000,3840', alt: image.alt }}
+    {%- endif -%}
+  </div>
+  <div class="hdt-heading-full-page">
+    {%- if section.blocks.size > 0 -%}
+      <div class="hdt-container">
+        <div class="hdt-main-heading hdt-flex hdt-flex-col hdt-text-center hdt-align-center hdt-spacing_hd hdt-relative">
+          {%- for block in section.blocks -%}
+            {%- case block.type -%}
+              {%- when '1' -%}
+                <h1 class="hdt-heading-template-text hdt-{{ block.settings.heading_size }} hdt-s-text">{{ article.title }}</h1>
+              {%- when '2' -%}
+                <time class="hdt-entry-date hdt-s-text2 hdt-font-italic-{{ block.settings.font_italic }}" datetime="{{ article.published_at }}">{{ article.published_at | date: format: 'date' }}</time>
+              {%- when '3' -%}
+                <div class="hdt-article-heading-category hdt-s-text2 hdt-font-italic-{{ block.settings.font_italic }}">
+                  <span>{{ 'blogs.article.in' | t }} <a href="{{ blog.url }}">{{ blog.title }}</a> </span>
+                  <span class="hdt-comment-number hdt-relative"><a href="{{ article.url }}{{ cm_link }}">{{ 'blogs.comments.with_count' | t: count: article.comments_count }}</a></span>
+                </div>
+            {%- endcase -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</div>
+{%- style -%}.hdt-spacing_hd{gap:{{section.settings.spacing_hd}}px}.hdt-heading-template .hdt-heading-banner img{width:100%;height:100%;object-fit:cover;object-position:center}.hdt-heading-template .hdt-main-heading{z-index:2}.hdt-breadcrumb ul svg{margin:0 10px}{%- if section.settings.spacing_hd>=30 -%}@media(max-width:767px){.section-{{section.id}}.hdt-spacing_hd{gap:20px}}{%- endif -%}#shopify-section-{{section.id}} .hdt-h-overlay::before{position:absolute;top:0;left:0;right:0;bottom:0;content:"";background-color:rgb(var(--color-overlay)/ var(--bg-overlay,0))}{%- endstyle -%}
+{% schema %}
+{
+  "name": "Heading article",
+  "class": "hdt-section hdt-section-heading hdt-main-heading",
+  "tag":"section",
+  "disabled_on": {
+    "groups":[
+      "*"
+    ],
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.heading-page.settings.header_options"
+    },
+    {
+      "type": "image_picker",
+      "label": "t:sections.heading-page.settings.background_heading",
+      "id": "image"
+    },
+    {
+      "type": "checkbox",
+      "id": "use_specify_image",
+      "label": "Specify other image for particular page",
+      "info": "Use article image",
+      "default": false
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label"
+    },
+    {
+      "type": "range",
+      "id": "bg_overlay",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "t:sections.heading-page.settings.bg_overlay.label",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "spacing_hd",
+      "min": 0,
+      "max": 50,
+      "step": 1,
+      "unit": "px",
+      "label": "t:sections.heading-page.settings.spacing_hd.label",
+      "default": 5,
+      "info": "t:sections.heading-page.settings.spacing_hd.info"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "padding_rate",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "t:sections.all.padding.padding_rate",
+      "default": 75
+    }
+  ],
+  "blocks": [
+    {
+      "type": "1",
+      "name": "t:sections.heading-page.blocks.page_heading.name",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "select",
+          "id": "heading_size",
+          "label": "t:settings_schema.typography.settings.font_size.label",
+          "default": "h3",
+          "options": [
+            {
+              "value": "base",
+              "label": "t:settings_schema.heading.settings.base_size"
+            },
+            {
+              "value": "h6",
+              "label": "t:settings_schema.heading.settings.h6_size"
+            },
+            {
+              "value": "h5",
+              "label": "t:settings_schema.heading.settings.h5_size"
+            },
+            {
+              "value": "h4",
+              "label": "t:settings_schema.heading.settings.h4_size"
+            },
+            {
+              "value": "h3",
+              "label": "t:settings_schema.heading.settings.h3_size"
+            },
+            {
+              "value": "h2",
+              "label": "t:settings_schema.heading.settings.h2_size"
+            },
+            {
+              "value": "h1",
+              "label": "t:settings_schema.heading.settings.h1_size"
+            },
+            {
+              "value": "h0",
+              "label": "t:settings_schema.heading.settings.h0_size"
+            },
+            {
+              "value": "h_custom",
+              "label": "t:settings_schema.typography.settings.font_size.custom"
+            }
+          ],
+        }
+      ]
+    },
+    {
+      "type": "2",
+      "name": "Time",
+      "limit": 1,
+      "settings": [
+        {
+          "type":"checkbox",
+          "id":"font_italic",
+          "label": "Enable font style italic",
+          "default":false
+        }
+      ]
+    },
+    {
+      "type": "3",
+      "name": "Category",
+      "limit": 1,
+      "settings": [
+        {
+          "type":"checkbox",
+          "id":"font_italic",
+          "label": "Enable font style italic",
+          "default":false
+        }
+      ]
+    }
+  ],
+  "default": {
+    "settings": {
+      "use_specify_image": true,
+      "bg_overlay": 54,
+      "spacing_hd":10,
+      "padding_top": 50,
+      "padding_bottom": 50,
+      "padding_rate": 75
+    },
+    "blocks": [
+      {
+        "type": "1",
+        "settings": {
+          "heading_size": "h6"
+        }
+      },
+      {
+        "type": "2",
+        "settings": {
+          "font_italic": true
+        } 
+      }
+    ]
+  }
+}
+{% endschema %}

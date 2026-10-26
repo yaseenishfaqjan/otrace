@@ -1,0 +1,58 @@
+<!-- _collection_item.liquid -->
+{%- liquid
+  assign current_width = settings.page_width | append: 'px'
+  assign current_width_tb = '100vw'
+  assign current_width_mb = '100vw'
+  if section.settings.space_items == "x"
+    assign space_item = settings.spacing_grid_horizontal
+    assign space_item_tb = settings.spacing_grid_horizontal | divided_by: 2
+    assign space_item_mb = settings.spacing_grid_horizontal | divided_by: 2
+  else
+    assign space_item = section.settings.space_items
+    assign space_item_tb = space_item | times: 0.666 | round
+    assign space_item_mb = space_item | times: 0.333 | round
+  endif
+-%}
+{%- capture sizes -%}
+  (min-width: 1150px) calc(({{ current_width }} -  ({{ space_item }} * ( {{ section.settings.col_dk }} - 1 ))) * 1 / {{ section.settings.col_dk }}),(min-width: 768px) calc( ({{ current_width_tb }} - ({{ space_item_tb }} * ( {{ section.settings.col_tb }} - 1 ))) * 1 / {{ section.settings.col_tb }}), calc( ({{ current_width_mb }} - ({{ space_item_mb }} * ( {{ section.settings.col_mb }} - 1 ) )) * 1 / {{ section.settings.col_mb }})
+{%- endcapture -%}
+{%- liquid
+  render 'collection-item', block: block, collection: collections[block.settings.collection], class: "hdt-slider__slide", sizes: sizes, current: 1
+-%}
+{% schema %}
+{
+  "name": "t:sections.collections-list.blocks.collection_item",
+  "tag": null,
+  "settings": [    
+    {
+      "id": "collection",
+      "type": "collection",
+      "label": "t:sections.collections-list.blocks.collection"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:sections.collections-list.blocks.image",
+      "info": "t:sections.collections-list.blocks.image_info"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.collections-list.blocks.title",
+      "info": "t:sections.collections-list.blocks.title_info",
+      "default": "Collection name"
+    },
+    {
+      "type": "url",
+      "id": "collection_link",
+      "label": "t:sections.collections-list.blocks.link",
+      "info": "t:sections.collections-list.blocks.link_info"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.collections-list.blocks.collection_item"
+    }
+  ]
+}
+{% endschema %}

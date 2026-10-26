@@ -1,0 +1,311 @@
+{%- if block.settings.date != blank -%}
+    {%- assign countdown = true -%}
+      <div class="t4s-bl-item t4s-pe-none t4s-countdown sepr_coun_dt_wrap t4s-countdown-des-{{ block.settings.cdt_des }} t4s-countdown-size-{{ block.settings.cdt_size }} t4s-animation-{{ block.settings.animation }} t4s-hidden-mobile-{{ block.settings.hidden_mobile }}" id="b_{{ block.id }}" {%- render 'bk_cus_style', type: 'countdown', bk_stts: bk_stts, ani_delay: ani_delay -%}>
+        <div class="time" data-countdown-t4s data-date='{{ block.settings.date }}' data-keyid='#countdown-{{ section.id  }}'>
+            <template id="countdown-{{ section.id }}">
+      <span class="countdown-days">
+          <span class="cd_timet4 cd-number">%-D</span>
+          <span class="cd_txtt4 cd-text">%!D:{{ "sections.countdown_text.day" | t }},{{ "sections.countdown_text.day_plural" | t }};</span>
+      </span>
+      <span class="countdown-hours">
+          <span class="cd_timet4 cd-number">%H</span> 
+          <span class="cd_txtt4 cd-text">%!H:{{ "sections.countdown_text.hr" | t }},{{ "sections.countdown_text.hr_plural" | t }};</span>
+      </span>
+      <span class="countdown-min">
+          <span class="cd_timet4 cd-number">%M</span> 
+          <span class="cd_txtt4 cd-text">%!M:{{ "sections.countdown_text.min" | t }},{{ "sections.countdown_text.min_plural" | t }};</span>
+      </span>
+      <span class="countdown-sec">
+          <span class="cd_timet4 cd-number">%S</span> 
+          <span class="cd_txtt4 cd-text">%!S:{{ "sections.countdown_text.sec" | t }},{{ "sections.countdown_text.sec_plural" | t }};</span>
+      </span>
+  </template>
+        </div>
+      </div>
+    {% endif %}
+
+    {% schema %}
+        {
+          "name": "Countdown",
+          "tag": null,
+          "settings":[
+          {
+            "type": "text",
+            "id": "date",
+            "label": "Date countdown",
+            "default": "2025\/1\/1",
+            "info": "Countdown to the end sale date will be shown"
+          },
+          {
+            "type": "select",
+            "id": "cdt_des",
+            "label": "Countdown design",
+            "default": "1",
+            "options": [
+              {
+                  "value": "1",
+                  "label": "Design 1"
+              },
+              {
+                  "value": "2",
+                  "label": "Design 2"
+              }
+            ]
+          },
+          {
+            "type": "select",
+            "id": "cdt_size",
+            "label": "Countdown size",
+            "default": "medium",
+            "options": [
+              {
+              "value": "small",
+              "label": "Small"
+              },
+              {
+                  "value": "medium",
+                  "label": "Medium"
+              },
+              {
+                  "value": "large",
+                  "label": "Large"
+              },
+              {
+                  "value": "extra_large",
+                  "label": "Extra large"
+              }
+            ]
+          },
+          {
+            "type": "range",
+            "id": "box_bdr",
+            "label": "Border radius",
+            "default": 0,
+            "min": 0,
+            "max": 50,
+            "step": 1,
+            "unit": "%"
+          },
+          {
+            "type": "range",
+            "id": "bd_width",
+            "label": "Border width",
+            "default": 0,
+            "min": 0,
+            "max": 5,
+            "step": 1,
+            "unit": "px"
+          },
+          {
+            "type": "range",
+            "id": "space_item",
+            "label": "Space between items",
+            "default": 10,
+            "min": 0,
+            "max": 30,
+            "step": 1,
+            "unit": "px"
+          },
+          {
+            "type": "color",
+            "id": "number_cl",
+            "label": "Number color",
+            "default": "#fff"
+          },
+          {
+            "type": "color",
+            "id": "text_cl",
+            "label": "Text color",
+            "default": "#fff"
+          },
+          {
+            "type": "color",
+            "id": "border_cl",
+            "label": "Border color item time",
+            "default": "#000"
+          },
+          {
+            "type": "color",
+            "id": "bg_cl",
+            "label": "Background item time",
+            "default": "#000"
+          },
+          {
+            "type":"checkbox",
+            "id":"hidden_mobile",
+            "label":"Hidden on mobile ",
+            "default":false
+          },
+          {
+            "type": "number",
+            "id": "mgb",
+            "label": "Margin bottom",
+            "default": 15
+          },
+          {
+            "type": "number",
+            "id": "mgb_mb",
+            "label": "Margin bottom (Mobile)",
+            "default": 10
+          },
+          {
+            "type": "paragraph",
+            "content": "————————————————"
+          },
+          {
+            "type":"select",
+            "id":"animation",
+            "label":"Animation",
+            "default":"none",
+            "options":[
+              {
+                  "label":"None",
+                  "value":"none"
+              },
+              {
+                  "label":"fadeIn",
+                  "value":"fadeIn"
+              },
+              {
+                  "label":"fadeInDown",
+                  "value":"fadeInDown"
+              },
+              {
+                  "label":"fadeInDownBig",
+                  "value":"fadeInDownBig"
+              },
+              {
+                  "label":"fadeInLeft",
+                  "value":"fadeInLeft"
+              },
+              {
+                  "label":"fadeInLeftBig",
+                  "value":"fadeInLeftBig"
+              },
+              {
+                  "label":"fadeInRight",
+                  "value":"fadeInRight"
+              },
+              {
+                  "label":"fadeInRightBig",
+                  "value":"fadeInRightBig"
+              },
+              {
+                  "label":"fadeInUp",
+                  "value":"fadeInUp"
+              },
+              {
+                  "label":"fadeInUpBig",
+                  "value":"fadeInUpBig"
+              },
+              {
+                  "label":"fadeInTopLeft",
+                  "value":"fadeInTopLeft"
+              },
+              {
+                  "label":"fadeInTopRight",
+                  "value":"fadeInTopRight"
+              },
+              {
+                  "label":"fadeInBottomLeft",
+                  "value":"fadeInBottomLeft"
+              },
+              {
+                  "label":"fadeInBottomRight",
+                  "value":"fadeInBottomRight"
+              },
+              {
+                  "label":"bounceIn",
+                  "value":"bounceIn"
+              },
+              {
+                  "label":"bounceInDown",
+                  "value":"bounceInDown"
+              },
+              {
+                  "label":"bounceInLeft",
+                  "value":"bounceInLeft"
+              },
+              {
+                  "label":"bounceInRight",
+                  "value":"bounceInRight"
+              },
+              {
+                  "label":"bounceInUp",
+                  "value":"bounceInUp"
+              },
+              {
+                  "label":"zoomIn",
+                  "value":"zoomIn"
+              },
+              {
+                  "label":"zoomInDown",
+                  "value":"zoomInDown"
+              },
+              {
+                  "label":"zoomInLeft",
+                  "value":"zoomInLeft"
+              },
+              {
+                  "label":"zoomInRight",
+                  "value":"zoomInRight"
+              },
+              {
+                  "label":"zoomInUp",
+                  "value":"zoomInUp"
+              },
+              {
+                  "label":"slideInDown",
+                  "value":"slideInDown"
+              },
+              {
+                  "label":"slideInLeft",
+                  "value":"slideInLeft"
+              },
+              {
+                  "label":"slideInRight",
+                  "value":"slideInRight"
+              },
+              {
+                  "label":"slideInUp",
+                  "value":"slideInUp"
+              },
+              {
+                  "label":"lightSpeedInRight",
+                  "value":"lightSpeedInRight"
+              },
+              {
+                  "label":"lightSpeedInLeft",
+                  "value":"lightSpeedInLeft"
+              },
+              {
+                  "label":"lightSpeedOutRight",
+                  "value":"lightSpeedOutRight"
+              },
+              {
+                  "label":"lightSpeedOutLeft",
+                  "value":"lightSpeedOutLeft"
+              },
+              {
+                  "label":"jello",
+                  "value":"jello"
+              },
+              {
+                  "label":"tada",
+                  "value":"tada"
+              },
+              {
+                  "label":"pulse",
+                  "value":"pulse"
+              }
+            ]
+          }
+        ],
+          "presets": [
+            {
+              "name": "Countdown"
+            }
+          ]
+        }
+        {% endschema %}
+        

@@ -1,0 +1,296 @@
+{%- liquid
+  if request.design_mode or search.terms == "submenu" or section.index == null
+    assign lazy_mn = false
+  else
+    assign lazy_mn = section.settings.lazy_mn
+  endif
+
+  assign li_class = ""
+  assign mega_position = ''
+  if block.settings.title != blank
+    assign map_title_lv1 = section.settings.main_menu.links | map: 'title'
+    for title in map_title_lv1
+      assign title_trim = title | split: '['
+      if title_trim[0] == block.settings.title
+        assign link = section.settings.main_menu.links | where: 'title', title | first
+        assign index = section.settings.main_menu.links | find_index: 'title', title
+        break
+      endif
+    endfor
+    assign arr_title = link.title | split: '['
+    assign arr_label = arr_title[1] | split: ','
+    assign li_class = "hdt-has-children"
+    assign mega_width = block.settings.mega_width
+    assign mega_custom_width = block.settings.mega_custom_width
+    assign mega_position = block.settings.mega_position | default: 'default'
+  else
+    break
+  endif
+-%}
+<li class="hdt-menu-item hdt-flex hdt-justify-center hdt-flex-col {{ li_class }}" data-index="{{ index | plus: 1 }}" {{ block.shopify_attributes }} style="order: {{ index | plus: 1 }};">
+  <hdt-header-menu class="hdt-contents" opened-able-click event="{{ section.settings.open_event }}" position="{{ mega_position }}" {{ block.shopify_attributes }}>
+    <details {% if mega_width == "full" or mega_width == "container" %} not-need-calc {% elsif mega_width == "custom" %} style="--mega-width: {{ mega_custom_width }}px;" position="{{ mega_position }}" {% endif %}>
+      <summary data-url="{{ link.url }}" class="hdt-menu-link hdt-flex hdt-align-center hdt-justify-between hdt-relative hdt-text-{{ section.settings.menu_size }} hdt-font-{{ section.settings.menu_weight }}{% if link.current and section.settings.active_link %} hdt-menu-link--active{% endif %}">
+        <span class="hdt-menu-link-text hdt-block{% if arr_label.size > 0 %} hdt-relative hdt-title_size-{{ arr_title[0].size | at_most: 20 }} hdt-has-{{ arr_label.size | at_most: 2 }}label{% endif %}">
+          <span class="hdt-block hdt-line-clamp">{{ arr_title[0] }}</span>
+          {%- if arr_label.size > 0 -%}
+            <span class="hdt_label_menu hdt-absolute hdt-inline-flex hdt-align-center hdt-justify-center hdt-text-xs">
+              {%- for label in arr_label limit: 2 -%}
+                {%- assign label_text = label | remove: 'label_' | remove: ','  | remove: ']' | strip -%}
+                <span class="hdt_label_{{ label_text | handleize }} hdt-flex hdt-align-center hdt-justify-center">{{ label_text }}</span>
+              {%- endfor -%}
+            </span>
+          {%- endif -%}
+        </span>
+        
+        {%- if li_class != "" and section.settings.dropdown_arrow -%}
+          <svg class="hdt-menu-item-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="7" viewBox="0 0 10 7" fill="none"><path d="M10 1.24243L5 6.24243L-2.18557e-07 1.24243L0.8875 0.354932L5 4.46743L9.1125 0.354931L10 1.24243Z" fill="currentColor"/></svg>
+        {%- endif -%}
+      </summary>
+      {%- if lazy_mn -%}
+        <hdt-lazy-submenu id="sub-{{ block.id }}" data-section="{{ section.id }}" class="hdt-sub-menu hdt-mega-menu hdt-absolute hdt-section--custom" color-scheme="{{ block.settings.mega_menu_colors }}"> </hdt-lazy-submenu>
+      {%- else -%}
+        <div id="sub-{{ block.id }}" class="hdt-sub-menu hdt-mega-menu hdt-absolute hdt-section--custom" color-scheme="{{ block.settings.mega_menu_colors }}">
+          {% style %}
+            #sub-{{ block.id }} .hdt-grid-system{
+              --spacing-dk: {{ block.settings.item_spacing }}px;
+            }
+          {% endstyle %}
+          {% if mega_width == "container" %}{{ '<div class="hdt-container">' }}{% endif %}
+          <div class="hdt-grid-system hdt-grid-system-10">
+            {% content_for 'blocks' %}
+          </div>
+          {% if mega_width == "container" %}{{ '</div>' }}{% endif %}
+        </div>
+      {%- endif -%}
+    </details>
+  </hdt-header-menu>
+</li>
+{% schema %}
+  {
+    "name": "Mega Block Column (10)",
+    "tag": null,
+    "settings": [
+      {
+        "type": "text",
+        "id": "title",
+        "label": "Menu item name (level 1) of main menu"
+      },
+      {
+        "type": "color_scheme",
+        "id": "mega_menu_colors",
+        "label": "t:sections.all.colors.label"
+      },
+      {
+        "type": "radio",
+        "id": "mega_width",
+        "label": "t:sections.header.blocks.mega_width.label",
+        "default": "full",
+        "options": [
+          {
+            "label": "t:sections.header.blocks.mega_width.full",
+            "value": "full"
+          },
+          {
+            "label": "t:sections.header.blocks.mega_width.container",
+            "value": "container"
+          },
+          {
+            "label": "t:sections.header.blocks.mega_width.custom",
+            "value": "custom"
+          }
+        ]
+      },
+      {
+        "type": "select",
+        "id": "mega_position",
+        "label": "t:sections.header.blocks.mega_position.label",
+        "default": "bottom",
+        "options": [
+          {
+            "label": "t:sections.header.blocks.mega_position.default",
+            "value": "bottom"
+          },
+          {
+            "label": "t:sections.header.blocks.mega_position.center",
+            "value": "center_on_screen"
+          }
+        ],
+        "visible_if": "{{ block.settings.mega_width == 'custom' }}"
+      },
+      {
+        "type": "range",
+        "id": "mega_custom_width",
+        "label": "t:sections.header.blocks.mega_custom_width",
+        "min": 600,
+        "max": 1600,
+        "step": 10,
+        "unit": "px",
+        "default": 1200,
+        "visible_if": "{{ block.settings.mega_width == 'custom' }}"
+      },
+      {
+        "type": "header",
+        "content": "t:sections.all.space_items.label"
+      },
+      {
+        "type": "range",
+        "id": "item_spacing",
+        "min": 0,
+        "max": 100,
+        "step": 1,
+        "unit": "px",
+        "label": "t:sections.all.space_items.desktop",
+        "default": 30
+      }
+    ],
+    "blocks": [
+      {
+        "type": "@theme",
+      },
+      {
+        "type": "@app",
+      },
+      {
+        "type": "text",
+      },
+      {
+        "type": "group",
+      },
+      {
+        "type": "_multi_column_10",
+      }
+    ],
+    "presets": [
+      {
+        "name": "Mega Block Column(10)",
+        "blocks": [
+          {
+            "type": "_multi_column_10",
+            "settings": {
+              "column_dk": "5",
+              "spacing_h_dk": 30,
+              "spacing_v_dk": 30,
+              "content_position": "center",
+              "alignment": "center",
+              "background_color": "#d2a2a2",
+              "rounded": "none"
+            },
+            "blocks": [
+              {
+                "type": "heading",
+                "settings": {
+                  "heading": "<p>Heading</p>",
+                  "hidden_br_mobile": false,
+                  "hidden_on_mobile": false,
+                  "heading_size": "h2",
+                  "text_color": "hdt-s-text",
+                  "font_size_heading_lg": 50,
+                  
+                  "font_size_heading": 24,
+                  
+                  "letter_spacing_heading": 0
+                }
+              },
+              {
+                "type": "spacer",
+                "settings": {
+                  "direction": false,
+                  "space_lg": 10,
+                  "space_md": 10,
+                  "space": 10
+                }
+              },
+              {
+                "type": "text",
+                "settings": {
+                  "text": "<p>Share information about your brand with your customers. Describe a product, make announcements, or welcome customers to your store.</p>",
+                  "hidden_br_mobile": false,
+                  "hidden_on_mobile": false,
+                  "text_size": "base",
+                  "text_color": "hdt-s-text",
+                  "font_size_text_lg": 16,
+                  "font_size_text": 14,
+                  "letter_spacing_text": 0
+                }
+              },
+              {
+                "type": "spacer",
+                "settings": {
+                  "direction": false,
+                  "space_lg": 20,
+                  "space_md": 20,
+                  "space": 20
+                }
+              },
+              {
+                "type": "button",
+                "settings": {
+                  "label": "Button label",
+                  "link": "",
+                  "open_in_new_tab": false,
+                  "full_width": false,
+                  "font_weight": "normal",
+                  "font_size_btn": 14,
+                  "padding_btn": 30,
+                  "min_width_btn": 100,
+                  "min_width_dt_btn": 100,
+                  "min_height_btn": 40,
+                  "icon": "none",
+                  "icon_position": "after",
+                  "icon_height": 14,
+                  "icon_spacing": 5
+                }
+              }
+            ]
+          },
+          {
+            "type": "_multi_column_10",
+            "settings": {
+              "column_dk": "5",
+              "spacing_h_dk": 30,
+              "spacing_v_dk": 30,
+              "content_position": "center",
+              "alignment": "center",
+              "background_color": "#d2a2a2",
+              "rounded": "none"
+            },
+            "blocks": [
+              {
+                "type": "heading",
+                "settings": {
+                  "heading": "<p>Newsletter</p>",
+                  "hidden_br_mobile": false,
+                  "hidden_on_mobile": false,
+                  "heading_size": "h4",
+                  "text_color": "hdt-s-text",
+                  "font_size_heading_lg": 50,
+                  
+                  "font_size_heading": 24,
+                  
+                  "letter_spacing_heading": 0
+                }
+              },
+              {
+                "type": "spacer",
+                "settings": {
+                  "direction": false,
+                  "space_lg": 20,
+                  "space_md": 20,
+                  "space": 20
+                }
+              },
+              {
+                "type": "_newsletter",
+                "settings": {
+                  "des_newsletter": "1",
+                  "button_lb": "Subscribe"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

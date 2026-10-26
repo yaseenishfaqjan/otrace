@@ -1,0 +1,47 @@
+{%- comment -%}
+  Renders a size list
+
+  Accepts:
+  - size_variants: {Array} (required)
+  - size_variants_avai: {Array} (required)
+  - size_count: {Interger} (required)
+  - class: {String} a list class. (optional)
+
+  Usage:
+  {% render 'size-list', size_variants: size_variants, size_variants_avai: size_variants_avai %}
+{%- endcomment -%}
+<div class="hdt-size-list hdt-pe-none {{ class }}">
+  {%- liquid 
+    if settings.enable_size_limit
+      assign size_maximum = settings.size_maximum
+    else
+      assign size_maximum = 9999
+    endif
+    if settings.size_type == 'all'
+      assign object = size_variants
+    else
+      assign object = size_variants_avai
+    endif
+    assign option_index = size_option_index | split: "" | last | minus: 1
+    assign name_option = product.options[option_index]
+  -%} 
+  <label>{{ name_option }}:</label>
+  {%- if settings.size_mode == 'size' -%}
+    {%- for size in object limit: size_maximum -%}
+      {%- liquid
+        unless size_variants_avai contains size or settings.size_type == 'all'
+          continue
+        endunless
+      -%}
+      <span class="hdt-size-list-item"{% unless size_variants_avai contains size %} unavailable{% endunless %}>{{ size | escape }}</span>
+    {%- endfor -%}
+    {%- if settings.enable_size_limit and size_count > settings.size_maximum -%}
+      <a class="hdt-size-list-item" href="{{ product_url }}" title="{{ 'products.product.show_more' | t | escape }}">+{{ size_count | minus: settings.size_maximum }}</a>
+    {%- endif -%}
+  {%- else -%}
+    {%- if settings.size_type == 'only' -%}
+      {%- assign size_count = size_variants_avai | size -%}
+    {%- endif -%}
+    <p class="hdt-size-count">{{- 'products.product.sizes_count' | t: count: size_count -}}</p>
+  {%- endif -%}
+</div>

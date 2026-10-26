@@ -1,0 +1,106 @@
+<div color-scheme="{{ block.settings.color_scheme }}" class="hdt-group-block hdt-s-gradient hdt-group-block--{{ block.id }} hdt-snap-center" {{ block.shopify_attributes }}>
+  {% content_for "blocks" %}
+</div>
+{% schema %}
+  {
+    "name": "Group",
+    "tag": null,
+    "blocks": [
+      {
+        "type": "_article-title"
+      },
+      {
+        "type": "_article-image"
+      },
+      {
+        "type": "_article-content"
+      },
+      {
+        "type": "_article-navigation"
+      },
+      {
+        "type": "_article-related"
+      },
+      {
+        "type": "_article-tags"
+      },
+      {
+        "type": "_article-comment"
+      },
+      {
+        "type": "socials"
+      },
+      {
+        "type": "sidebar-article"
+      }
+    ],
+    "settings": [
+      {
+        "type": "color_scheme",
+        "id": "color_scheme",
+        "label": "Color scheme",
+        "default": "scheme-1"
+      }
+    ],
+    "presets": [
+      {
+        "name": "Content",
+        "settings": {
+        },
+        "blocks": [
+          {
+            "type": "_article-image",
+            "settings": {
+              "cate_des": "none"
+            }
+          },
+          {
+            "type": "_article-content"
+          },
+          {
+            "type": "_article-tags"
+          },
+          {
+            "type": "socials",
+            "settings": {
+              "socials_style": "default",
+              "socials_size": "small",
+              "bd_radius": 30,
+              "space_item": 40
+            }
+          },
+          {
+            "type": "_article-navigation"
+          },
+          {
+            "type": "_article-related"
+          },
+          {
+            "type": "_article-comment"
+          }
+        ]
+      },
+      {
+        "name": "Sidebar",
+        "settings": {
+        },
+        "blocks": [
+          {
+            "type": "sidebar-article",
+            "blocks": [
+              {
+                "type": "blog-cate"
+              },
+              {
+                "type": "blog-gallery"
+              },
+              {
+                "type": "blog-tags-socials"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}

@@ -1,0 +1,81 @@
+{{ 'heading.css' | asset_url | stylesheet_tag }}
+{%- liquid
+  assign sec_subheading_size = sec_subheading_size | default: section.settings.sec_subheading_size | default: "lg" 
+  assign heading_gap = heading_gap | default: section.settings.heading_gap
+-%}
+{% if section.settings.sec_heading != blank or section.settings.sec_subheading != blank %}
+  <div class="hdt-section-head hdt-relative hdt-flex md:hdt-align-center hdt-justify-{{ section.settings.heading_align }} hdt-heading-style{{ section.settings.design_heading }}{% if section.settings.paginate_pos == "top_head" %} hdt-heading-has-btn{% endif %} {% if section.settings.navUI and section.settings.nav_pos == "ontop_right" %}hdt-heading-has-nav{% endif %}">
+    <div class="hdt-section-main-heading {% if section.settings.heading_reverse %}hdt-heading-reverse {% endif %}hdt-flex hdt-flex-col hdt-justify-center hdt-align-{{ section.settings.heading_align }} hdt-text-{{ section.settings.heading_align }}">
+      {% if section.settings.sec_heading != blank %}
+        <{{ section.settings.heading_tag }} class="hdt-sec-heading hdt-relative hdt-{{ section.settings.sec_heading_size }} hdt-flex hdt-align-center hdt-justify-{{ section.settings.heading_align }}" hdt-reveal="slide-in" timeline>
+          <span>{{ section.settings.sec_heading }}</span>
+          {% if section.settings.btn_heading_collection %}
+            <a class="hdt-btn hdt-inline-flex hdt-align-center hdt-justify-center hdt-relative hdt-text-base hdt-font-semibold" href="{{ routes.collections_url }}">
+              <span class="hdt-relative">{{ 'sections.collection_list.view_all_categories' | t }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8" fill="none">
+                <path d="M0.861539 8L0 7.13846L5.90769 1.23077H0.615385V0H8V7.38462H6.76923V2.09231L0.861539 8Z" fill="currentColor"/>
+              </svg>
+            </a>
+          {% endif %}
+        </{{ section.settings.heading_tag }}>
+      {% endif %}
+      {% if section.settings.heading_image %}
+        {% assign image = section.settings.heading_image %}
+        <div class="hdt-heading-image">{{ image | image_url: width: image.width | image_tag: loading: 'lazy', width: image.width, height: image.height, class: '' , sizes: sizes, widths: "160,320,360,400" }}</div>
+      {% endif %}
+      {% if section.settings.sec_subheading != blank %}
+        <div class="hdt-sec-subheading hdt-text-{{ sec_subheading_size }}" hdt-reveal="slide-in" timeline>{{ section.settings.sec_subheading }}</div>
+      {% endif %}
+    </div>
+    {% if section.settings.paginate_pos == "top_head" %}
+      <div class="hdt-heading-viewall hdt-inline-flex hdt-align-center hdt-justify-center" hdt-reveal="slide-in" timeline>
+          <a class="hdt-view-all-btn hdt-btn hdt-oh hdt-inline-flex hdt-align-center hdt-justify-center hdt-relative hdt-btn-{{ section.settings.btn_style }} hdt-font-{{ section.settings.btn_fw }}" href="{{ section.settings.collection.url | default: routes.all_products_collection_url }}" hdt-reveal="slide-in" timeline>
+          {% assign view_all_df = 'general.pagination.view_all' | t %}
+          <span>{{ section.settings.btn_label | default: view_all_df | escape }}</span>
+        </a>
+      </div>
+    {% endif %}
+    {%- if section.settings.navUI and section.settings.nav_pos == "ontop_right" -%}
+      <div class="hdt-top-nav hdt-absolute hdt-flex hdt-align-center hdt-justify-end hdt-right-0 hdt-top-0 hdt-bottom-0 hdt-nav-btns-{{ section.settings.nav_des }} hdt-nav-shape_{{ section.settings.nav_shape }} hdt-nav-{{ section.settings.nav_size }}">
+        {%- render 'nav_slider' -%}
+      </div>
+    {%- endif -%}
+  </div>
+{% endif %}
+{%- style -%}
+  {% if section.settings.sec_heading_spacing > 50 %}
+    #{{section.id}} .hdt-section-head {
+      --section-head-spacing:30px;
+    }
+    @media(min-width:768px){
+      #{{section.id}} .hdt-section-head{
+        --section-head-spacing:50px;
+      }
+    }
+    @media(min-width:1150px){
+      #{{section.id}} .hdt-section-head{
+        --section-head-spacing:{{section.settings.sec_heading_spacing}}px;
+        }
+    }
+  {% elsif section.settings.sec_heading_spacing > 30 %}
+    #{{section.id}} .hdt-section-head{
+      --section-head-spacing:30px;
+    }
+    @media(min-width:768px){
+      #{{section.id}} .hdt-section-head{
+        --section-head-spacing: {{section.settings.sec_heading_spacing}}px;
+      }
+    }
+  {% else %}
+    #{{section.id}} .hdt-section-head{
+      --section-head-spacing:{{section.settings.sec_heading_spacing}}px;
+    }
+  {% endif %}
+  #{{section.id}} .hdt-section-head,
+  #{{section.id}} .hdt-section-head .hdt-section-main-heading {
+    gap: {{ heading_gap }}px;
+  }
+  #{{section.id}} .hdt-section-head .hdt-heading-reverse.hdt-section-main-heading {
+    flex-direction: column-reverse;
+  }
+{%- endstyle -%}

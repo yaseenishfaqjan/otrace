@@ -1,0 +1,69 @@
+<style>
+  .hdt-marquee-item {
+    padding: 0 3rem;
+  }
+</style>
+<hdt-marquee
+speed-factor="0.4"
+direction="rtl"
+pausable
+class="hdt-marquee hdt-block hdt-relative hdt-oh hdt-current-scrollbar">
+<div class="hdt-marquee-inner">
+  <div class="hdt-marquee-item">
+      <div class="hdt-marquee__item hdt-inline-block">hello liquid</div>
+  </div>
+</div>
+</hdt-marquee>
+<button class="hdt-s-text" aria-controls="drawer{{ section.id }}">Drawer</button><br>
+<hdt-drawer color-scheme="scheme-1" class="hdt-contents">
+<dialog id="drawer{{ section.id }}" class="hdt-dialog hdt-dialog-drawer" scroll-lock pos="left">
+    <div class="hdt-dialog-drawer__header">
+      Drawer header
+      <button ref="closeButton" class="hdt-s-text hdt-dialog-btn__close" aria-controls="drawer{{ section.id }}" aria-label="{{ 'accessibility.close' | t | escape }}">{%- render 'icon' with 'close' -%}</button>
+    </div>
+    <div class="hdt-dialog-drawer__inner">
+      Drawer content
+    </div>
+</dialog>
+</hdt-drawer>
+
+<button class="hdt-s-text" aria-controls="drawer2{{ section.id }}">Drawer right</button><br>
+<hdt-drawer color-scheme="scheme-1" class="hdt-contents">
+<dialog id="drawer2{{ section.id }}" class="hdt-dialog hdt-dialog-drawer" scroll-lock pos="right">
+    <div class="hdt-dialog-drawer__header">
+      Drawer header
+      <button ref="closeButton" class="hdt-s-text hdt-dialog-btn__close" aria-controls="drawer2{{ section.id }}" aria-label="{{ 'accessibility.close' | t | escape }}">{%- render 'icon' with 'close' -%}</button>
+    </div>
+    <div class="hdt-dialog-drawer__inner">
+      Drawer content
+    </div>
+</dialog>
+</hdt-drawer>
+
+<button class="hdt-s-text" aria-controls="Modal{{ section.id }}">Modal</button>
+<hdt-modal color-scheme="scheme-1" class="hdt-contents">
+<dialog id="Modal{{ section.id }}" class="hdt-dialog hdt-dialog-modal" scroll-lock>
+    <div class="hdt-dialog-modal__header">
+      Modal header
+      <button ref="closeButton" class="hdt-s-text hdt-dialog-btn__close" aria-controls="Modal{{ section.id }}" aria-label="{{ 'accessibility.close' | t | escape }}">{%- render 'icon' with 'close' -%}</button>
+    </div>
+    <div class="hdt-dialog-modal__inner">
+      Modal content
+    </div>
+</dialog>
+</hdt-modal>
+
+{% schema %}
+{
+  "name": "Update",
+  "tag": "section",
+  "class": "section",
+  "settings": [
+  ],
+  "presets": [
+    {
+      "name": "Update"
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,25 @@
+<div class="hdt-section-custom-liquid">
+  <div class="hdt-content-liquid">
+    {{- block.settings.custom_liquid -}}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "Custom liquid",
+  "tag": null,
+  "settings": [
+    {
+      "type": "liquid",
+      "id": "custom_liquid",
+      "label": "t:sections.custom-liquid.settings.custom_liquid.label",
+      "info": "t:sections.custom-liquid.settings.custom_liquid.info"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Custom liquid"
+    }
+  ]
+}
+{% endschema %}

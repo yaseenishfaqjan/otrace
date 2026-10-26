@@ -1,0 +1,230 @@
+<!-- sections/featured-product.liquid -->
+{{ 'hdt-product-tabs.css' | asset_url | stylesheet_tag }}
+{% style %}
+  #shopify-section-{{ section.id }}{
+    --section-pt: {{ section.settings.padding_top }}px;
+    --section-pb: {{ section.settings.padding_bottom }}px; 
+    --section-prate: {{ section.settings.padding_rate }};
+  }
+{% endstyle %}
+<div class="hdt-section-inner hdt-s-gradient hdt-section-spacing" color-scheme="{{ section.settings.color_scheme }}" hdt-reveal="fade-in">
+  <div class="hdt-container {%- if section.settings.section_layout == "full_width" -%}-full{%- endif %}">
+    {%- if section.settings.product != blank -%}
+      <div class="hdt-row-grid hdt-grid-cols-1 md:hdt-grid-cols-2">
+        {% content_for 'block', type: '_product-medias',  id: 'featured-product-medias' %}
+        {% content_for 'blocks' %}
+      </div>
+    {%- else -%}
+    <div class="hdt-row-flex hdt-flex-cols-1 md:hdt-flex-cols-2">
+      <div class="hdt-col">
+        {{ 'product-1' | placeholder_svg_tag: 'hdt-placeholder-svg-pr1' }}
+        <style>.hdt-placeholder-svg-pr1{width: 320px;display: block; margin: 0 auto}</style>
+      </div>
+      <div class="hdt-col">
+        <div class="hdt-product-info__list">
+          <div class="hdt-product-info__item hdt-product__title hdt-s-text hdt-h6">{{ 'onboarding.product_title' | t }}</div>
+          <div class="hdt-product-info__item hdt-product__price hdt-text-lg hdt-s-text2" style="color: rgb(var(--color-pr-price));">{{ 1999 | money }}</div>
+          <div class="hdt-product__description hdt-s-text2"><p>{{ 'onboarding.product_excerpt' | t }}</p></div>
+        </div>
+      </div>
+    </div>
+    {%- endif -%}
+  </div>
+</div>
+{% schema %}
+{
+  "name": "t:sections.featured_product.name",
+  "class": "hdt-section hdt-section--feature-product",
+  "disabled_on": {
+    "groups": [
+      "*"
+    ]
+  },
+  "blocks": [
+    {
+      "type": "_group-product"
+    },
+    {
+      "type": "_product-medias"
+    }
+  ],
+  "settings": [
+    {
+      "type": "product",
+      "id": "product",
+      "label": "t:sections.featured_product.settings.product"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:sections.main-product.settings.image.label"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "t:sections.all.full_width.label",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_spacing"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "padding_rate",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "t:sections.all.padding.padding_rate",
+      "default": 75
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.featured_product.name",
+      "category": "t:sections_categories.04_products.name",
+      "blocks": [
+        {
+          "type": "_group-product",
+          "settings": {
+            "colors_by_block": false,
+            "color_scheme": ""
+          },
+          "blocks": [
+            {
+              "type": "_product-title",
+              "settings": {
+                "txt_tr_pr": "none",
+                "tag": "h2",
+                "heading_size": "h6",
+                "font_size_heading_lg": 50,
+                "font_size_heading": 24,
+                "letter_spacing_heading": 0,
+                "create_link": true
+              },
+              
+            },
+            {
+              "type": "_product-price",
+              "settings": {},
+              
+            },
+            {
+              "type": "_product-description",
+              "settings": {
+                "des_mode": "2",
+                "short_des": "<p>Go kalles this summer with this vintage navy and white striped v-neck t-shirt from the Nike. Perfect for pairing with denim and white kicks for a stylish kalles vibe.</p>",
+                "readm": false,
+                "length": 31,
+                "readm_txt": "Read more",
+                "readl_txt": "Read less"
+              },
+              
+            },
+            {
+              "type": "_product-variant-picker",
+              "settings": {
+                "color_picker_type": "color_rounded",
+                "color_size": "medium",
+                "picker_type": "circle",
+                "size_chart_source": "page",
+                "size_chart_page": ""
+              },
+              
+            },
+            /*{
+              "type": "_quantity-selector", 
+            },*/
+            {
+              "type": "_product-buy-button",
+              "settings": {
+                "show_dynamic_checkout": true,
+                "show_gift_card_recipient": true,
+                "show_wishlist": true,
+                "show_compare": true
+              },
+              
+            },   
+            {
+              "type": "_product_back_instock",
+              "settings": {
+                "only_show_soldout": true
+              }
+            },
+            {
+              "type": "_product-meta",
+              "settings": {},
+              "blocks": [
+                {
+                  "type": "_product-meta-sku",
+                  
+                },
+                {
+                  "type": "_product-meta-category",
+                  
+                },
+                {
+                  "type": "_product-meta-tags",
+                  
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "_product-medias",
+          "static": true,
+          "id": "featured-product-medias",
+          "settings": {
+            "desktop_media_layout": "thumbnail_left",
+            "media_size": "medium",
+            "mobile_media_layout": "thumbnails",
+            "show_first_media": false,
+            "use_select_varaint_change_media": true,
+            "enable_media_autoplay": false,
+            "enable_video_looping": false,
+            "enable_thumb_efect": true,
+            "image_ratio": "adapt_image",
+            "image_size": true,
+            "image_zoom": "zoom",
+            "image_zoom_type": "external",
+            "zoom_level": 2,
+            "max_zoom_lightbox": 3,
+            "navUI": false,
+            "nav_style": "default",
+            "nav_shape": "default",
+            "nav_size": "small",
+            "nav_hide_mobile": false
+          },
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

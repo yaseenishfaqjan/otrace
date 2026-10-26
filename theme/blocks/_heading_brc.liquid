@@ -1,0 +1,33 @@
+<!-- blocks/_heading_brc.liquid -->
+<nav hdt-reveal="slide-in" class="hdt-breadcrumb" role="navigation" aria-label="breadcrumbs">
+  <ul class="hdt-text-base hdt-font-normal hdt-breadcrumb-list">
+    <li class="hdt-breadcrumb-item hdt-inline-block hdt-s-text">
+      <a href="{{ routes.root_url }}">{{ 'general.breadcrumb.home' | t }}</a>
+      <svg xmlns="http://www.w3.org/2000/svg" width="5" height="8" viewBox="0 0 5 8" class="hdt-s-text hdt-inline-block" fill="currentColor">
+        <path d="M0.886718 3.49691e-07L4.88672 4L0.886719 8L0.176719 7.29L3.46672 4L0.176719 0.71L0.886718 3.49691e-07Z"/>
+      </svg>
+    </li>
+    <li class="hdt-breadcrumb-item hdt-inline-block hdt-s-text">
+      {{ block.settings.heading_title | default: page_title }}
+    </li>
+  </ul>
+</nav>
+{% schema %}
+  {
+    "name": "t:sections.heading-page.blocks.breadcrumb.label",
+    "tag": null,
+    "settings": [
+      {
+        "type": "liquid",
+        "id": "heading_title",
+        "label": "t:sections.heading-page.blocks.breadcrumb.label",
+        "default": "{{ page_title }}"
+      }
+    ],
+    "presets": [
+      {
+        "name": "t:sections.heading-page.blocks.breadcrumb.label"
+      }
+    ]
+  }
+{% endschema %}

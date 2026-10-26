@@ -1,0 +1,174 @@
+{% if block.settings.navUI %}hdt-slider-has-nav hdt-nav-btns-{{ block.settings.nav_des }} hdt-nav-shape_{{ block.settings.nav_shape }} hdt-nav-{{ block.settings.nav_pos }} hdt-nav-{{ block.settings.nav_size }} hdt-slider-btn-vi-{{ block.settings.btn_vi }}{% endif %} {% if block.settings.dotUI %}hdt-slider-has-dots-dk{% endif %} hdt-dots-{{ block.settings.dots_des }} hdt-dots-rounded-{{ block.settings.dots_rounded }} lg:hdt-slides-{{ section.settings.col_dk | default: "auto" }} md:hdt-slides-{{ section.settings.col_tb | default: "auto" }} hdt-slides-{{ block.settings.col_mb | default: section.settings.col_mb | default: "auto" }}" config='{ "id": "Slider-{{ section.id }}", "navUI": {{ block.settings.navUI }}, "dotUI": true, "navUICenter": true }'>
+{% if block.settings.navUI %}
+  {%- if block.settings.nav_pos == "middle_in" or block.settings.nav_pos == "on_border" -%}
+    {%- render 'nav_slider', nav_des: block.settings.nav_des -%}
+  {%- endif -%}
+{% endif %}
+<div hdt-slider-dots class="hdt-slider__dots hdt-flex hdt-align-center hdt-justify-{{ block.settings.dots_align }} no-js-hidden" aria-controls="Slider-{{ section.id }}"></div>
+{% schema %}
+{
+  "name": "Slider configs",
+  "tag": null,
+  "settings": [    
+    {
+      "type": "checkbox",
+      "id": "navUI",
+      "label": "t:sections.all.slider.navUI",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "btn_vi",
+      "label": "t:sections.all.slider.nav_visible.label",
+      "default": "hover",
+      "options": [
+        {
+          "value": "always",
+          "label": "t:sections.all.slider.nav_visible.options.always"
+        },
+        {
+          "value": "hover",
+          "label": "t:sections.all.slider.nav_visible.options.only_hover"
+        }
+      ]
+    },
+    {
+      "type": "select",
+      "id": "nav_des",
+      "label": "t:sections.all.slider.nav_des.label",
+      "options": [
+        {
+          "value": "default",
+          "label": "t:sections.all.slider.nav_des.options.default"
+        },
+        {
+          "value": "outline",
+          "label": "t:sections.all.slider.nav_des.options.outline"
+        },
+        {
+          "value": "simple",
+          "label": "t:sections.all.slider.nav_des.options.simple"
+        }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "select",
+      "id": "nav_shape",
+      "label": "t:sections.all.slider.nav_shape.label",
+      "options": [
+        {
+          "value": "default",
+          "label": "t:sections.all.slider.nav_shape.options.default"
+        },
+        {
+          "value": "rounded",
+          "label": "t:sections.all.slider.nav_shape.options.rounded"
+        },
+        {
+          "value": "rotate",
+          "label": "t:sections.all.slider.nav_shape.options.rotate"
+        }
+      ],
+      "default": "rounded"
+    },
+    {
+      "type": "select",
+      "id": "nav_size",
+      "label": "t:sections.all.slider.nav_size.label",
+      "options": [
+        {
+          "value": "small",
+          "label": "t:sections.all.slider.nav_size.options.small"
+        },
+        {
+          "value": "medium",
+          "label": "t:sections.all.slider.nav_size.options.medium"
+        },
+        {
+          "value": "large",
+          "label": "t:sections.all.slider.nav_size.options.large"
+        }
+      ],
+      "default": "small"
+    },
+    {
+      "type": "select",
+      "id": "nav_pos",
+      "label": "t:sections.all.slider.nav_pos.label",
+      "options": [
+        {
+          "value": "middle_in",
+          "label": "t:sections.all.slider.nav_pos.options.middle_in"
+        },
+        {
+          "value": "on_border",
+          "label": "t:sections.all.slider.nav_pos.options.on_border"
+        }
+      ],
+      "default": "on_border"
+    },
+    {
+      "type": "checkbox",
+      "id": "dotUI",
+      "label": "t:sections.all.slider.dotUI",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "dots_des",
+      "label": "t:sections.all.slider.dots_des.label",
+      "options": [
+        {
+          "value": "default",
+          "label": "t:sections.all.slider.dots_des.options.default"
+        },
+        {
+          "value": "outline",
+          "label": "t:sections.all.slider.dots_des.options.outline"
+        },
+        {
+          "value": "elessi",
+          "label": "t:sections.all.slider.dots_des.options.elessi"
+        },
+        {
+          "value": "full",
+          "label": "t:sections.all.slider.dots_des.options.full"
+        }
+      ],
+      "default": "default"
+    },
+    {
+      "type": "checkbox",
+      "id": "dots_rounded",
+      "label": "t:sections.all.slider.dots_rounded",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "dots_align",
+      "label": "t:sections.all.slider.dots_align.label",
+      "options": [
+        {
+          "value": "start",
+          "label": "t:sections.all.slider.dots_align.options.start"
+        },
+        {
+          "value": "center",
+          "label": "t:sections.all.slider.dots_align.options.center"
+        },
+        {
+          "value": "end",
+          "label": "t:sections.all.slider.dots_align.options.end"
+        }
+      ],
+      "default": "center"
+    }
+  ],
+  "presets": [
+    {
+      "name": "Slider configs"
+    }
+  ]
+}
+{% endschema %}

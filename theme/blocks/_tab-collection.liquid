@@ -1,0 +1,62 @@
+{%- assign block = section.blocks | where: 'id', block.id | first -%}
+{%- assign index = section.blocks | find_index: 'id', block.id -%}
+{%- assign collection = collections[block.settings.collection] %}
+<div id="tab-{{ section.id }}-{{ collection.id }}" class="hdt-tab-item" tab-item {% if index == 0 %} tab-selected {% endif %}>
+  {%- style -%}
+    #{{ section.id }} .hdt-slider__slide:nth-of-type({{ index | plus: 1 }}) .hdt-collection-title-text:before {
+      content: '{{ block.settings.title | default: block.settings.collection.title }}';
+    }
+  {%- endstyle -%}
+  {% content_for 'blocks', closest.collection: collection %}
+</div>
+{% schema %}
+{
+  "name": "t:sections.tabs_collections.blocks.tab_item.name",
+  "tag": null,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.tabs_collections.blocks.tab_item.title",
+      "default": "t:sections.tabs_collections.blocks.tab_item.title"
+    },
+    {
+      "id": "collection",
+      "type": "collection",
+      "label": "t:sections.collection_products.settings.collection"
+    },
+  ],
+  "blocks": [
+    {
+      "type": "_product-grid"
+    },
+    {
+      "type": "_product-carousel"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.tabs_collections.blocks.tab_item.grid_name",
+      "blocks": [
+        {
+          "type": "_product-grid",
+          "settings": {
+            "collection": "{{ closest.collection }}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "t:sections.tabs_collections.blocks.tab_item.carousel_name",
+      "blocks": [
+        {
+          "type": "_product-carousel",
+          "settings": {
+            "collection": "{{ closest.collection }}"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

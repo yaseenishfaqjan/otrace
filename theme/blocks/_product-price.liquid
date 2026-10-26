@@ -1,0 +1,31 @@
+{%-liquid
+  assign target = product
+  assign product = section.settings.product | default: target
+  assign product_form_id = 'product-form-' | append: section.id | append: product.id 
+  
+  assign un_no_pick = true
+  if settings.pick_mode == 'no' and product.variants.size > 1
+    assign selected_variant = product.selected_variant
+    unless selected_variant
+      assign un_no_pick = false
+    endunless
+  elsif settings.pick_mode == 'first' and settings.hide_sold_out == false
+    assign selected_variant = product.selected_variant | default: product.variants.first
+  else
+    assign selected_variant = product.selected_or_first_available_variant
+  endif
+-%}
+<div class="hdt-product-info__item hdt-product__price" {{ block.shopify_attributes }}>
+  {%- render 'price', product: product, use_variant: true, form_id: product_form_id, show_badges: false, only_show_sale: true, show_volume_note: false, un_no_pick: un_no_pick -%}
+</div>
+{% schema %}
+  {
+    "name": "t:sections.main-product.blocks.price.name",
+    "tag": null,
+    "presets": [
+      {
+        "name": "t:sections.main-product.blocks.price.name"
+      }
+    ]
+  }
+{% endschema %}

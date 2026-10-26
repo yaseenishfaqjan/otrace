@@ -1,0 +1,162 @@
+<!-- accordion.liquid -->
+{% style %}
+  #shopify-section-{{ section.id }}{
+    --section-pt: {{ section.settings.padding_top }}px;
+    --section-pb: {{ section.settings.padding_bottom }}px; 
+    --section-prate: {{ section.settings.padding_rate }};
+  }
+{% endstyle %}
+<div id="{{ section.id }}" class="hdt-s-gradient hdt-section-spacing" {%- if section.settings.colors_by_section %} color-scheme="{{ section.settings.color_scheme }}" style="--background-opacity: {{ section.settings.background_opacity }};"{%- endif %}>
+  <div class="hdt-container{%- if section.settings.full_width -%}-full{% endif %}">
+    {% content_for "block", type: "section-heading", id: "accordion-heading" %}
+    <div class="hdt-flex hdt-flex-col hdt-justify-between hdt-row-accordion hdt-accordion-style{{ section.settings.accordion_des }}">
+      {% content_for "blocks" %}
+    </div>
+  </div>
+</div>
+{%- style -%}
+  #{{ section.id }} .hdt-row-accordion {
+    gap: 10px;
+  }
+{%- endstyle -%}
+{% schema %}
+{
+  "name": "t:sections.accordion.name",
+  "tag": "section",
+  "class": "hdt-section hdt-accordion",
+  "disabled_on": {
+    "groups": [
+      "*"
+    ]
+  },
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.all.general_options.label"
+    },
+    {
+      "type": "select",
+      "id": "accordion_des",
+      "label": "t:sections.accordion.settings.accordion_des",
+      "options": [
+        {
+          "value": "1",
+          "label": "1"
+        },
+        {
+          "value": "2",
+          "label": "2"
+        }
+      ],
+      "default": "1"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.section_layout.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "full_width",
+      "label": "t:sections.all.full_width.label",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "colors_by_section",
+      "label": "t:sections.all.colors.display_colors_by_section"
+    },
+    {
+      "type": "color_scheme",
+      "id": "color_scheme",
+      "label": "t:sections.all.colors.label",
+      "visible_if": "{{ section.settings.colors_by_section }}"
+    },
+    {
+      "type": "range",
+      "id": "background_opacity",
+      "min": 0,
+      "max": 1,
+      "step": 0.1,
+      "label": "t:sections.all.background.opacity",
+      "default": 0,
+      "visible_if": "{{ section.settings.colors_by_section }}"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.all.padding.section_padding_heading"
+    },
+    {
+      "type": "range",
+      "id": "padding_top",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_top",
+      "default": 0
+    },
+    {
+      "type": "range",
+      "id": "padding_bottom",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "px",
+      "label": "t:sections.all.padding.padding_bottom",
+      "default": 30
+    },
+    {
+      "type": "range",
+      "id": "padding_rate",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "label": "t:sections.all.padding.padding_rate",
+      "default": 75
+    }
+  ],
+  "blocks": [
+    {
+      "type": "_accordion-item"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.accordion.name",
+      "category": "t:sections_categories.05_section.name",
+      "blocks": [
+        {
+          "type": "_accordion-item",
+          "settings": {
+            "open": true,
+            "title": "Do I need to open an account in order to shop with you?",
+            "content": "<p>No, you don't need to. You can make purchases and check out as a guest everytime. However, by setting up an account with us, it will allow you to order without having to enter your details every time you shop with us. You can sign up right now, or you can first start shopping and create your account before you check out at the shopping cart page.</p>"
+          }
+        },
+        {
+          "type": "_accordion-item",
+          "settings": {
+            "title": "How do I /create an account?",
+            "content": "<p>Please click on \"Login/Register\" followed by 'Create An Account' and fill in your personal particulars.</p>"
+          }
+        },
+        {
+          "type": "_accordion-item",
+          "settings": {
+            "title": "How do I order?",
+            "content": "<p>Shop for the items you want and add it to your shopping cart. When you have finished, you can proceed to your shopping cart and check out. Check and ensure that all information is correct before confirming your purchases and payment.</p>"
+          }
+        },
+        {
+          "type": "_accordion-item",
+          "settings": {
+            "title": "How do I pay for my orders?",
+            "content": "<p>Shop for the items you want and add it to your shopping cart. When you have finished, you can proceed to your shopping cart and check out. Check and ensure that all information is correct before confirming your purchases and payment.</p>"
+          }
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

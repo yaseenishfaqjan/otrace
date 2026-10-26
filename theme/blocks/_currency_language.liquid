@@ -1,0 +1,50 @@
+{% style %}
+  #{{ block.id }} {
+    gap: {{ block.settings.spacing }}px;
+  }
+  #{{ block.id }} div:empty {
+    display: none;
+  }
+{% endstyle %}
+<div id="{{ block.id }}" class="hdt-flex">
+  {% content_for 'blocks' %}
+</div>
+{% schema %}
+  {
+    "name": "t:blocks.currency_language.name",
+    "tag": null,
+    "settings": [
+      {
+        "type": "range",
+        "id": "spacing",
+        "min": 0,
+        "max": 30,
+        "step": 1,
+        "unit": "px",
+        "label": "t:sections.all.spacing",
+        "default": 15
+      },
+    ],
+    "blocks": [
+      {
+        "type": "_currency"
+      },
+      {
+        "type": "_language"
+      }
+    ],
+    "presets": [
+      { 
+        "name": "t:blocks.currency_language.name",
+        "blocks": [
+          {
+            "type": "_currency"
+          },
+          {
+            "type": "_language"
+          }
+        ]
+      }
+    ]
+  }
+{% endschema %}
