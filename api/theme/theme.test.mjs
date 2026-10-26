@@ -80,8 +80,15 @@ test('both storefronts produce the same session for the same basket', async () =
   assert.equal(args.mode, 'payment');
   assert.match(args.success_url, /^https:\/\/otrace\.co\/order\/success/);
   assert.equal(args.billing_address_collection, 'required');
-  assert.deepEqual(args.shipping_address_collection.allowed_countries, ['US']);
-  assert.ok(args.shipping_options?.length, 'shipping must be offered');
+  const countries = args.shipping_address_collection.allowed_countries;
+  assert.ok(countries.includes('US'));
+  assert.ok(countries.includes('GB'), 'a UK address has to be accepted');
+  assert.ok(countries.length > 10);
+  assert.equal(args.shipping_options[0].shipping_rate_data.display_name, 'Free delivery — United States');
+  assert.equal(args.shipping_options[0].shipping_rate_data.fixed_amount.amount, 0);
+  assert.match(args.custom_text.shipping_address.message, /United States/);
+  assert.match(args.custom_text.shipping_address.message, /worldwide/i);
+  assert.doesNotMatch(args.custom_text.shipping_address.message, /free worldwide/i);
 
   // One hoodie with one sweatpant is the sum of the two catalogue prices.
   const total = args.line_items.reduce(

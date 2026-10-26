@@ -28,11 +28,23 @@ export const imagesFor = (sku) =>
 export const CURRENCY = 'usd';
 
 export const SHIPPING = {
-  label: 'Free delivery',
+  label: 'Free delivery — United States',
   amountCents: 0,
   minDays: 3,
   maxDays: 5,
+  // Hosted Checkout applies this one amount to every country in SHIP_COUNTRIES.
+  // There is no international carrier tariff on file, so this line stays $0
+  // rather than inventing one. The label names the United States on purpose.
+  note: 'We ship worldwide. Free delivery is for United States addresses. No separate international carrier tariff is added at checkout.',
 };
+
+/** Countries a customer may ship to. Free delivery is still the US rate above. */
+export const SHIP_COUNTRIES = [
+  'US', 'CA', 'MX', 'GB', 'IE', 'FR', 'DE', 'IT', 'ES', 'PT', 'NL', 'BE', 'LU',
+  'AT', 'CH', 'SE', 'NO', 'DK', 'FI', 'IS', 'PL', 'CZ', 'SK', 'HU', 'RO', 'GR',
+  'HR', 'SI', 'EE', 'LV', 'LT', 'AU', 'NZ', 'JP', 'KR', 'SG', 'HK', 'AE', 'SA',
+  'IL', 'BR', 'AR', 'CL', 'CO', 'ZA', 'IN', 'MY', 'TH', 'PH',
+];
 
 export const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
 const COLORWAYS = ['Onyx Black', 'Warm Cream'];

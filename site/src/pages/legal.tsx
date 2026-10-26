@@ -20,7 +20,7 @@ function Legal({ eyebrow, title, children }: { eyebrow: string; title: string; c
 export function Shipping() {
   usePageMeta(
     'Shipping & Returns',
-    'Free US delivery on every OTRACE order. In-stock AW2026 pieces ship in 3–5 business days, and unworn items can be returned within 30 days of delivery.',
+    'OTRACE ships worldwide. Delivery is free in the United States. In-stock AW2026 pieces ship in 3–5 business days, and unworn items can be returned within 30 days of delivery.',
     { jsonLd: faqLd(RETURNS_FAQS) },
   );
   const returns = RETURNS_FAQS[0];
@@ -29,13 +29,18 @@ export function Shipping() {
       <section>
         <h2>Dispatch</h2>
         <p>
-          AW2026 is in stock. Delivery is free on every order, and orders ship
-          within 3–5 business days. We email tracking the moment a parcel leaves us.
+          AW2026 is in stock. We ship worldwide to the address you enter at checkout.
+          Delivery is free inside the United States, and orders ship within 3–5 business
+          days. We email tracking when a parcel leaves. Checkout does not add an
+          international carrier fee, because none is configured.
         </p>
       </section>
       <section>
         <h2>Where we ship</h2>
-        <p>United States only for AW2026. International is planned for the next drop.</p>
+        <p>
+          The United Kingdom and the rest of the world, to the address on the order.
+          Free delivery applies to United States addresses.
+        </p>
       </section>
       <section>
         <h2>{returns.question}</h2>

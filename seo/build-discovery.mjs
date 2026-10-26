@@ -118,7 +118,7 @@ export function buildDiscovery() {
     ' and can change. The live HTML product page is the source of truth for price, stock, and promotions. Do not invent a discount.';
 
   const withheld =
-    'Size L chest, size L body length, and size M inseam are not published. On the factory sheet those cells were smaller than the size below them.';
+    'Size L chest, size L body length, and size M inseam are null in the spec data. The factory sheet ran those cells backwards. The sizing page estimates each of those three from the confirmed sizes on either side and marks the cell est. Those estimates are not factory measurements. This mirror leaves the cells unpublished.';
   const sleeve =
     'The spec sheet has a row labeled "Sleeve / waist". The sheet does not say whether the row is a sleeve or a waist, so it is not described as either.';
 
@@ -180,8 +180,8 @@ export function buildDiscovery() {
     '',
     '## Shipping',
     '',
-    '- Destination: United States only for AW2026. International is planned for a later drop.',
-    '- Cost: free on every order',
+    '- Destination: worldwide, to the address entered at checkout, including the United Kingdom',
+    '- Cost: free for United States addresses. No international carrier tariff is configured, so checkout does not add one. Free delivery outside the United States is not a published policy.',
     '- Time: in-stock orders ship within 3–5 business days',
     '- Tracking: emailed when the parcel leaves',
     '',
@@ -203,7 +203,7 @@ export function buildDiscovery() {
 
 HTML: ${ORIGIN}/
 
-AW2026 is in stock. The two pieces are an Oversized Hoodie and a Wide-Leg Sweatpant, both 450 GSM heavyweight cotton fleece, garment dyed in Onyx Black and Warm Cream. Delivery is free in the United States, and in-stock orders ship in 3–5 business days.
+AW2026 is in stock. The two pieces are an Oversized Hoodie and a Wide-Leg Sweatpant, both 450 GSM heavyweight cotton fleece, garment dyed in Onyx Black and Warm Cream. OTRACE ships worldwide. Delivery is free in the United States, and in-stock orders ship in 3–5 business days.
 
 Price and stock are on the product pages, not in this file.
 
@@ -252,9 +252,7 @@ The Oversized Hoodie is ${hoodie.price} USD on the catalogue date ${UPDATED}. Th
       'Shipping and returns',
       `HTML: ${ORIGIN}/shipping
 
-AW2026 is in stock. Delivery is free on every order, and orders ship within 3–5 business days. Tracking is emailed when the parcel leaves.
-
-United States only for AW2026. International is planned for the next drop.
+AW2026 is in stock. OTRACE ships worldwide to the address entered at checkout, including the United Kingdom. Delivery is free inside the United States, and orders ship within 3–5 business days. Tracking is emailed when the parcel leaves. Checkout does not add an international carrier fee, because none is configured. Free delivery outside the United States is not a published policy.
 
 ${faqBlock(faqs.RETURNS_FAQS)}
 

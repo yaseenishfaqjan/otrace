@@ -45,7 +45,7 @@ export const POSTS = [
         h2: 'The hoodie that uses it',
         paragraphs: [
           'The [Oversized Hoodie](/product/oversized-hoodie) is sold in Onyx Black and Warm Cream. The catalogue price on 26 October 2026 is 148 USD. Read the product page for the current price and for stock. The page is the source of truth, not this note.',
-          'AW2026 is in stock. Delivery is free inside the United States, and in-stock orders ship in 3–5 business days. International shipping is not available yet. The same fleece is used for the [Wide-Leg Sweatpant](/product/wide-leg-sweatpant).',
+          'AW2026 is in stock. We ship worldwide. Delivery is free inside the United States, and in-stock orders ship in 3–5 business days. The same fleece is used for the [Wide-Leg Sweatpant](/product/wide-leg-sweatpant).',
           'Fit and the garment-flat measurements are on the [size chart](/sizing). How the dye is done is on [what garment dyed means](/garment-dyed). Both hoodies are in the [hoodies shop](/shop/hoodies).',
         ],
         image: {
@@ -146,7 +146,7 @@ export const POSTS = [
         paragraphs: [
           'Measurements are garment-flat centimetres. Chest is pit to pit. XS chest is 40 cm, which is 15.7 inches. The full table, including body length and shoulder, is on the [size chart](/sizing), with inches converted from those centimetres.',
           'Size L chest and size L body length are not published. On the factory sheet those cells were smaller than the size below them, so they are left blank rather than printed wrong. Do not invent a number for them.',
-          'The hoodie is unisex, XS to 3XL. It is in stock, in Onyx Black and Warm Cream, with free delivery in the United States and dispatch in 3–5 business days. Price and stock stay on the [product page](/product/oversized-hoodie). The [hoodies shop](/shop/hoodies) lists the piece next to the sweatpant.',
+          'The hoodie is unisex, XS to 3XL. It is in stock, in Onyx Black and Warm Cream. We ship worldwide, with free delivery in the United States and dispatch in 3–5 business days. Price and stock stay on the [product page](/product/oversized-hoodie). The [hoodies shop](/shop/hoodies) lists the piece next to the sweatpant.',
         ],
         image: {
           src: '/lookbook/look-02.jpg',

@@ -18,7 +18,7 @@
           "type": "announcement",
           "settings": {
             "link": "",
-            "text": "Free shipping on every order. <a href=\"/shop\" title=\"Shop AW2026\">Shop AW2026 [icon_arrow]</a>",
+            "text": "We ship worldwide. Free delivery in the United States. <a href=\"/shop\" title=\"Shop AW2026\">Shop AW2026 [icon_arrow]</a>",
             "adding_border": false,
             "countdown": "2025-12-30 15:00:00",
             "txt_day": "days"
@@ -28,7 +28,7 @@
           "type": "announcement",
           "settings": {
             "link": "",
-            "text": "Welcome to our store",
+            "text": "AW2026 is in stock. Hoodie $148, sweatpant $128.",
             "adding_border": false,
             "countdown": "2024-12-30 15:00:00",
             "txt_day": "days"

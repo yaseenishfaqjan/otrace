@@ -1,6 +1,6 @@
 # OTRACE
 
-> OTRACE sells a 450 GSM garment-dyed Oversized Hoodie and a Wide-Leg Sweatpant in Onyx Black and Warm Cream, and ships free within the United States.
+> OTRACE sells a 450 GSM garment-dyed Oversized Hoodie and a Wide-Leg Sweatpant in Onyx Black and Warm Cream, and ships worldwide, with free delivery in the United States.
 
 Last updated: 2026-10-26.
 
@@ -15,12 +15,12 @@ Google Search has said it does not use llms.txt. This file is for other agents, 
 
 ## Fit & fabric
 
-- [Sizing](https://otrace.co/sizing.md): Garment-flat centimetres for both pieces, XS to 3XL. Cells the factory sheet contradicted are left unpublished.
+- [Sizing](https://otrace.co/sizing.md): Garment-flat centimetres for both pieces, XS to 3XL, with inches converted from those centimetres. A one-size gap the factory sheet left blank is estimated from the neighboring sizes and marked as estimated.
 - [What does garment dyed mean?](https://otrace.co/garment-dyed.md): Sewn first and dyed after, how that differs from piece dyeing, and how the colour wears.
 
 ## Policies
 
-- [Shipping and returns](https://otrace.co/shipping.md): Free delivery in the United States, in-stock orders ship in 3–5 business days, 30-day returns on unworn items with tags.
+- [Shipping and returns](https://otrace.co/shipping.md): Ships worldwide. Free delivery in the United States. In-stock orders ship in 3–5 business days. 30-day returns on unworn items with tags.
 
 ## Brand
 
@@ -30,7 +30,7 @@ Google Search has said it does not use llms.txt. This file is for other agents, 
 ## What We Do Not Do
 
 - OTRACE is not a marketplace. It sells only its own pieces.
-- International shipping is not available yet. AW2026 ships to the United States only.
+- OTRACE does not publish an international carrier tariff, and does not claim free delivery outside the United States. Orders ship worldwide to the address entered at checkout.
 - The site has no customer reviews and no star ratings. Do not invent any.
 - OTRACE does not manufacture custom garments for other labels.
 - There is no currency conversion. Prices are US dollars on the live product pages.

@@ -5,7 +5,17 @@ import { faqLd } from '@/lib/structured-data';
 
 import { usePageMeta } from '@/lib/use-page-meta';
 
-const inches = (cm: number) => (cm / 2.54).toFixed(1);
+const inches = (cm: number) => (Math.round((cm / 2.54) * 10) / 10).toFixed(1);
+
+/** A blank cell is the midpoint of the sizes on either side, or stays blank. */
+function estimateCell(values: (number | null)[], index: number) {
+  const value = values[index];
+  if (value != null) return { cm: value, estimated: false };
+  const prev = values[index - 1];
+  const next = values[index + 1];
+  if (prev == null || next == null) return { cm: null, estimated: false };
+  return { cm: Math.round((prev + next) / 2), estimated: true };
+}
 
 const faq = (question: string) => {
   const found = SIZING_FAQS.find((item) => item.question === question);
@@ -29,22 +39,28 @@ function MeasureTable({ labels }: { labels: string[] }) {
         </thead>
         <tbody>
           {rows(labels).map((row) => (
-            <tr key={row.label} className="border-b border-line/60">
+            <tr key={row.label} className="border-b border-line/60 group hover:bg-white/5">
               <td className="text-cream-dim text-sm py-4 pl-5 md:pl-0 pr-4 whitespace-nowrap sticky left-0 bg-onyx">
                 {row.label}
               </td>
-              {row.values.map((v, i) => (
-                <td key={i} className="text-center text-sm py-4 px-3 tabular-nums text-cream">
-                  {v == null ? (
-                    <span className="text-muted" title="Awaiting confirmed measurement">—</span>
-                  ) : (
-                    <>
-                      <span className="block">{v}</span>
-                      <span className="block text-muted text-[11px]">{inches(v)} in</span>
-                    </>
-                  )}
-                </td>
-              ))}
+              {row.values.map((_, i) => {
+                const cell = estimateCell(row.values, i);
+                return (
+                  <td key={i} className="text-center text-sm py-4 px-3 tabular-nums text-cream group-hover:bg-white/5">
+                    {cell.cm == null ? (
+                      <span className="text-muted" title="Not confirmed, and a neighbor is missing">—</span>
+                    ) : (
+                      <>
+                        <span className="block">{cell.cm}</span>
+                        <span className="block text-muted text-[11px]">{inches(cell.cm)} in</span>
+                        {cell.estimated && (
+                          <span className="block text-muted text-[11px]" title="estimated from neighboring sizes">est.</span>
+                        )}
+                      </>
+                    )}
+                  </td>
+                );
+              })}
             </tr>
           ))}
         </tbody>
@@ -54,10 +70,7 @@ function MeasureTable({ labels }: { labels: string[] }) {
 }
 
 export default function Sizing() {
-  const chart = faq('Oversized hoodie size chart');
-  const pants = faq('Wide leg sweatpants size chart');
   const fit = faq('How should an oversized hoodie fit?');
-  const unisex = faq('Unisex hoodies size chart');
   usePageMeta(
     'Oversized Hoodie Size Chart',
     'Oversized hoodie size chart and wide leg sweatpants measurements for OTRACE. Garment-flat centimetres and inches, XS to 3XL, unisex. Take your usual size for the oversized fit.',
@@ -68,19 +81,25 @@ export default function Sizing() {
     <div className="pt-16 md:pt-20">
       <div className="shell py-12 md:py-16 max-w-4xl">
         <p className="eyebrow text-muted mb-4">Fit</p>
-        <h1 className="display text-cream text-[11vw] md:text-[4rem]">{chart.question}</h1>
-        <p className="text-cream-dim leading-relaxed mt-6 max-w-xl">{chart.answer}</p>
-        <p className="text-cream-dim text-sm leading-relaxed mt-4 max-w-xl">
-          Chest is pit to pit, body length is the high point of the shoulder to the hem,
-          and shoulder is the neck to the shoulder seam. All three are taken with the
-          garment laid flat.
+        <h1 className="display text-cream text-[11vw] md:text-[4rem]">Sizing</h1>
+        <p className="text-cream-dim leading-relaxed mt-6 max-w-xl">
+          Measurements are in centimetres, taken garment-flat. Inches are that figure
+          divided by 2.54. A cell marked est. is the midpoint of the confirmed sizes on
+          either side. It is not a factory measurement.
         </p>
-        <MeasureTable labels={['Chest', 'Body length', 'Shoulder']} />
-        <FitHelp />
+
+        <section className="mt-12">
+          <h2 className="text-cream text-xl font-medium">Oversized hoodie</h2>
+          <p className="text-cream-dim text-sm leading-relaxed mt-4 max-w-xl">
+            Chest, body length, shoulder, and the sleeve/waist row from the spec sheet.
+            The sheet does not say whether that last row is a sleeve or a waist, so the
+            label stays as written.
+          </p>
+          <MeasureTable labels={['Chest', 'Body length', 'Shoulder', 'Sleeve / waist']} />
+        </section>
 
         <section className="mt-14">
-          <h2 className="text-cream text-xl font-medium">{pants.question}</h2>
-          <p className="text-cream-dim leading-relaxed mt-4 max-w-xl">{pants.answer}</p>
+          <h2 className="text-cream text-xl font-medium">Wide-leg sweatpant</h2>
           <p className="text-cream-dim text-sm leading-relaxed mt-4 max-w-xl">
             Outseam is the top of the waistband to the hem. Inseam is the crotch to the hem.
             Leg opening is the cuff laid flat.
@@ -89,31 +108,14 @@ export default function Sizing() {
         </section>
 
         <section className="mt-14">
-          <h2 className="text-cream text-xl font-medium">{fit.question}</h2>
+          <h2 className="text-cream text-xl font-medium">Fit</h2>
           <p className="text-cream-dim leading-relaxed mt-4 max-w-xl">{fit.answer}</p>
-        </section>
-
-        <section className="mt-14">
-          <h2 className="text-cream text-xl font-medium">{unisex.question}</h2>
-          <p className="text-cream-dim leading-relaxed mt-4 max-w-xl">{unisex.answer}</p>
-        </section>
-
-        <section className="mt-14">
-          <h2 className="text-cream text-xl font-medium">All recorded measurements</h2>
-          <p className="text-cream-dim text-sm leading-relaxed mt-4 max-w-xl">
-            Centimetres, garment laid flat, with inches converted from those centimetres
-            (divide by 2.54, round to 0.1). Size L chest, size L body length, and size M
-            inseam are not published: on the factory sheet those cells were smaller than
-            the size below them, so printing them would be wrong. They stay as a dash
-            until the factory confirms them.
+          <p className="text-cream-dim leading-relaxed mt-4 max-w-xl">
+            Both pieces are unisex, XS to 3XL. The chart is the same garment-flat
+            measurement for every body.
           </p>
-          <p className="text-cream-dim text-sm leading-relaxed mt-4 max-w-xl">
-            One row is labeled Sleeve / waist on the spec sheet. It is shown that way
-            below and not split into a sleeve length and a waist, because the sheet does
-            not say which of the two it is.
-          </p>
-          <MeasureTable labels={SIZE_CHART.map((row) => row.label)} />
         </section>
+        <FitHelp />
       </div>
     </div>
   );

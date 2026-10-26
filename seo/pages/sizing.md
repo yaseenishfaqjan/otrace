@@ -30,7 +30,7 @@ Outseam: XS 76 cm (29.9 in), S 78 cm (30.7 in), M 80 cm (31.5 in), L 80 cm (31.5
 Inseam: XS 76 cm (29.9 in), S 77 cm (30.3 in), M not published, L 75 cm (29.5 in), XL 77 cm (30.3 in), 2XL 78 cm (30.7 in), 3XL 79 cm (31.1 in)
 Leg opening: XS 10 cm (3.9 in), S 11 cm (4.3 in), M 12 cm (4.7 in), L 13 cm (5.1 in), XL 14 cm (5.5 in), 2XL 15 cm (5.9 in), 3XL 16 cm (6.3 in)
 
-Size L chest, size L body length, and size M inseam are not published. On the factory sheet those cells were smaller than the size below them.
+Size L chest, size L body length, and size M inseam are null in the spec data. The factory sheet ran those cells backwards. The sizing page estimates each of those three from the confirmed sizes on either side and marks the cell est. Those estimates are not factory measurements. This mirror leaves the cells unpublished.
 
 The spec sheet has a row labeled "Sleeve / waist". The sheet does not say whether the row is a sleeve or a waist, so it is not described as either.
 Sleeve / waist: XS 26 cm (10.2 in), S 27 cm (10.6 in), M 28 cm (11.0 in), L 29 cm (11.4 in), XL 30 cm (11.8 in), 2XL 34 cm (13.4 in), 3XL 35 cm (13.8 in)

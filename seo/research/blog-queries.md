@@ -32,4 +32,4 @@ No new page was given the H1 “What does garment dyed mean?” or “Oversized 
 
 ## What was not claimed
 
-GSM is defined as grams per square metre. The posts do not call 450 a named industry class. “Ultra-heavyweight” is not used as a standard. Prices are dated 26 October 2026 and point at the live product page. No reviews. No international shipping.
+GSM is defined as grams per square metre. The posts do not call 450 a named industry class. “Ultra-heavyweight” is not used as a standard. Prices are dated 26 October 2026 and point at the live product page. No reviews. Shipping is worldwide, with free delivery stated for United States addresses only.

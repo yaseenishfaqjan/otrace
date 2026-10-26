@@ -63,7 +63,9 @@ export const collectionLd = (name: string, path: string, products: Product[]) =>
   },
 });
 
-// "Delivery is free on every order" / "United States only for AW2026".
+// Free delivery is published for United States addresses. This $0 offer stays
+// US-only. Checkout accepts worldwide addresses and adds no international
+// tariff, and this schema does not advertise a $0 worldwide rate.
 const SHIPPING_DETAILS = {
   '@type': 'OfferShippingDetails',
   shippingRate: { '@type': 'MonetaryAmount', value: 0, currency: 'USD' },

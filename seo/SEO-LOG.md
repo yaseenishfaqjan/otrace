@@ -531,3 +531,19 @@ Dropped `look-08.jpg` (stairwell, mostly architecture) and `look-07-tall.jpg` (a
 `deploy/nginx-theme-routes.conf` now documents `/lookbook` → `/api/theme-preview/page/lookbook`. Live already serves the theme lookbook; the snippet had still listed it as a React page. The file is not loaded automatically. Applying it means truncate-write `/opt/scalaro/nginx.conf`, `nginx -t`, then reload.
 
 **Verified locally.** Theme tests 15/15. Rendered `/shop` has the four fronts, hover backs, `$148.00` and `$128.00`, and no −20%, `$100`, `$80`, or layout switch. Rendered `/lookbook` has the eight frames above and neither look-07 nor look-08. Chrome at 1440 and 390: shop cards start under the nav; lookbook rows share one height (about 792px at 1440).
+
+## 2026-10-26 — Info pages and worldwide shipping
+
+Same branch, still not deployed. Live otrace.co still shows the promo bars, the garment-dyed sentence “each $80.00 (was $100.00)”, and the sizing page’s orphan chart headings until this is deployed.
+
+**Shipping.** Checkout now accepts a worldwide address list (United States, United Kingdom, EU, and the other countries in `SHIP_COUNTRIES`). The only Stripe rate on file is still $0, labeled “Free delivery — United States”. Hosted Checkout applies that one rate to every allowed country, so a non-US order also checks out at $0 until a real international tariff is configured. Copy says we ship worldwide and that free delivery is for United States addresses. It does not say free worldwide. JSON-LD `OfferShippingDetails` stays a $0 offer for `addressCountry: US`. `llms.txt` “What We Do Not Do” no longer says international shipping is unavailable.
+
+**Garment dyed.** Theme page uses the catalogue prices ($148 hoodie, $128 sweatpant), the onyx and cream hoodie fronts, and the three detail photos (`detail-fabric.jpg`, `detail-stitch.jpg`, `detail-drawcord.jpg`). A CSS/SVG diagram shows knit → cut → sew → dye. `prefers-reduced-motion` stops that animation.
+
+**Sizing.** One hoodie table (chest, body length, shoulder, sleeve/waist) and one sweatpant table (outseam, inseam, leg opening). Centimetres stay the source. Inches are centimetres ÷ 2.54, to 0.1. Three blank cells are estimated from the confirmed sizes on either side and marked est.: chest L 49 cm, body length L 69 cm, inseam M 76 cm. Those values are not written back into `shared/size-chart.json`. The orphan headings (Oversized hoodie size chart, Wide leg sweatpants size chart, Unisex hoodies size chart) are gone.
+
+**Contact.** The theme page posts JSON to `/api/contact` with name, email, subject, type (order, sizing, wholesale, other), and message. The email button is info@otrace.co. WhatsApp renders only when `WHATSAPP_NUMBER` (or the public/Vite aliases) is 8–15 digits. Crisp or Tawk loads only when its id env is set. A Help panel links to email, sizing, shipping, and garment dyed. It is not a chat agent.
+
+**Chrome.** Header announcement, phone, and location stay out of the render order. Footer Categories and Useful links are filled. Shopify demo social URLs (`facebook.com/shopify` and the rest) are blank, so the footer does not publish them. Page overflow measured 0 at 375px and 1440px on garment-dyed, sizing, and contact. Theme tests 15/15.
+
+**Still needs the owner before it can be turned on:** a GLB, turntable frames, `KLAVIYO_PRIVATE_API_KEY` and `KLAVIYO_LIST_ID`, a WhatsApp number, and Crisp or Tawk ids. None of those are invented here.

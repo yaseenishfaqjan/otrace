@@ -1,10 +1,10 @@
 # OTRACE
 
-OTRACE sells a 450 GSM garment-dyed Oversized Hoodie and a Wide-Leg Sweatpant in Onyx Black and Warm Cream, and ships free within the United States.
+OTRACE sells a 450 GSM garment-dyed Oversized Hoodie and a Wide-Leg Sweatpant in Onyx Black and Warm Cream, and ships worldwide, with free delivery in the United States.
 
 HTML: https://otrace.co/
 
-AW2026 is in stock. The two pieces are an Oversized Hoodie and a Wide-Leg Sweatpant, both 450 GSM heavyweight cotton fleece, garment dyed in Onyx Black and Warm Cream. Delivery is free in the United States, and in-stock orders ship in 3–5 business days.
+AW2026 is in stock. The two pieces are an Oversized Hoodie and a Wide-Leg Sweatpant, both 450 GSM heavyweight cotton fleece, garment dyed in Onyx Black and Warm Cream. OTRACE ships worldwide. Delivery is free in the United States, and in-stock orders ship in 3–5 business days.
 
 Price and stock are on the product pages, not in this file.
 
