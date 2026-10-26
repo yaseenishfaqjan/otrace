@@ -18,9 +18,12 @@ import mysql from 'mysql2/promise';
 import nodemailer from 'nodemailer';
 import { createMailer } from './mailer.js';
 import { fileURLToPath } from 'node:url';
+import fs from 'node:fs';
+import path from 'node:path';
 
 import { LOGO_CID, orderEmail, welcomeEmail } from './emails.js';
 import {
+  findBySlug,
   PRODUCTS,
   publicProducts,
   SHIPPING,
@@ -34,6 +37,7 @@ import {
 import { submitIndexNow } from './indexnow.js';
 import { ensureLeadColumns, handleContact, handleSubscribe, inquiryLabel } from './leads.js';
 import { klaviyoConfig } from './klaviyo.js';
+import { createThemeRenderer } from './theme/render-page.js';
 
 const {
   PORT = 3000,
@@ -309,6 +313,55 @@ app.get('/api/health', (_req, res) => {
 });
 
 /** Lets the storefront read authoritative pricing rather than hardcoding it. */
+/* ------------------------------------------------ Kalles theme preview ---- */
+
+/**
+ * The Kalles theme, rendered from its own Liquid against our catalogue.
+ *
+ * Deliberately mounted under /api/ so nothing on the server has to change:
+ * nginx already sends /api/* here, while / still goes to the React build. The
+ * live shop is untouched and this is reachable only by its own URL.
+ *
+ * The asset base is handed to the engine so {{ 'x.css' | asset_url }} points
+ * at the path we actually serve them from.
+ */
+const THEME_ROOT = fileURLToPath(new URL('../theme', import.meta.url));
+const THEME_ASSET_BASE = '/api/theme-assets';
+
+let themeRenderer = null;
+if (fs.existsSync(THEME_ROOT)) {
+  try {
+    themeRenderer = createThemeRenderer({
+      themeRoot: THEME_ROOT,
+      siteUrl: SITE_URL.replace(/\/$/, ''),
+      assetBase: THEME_ASSET_BASE,
+    });
+    app.use(THEME_ASSET_BASE, express.static(path.join(THEME_ROOT, 'assets'), {
+      maxAge: '1h',
+      setHeaders: (res) => res.setHeader('X-Theme-Preview', '1'),
+    }));
+    console.log('[boot] Kalles theme preview at /api/theme-preview/product/:slug');
+  } catch (err) {
+    console.warn('[boot] theme preview unavailable:', err.message);
+  }
+}
+
+app.get('/api/theme-preview/product/:slug', async (req, res) => {
+  if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
+  const product = findBySlug(req.params.slug);
+  if (!product) return res.status(404).send('No such product.');
+  try {
+    const html = await themeRenderer.renderProduct(product);
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    // A preview must never be indexed while the real pages exist.
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    res.send(html);
+  } catch (err) {
+    console.error('[theme] product render failed:', err.message);
+    res.status(500).send('Theme render failed: ' + err.message);
+  }
+});
+
 app.get('/api/products', (_req, res) => {
   res.json({ currency: CURRENCY, shipping: SHIPPING, products: publicProducts(SITE_URL) });
 });

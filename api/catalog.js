@@ -6,6 +6,25 @@
  * edit the request in devtools and buy the hoodie for a cent.
  */
 
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
+/**
+ * Colourways and photography come from ../shared/product-media.json, which
+ * site/src/lib/products.ts reads too. Restating a gallery in either file is
+ * how the storefront and the theme end up showing different pictures.
+ */
+const MEDIA = JSON.parse(
+  fs.readFileSync(fileURLToPath(new URL('../shared/product-media.json', import.meta.url)), 'utf8'),
+);
+
+/** Flat image list for a SKU, first colourway first. */
+export const mediaFor = (sku) => (MEDIA[sku]?.colorways ?? []);
+export const imagesFor = (sku) =>
+  mediaFor(sku).flatMap((c) =>
+    c.images.map((i) => ({ src: i.src, alt: i.alt, width: i.width, height: i.height })),
+  );
+
 export const CURRENCY = 'usd';
 
 export const SHIPPING = {
@@ -47,6 +66,13 @@ export const PRODUCTS = {
   },
 };
 
+// Photography is attached from the shared media file rather than written into
+// each entry, so adding a shot is a one-file change.
+for (const product of Object.values(PRODUCTS)) {
+  product.colorways = mediaFor(product.sku);
+  product.images = imagesFor(product.sku);
+}
+
 /**
  * An absolute image URL for Stripe.
  *
@@ -57,6 +83,15 @@ export const PRODUCTS = {
  * dead. Store the path, build the host from SITE_URL, and the two can never
  * drift again.
  */
+/**
+ * Resolve a product by its public slug.
+ *
+ * PRODUCTS is keyed by SKU, so a slug lookup needs this and nothing should
+ * re-derive it: the slugs are what the storefront URLs are built from.
+ */
+export const findBySlug = (slug) =>
+  Object.values(PRODUCTS).find((p) => p.slug === slug) || null;
+
 export const imageUrl = (product, siteUrl) => {
   const src = String(product?.image ?? '');
   if (!src) return undefined;

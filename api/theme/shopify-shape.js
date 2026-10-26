@@ -35,7 +35,33 @@ export function toShopifyProduct(p, { siteUrl = '' } = {}) {
     }
   }
 
-  const images = (p.images ?? []).map((i) => abs(i.src ?? i));
+  /**
+   * A Shopify image is an OBJECT, not a URL string.
+   *
+   * The theme sizes every media slot from `width`/`height` (and the
+   * `aspect_ratio` derived from them), so an image carrying only a src renders
+   * at height ZERO - in the DOM, fetched over the network, and invisible. That
+   * failure shows up as "the gallery is blank" with no error anywhere.
+   */
+  const images = (p.images ?? []).map((i, index) => {
+    const src = abs(i.src ?? i);
+    const width = i.width ?? 1000;
+    const height = i.height ?? 1000;
+    return {
+      id: index + 1,
+      src,
+      // Liquid calls .src on an image, but also prints the image itself in
+      // places; toString keeps both working.
+      toString: () => src,
+      alt: i.alt ?? p.name ?? '',
+      width,
+      height,
+      aspect_ratio: width / height,
+      position: index + 1,
+      attached_to_variant: false,
+      variants: [],
+    };
+  });
 
   return {
     id: p.sku,
@@ -55,7 +81,17 @@ export function toShopifyProduct(p, { siteUrl = '' } = {}) {
     tags: [],
     featured_image: images[0] ?? null,
     images,
-    media: images.map((src, i) => ({ id: i, media_type: 'image', src, preview_image: { src } })),
+    media: images.map((image, i) => ({
+      id: i + 1,
+      media_type: 'image',
+      position: i + 1,
+      alt: image.alt,
+      src: image.src,
+      width: image.width,
+      height: image.height,
+      aspect_ratio: image.aspect_ratio,
+      preview_image: image,
+    })),
     options: ['Color', 'Size'],
     options_with_values: [
       { name: 'Color', position: 1, values: colours },
@@ -71,7 +107,20 @@ export function toShopifyProduct(p, { siteUrl = '' } = {}) {
 }
 
 /** The theme reads hundreds of `settings.*`; they ship in the theme itself. */
-export function themeSettings(settingsData) {
+export function themeSettings(settingsData, settingsSchema) {
   const current = settingsData?.current ?? settingsData ?? {};
-  return typeof current === 'object' ? current : {};
+  const saved = typeof current === 'object' ? current : {};
+
+  // settings_data.json only stores what was CHANGED from the default. A key it
+  // omits renders as an empty string, and `{{ settings.auto_currency }}` with no
+  // value turns the inline script that reads it into a syntax error - which
+  // takes out every global defined in that block, not just the one setting.
+  // The schema is where the defaults live, so read them from it.
+  const defaults = {};
+  for (const group of Array.isArray(settingsSchema) ? settingsSchema : []) {
+    for (const setting of group?.settings ?? []) {
+      if (setting?.id && 'default' in setting) defaults[setting.id] = setting.default;
+    }
+  }
+  return { ...defaults, ...saved };
 }

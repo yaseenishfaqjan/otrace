@@ -18,7 +18,7 @@
           "type": "announcement",
           "settings": {
             "link": "",
-            "text": "Today deal sale off <strong>70%</strong>. End in[countdown].  <a href=\"/collections/all\" title=\"All products\">Hurry Up [icon_arrow]</a>",
+            "text": "Free shipping on every order. <a href=\"/shop\" title=\"Shop AW2026\">Shop AW2026 [icon_arrow]</a>",
             "adding_border": false,
             "countdown": "2025-12-30 15:00:00",
             "txt_day": "days"
@@ -65,16 +65,16 @@
           "type": "info",
           "settings": {
             "show_email": true,
-            "email": "kalles@domain.com",
+            "email": "info@otrace.co",
             "show_phone": true,
-            "phone": "+0123456789",
+            "phone": "",
             "hide": false
           }
         },
         "text_yBAEgJ": {
           "type": "text",
           "settings": {
-            "text1": "Summer sale discount off <strong>50%</strong>! <a href=\"/collections/all\" title=\"All products\">Shop Now</a>",
+            "text1": "Hoodie and sweatpant together — <strong>$140</strong> for the set. <a href=\"/shop\" title=\"Shop AW2026\">Shop the set</a>",
             "text2": "",
             "text3": "",
             "adding_border": false,

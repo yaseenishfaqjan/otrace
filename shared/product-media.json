@@ -1,0 +1,133 @@
+{
+  "_comment": "Single source for product colourways and photography. api/catalog.js and site/src/lib/products.ts BOTH read this file; neither restates it. Paths are relative to the site's public root. width/height are the files' real pixel sizes: the theme sizes every media slot from the aspect ratio, so an image with no dimensions renders at HEIGHT ZERO - present in the DOM, loaded over the network, and invisible.",
+  "OT-HOOD": {
+    "colorways": [
+      {
+        "name": "Onyx Black",
+        "hex": "#0D0C0B",
+        "images": [
+          {
+            "src": "/products/hoodie-onyx-front.jpg",
+            "label": "Front",
+            "alt": "OTRACE oversized hoodie in Onyx Black, front",
+            "width": 819,
+            "height": 1024
+          },
+          {
+            "src": "/products/hoodie-onyx-back.jpg",
+            "label": "Back",
+            "alt": "OTRACE oversized hoodie in Onyx Black, back",
+            "width": 819,
+            "height": 1024
+          },
+          {
+            "src": "/products/hoodie-onyx-worn-front.jpg",
+            "label": "Worn",
+            "alt": "Model wearing the OTRACE oversized hoodie in Onyx Black",
+            "width": 819,
+            "height": 1024
+          },
+          {
+            "src": "/products/hoodie-onyx-worn-back.jpg",
+            "label": "Worn back",
+            "alt": "Model wearing the OTRACE oversized hoodie in Onyx Black, from behind",
+            "width": 819,
+            "height": 1024
+          }
+        ]
+      },
+      {
+        "name": "Warm Cream",
+        "hex": "#F0EBE0",
+        "images": [
+          {
+            "src": "/products/hoodie-cream-front.jpg",
+            "label": "Front",
+            "alt": "OTRACE oversized hoodie in Warm Cream, front",
+            "width": 819,
+            "height": 1024
+          },
+          {
+            "src": "/products/hoodie-cream-back.jpg",
+            "label": "Back",
+            "alt": "OTRACE oversized hoodie in Warm Cream, back",
+            "width": 819,
+            "height": 1024
+          },
+          {
+            "src": "/products/hoodie-cream-worn-front.jpg",
+            "label": "Worn",
+            "alt": "Model wearing the OTRACE oversized hoodie in Warm Cream",
+            "width": 819,
+            "height": 1024
+          },
+          {
+            "src": "/products/hoodie-cream-worn-back.jpg",
+            "label": "Worn back",
+            "alt": "Model wearing the OTRACE oversized hoodie in Warm Cream, from behind",
+            "width": 819,
+            "height": 1024
+          }
+        ]
+      }
+    ]
+  },
+  "OT-PANT": {
+    "colorways": [
+      {
+        "name": "Onyx Black",
+        "hex": "#0D0C0B",
+        "images": [
+          {
+            "src": "/products/pant-onyx-front.jpg",
+            "label": "Front",
+            "alt": "OTRACE wide-leg sweatpant in Onyx Black, front",
+            "width": 819,
+            "height": 1024
+          },
+          {
+            "src": "/products/pant-onyx-back.jpg",
+            "label": "Back",
+            "alt": "OTRACE wide-leg sweatpant in Onyx Black, back",
+            "width": 819,
+            "height": 1024
+          },
+          {
+            "src": "/products/pant-onyx-worn.jpg",
+            "label": "Worn",
+            "alt": "Model wearing the OTRACE wide-leg sweatpant in Onyx Black",
+            "width": 819,
+            "height": 1024
+          }
+        ]
+      },
+      {
+        "name": "Warm Cream",
+        "hex": "#F0EBE0",
+        "images": [
+          {
+            "src": "/products/pant-cream-front.jpg",
+            "label": "Front",
+            "alt": "OTRACE wide-leg sweatpant in Warm Cream, front",
+            "width": 819,
+            "height": 1024
+          },
+          {
+            "src": "/products/pant-cream-back.jpg",
+            "label": "Back",
+            "alt": "OTRACE wide-leg sweatpant in Warm Cream, back",
+            "width": 819,
+            "height": 1024
+          },
+          {
+            "src": "/products/pant-cream-worn.jpg",
+            "label": "Worn",
+            "alt": "Model wearing the OTRACE wide-leg sweatpant in Warm Cream",
+            "width": 819,
+            "height": 1024
+          }
+        ]
+      }
+    ]
+  }
+}

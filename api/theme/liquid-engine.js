@@ -16,8 +16,48 @@ import path from 'node:path';
 import { Liquid } from 'liquidjs';
 
 /** Shopify ships its template JSON with /* *\/ comments. */
-export const readThemeJson = (file) =>
-  JSON.parse(fs.readFileSync(file, 'utf8').replace(/\/\*[\s\S]*?\*\//g, ''));
+/**
+ * Strip comments from Shopify's JSONC, without touching string contents.
+ *
+ * A regex cannot do this safely: `"https://example.com"` contains `//`, and a
+ * blanket strip truncates the URL and every line after it on that line. So walk
+ * the text and track whether we are inside a string.
+ */
+export function stripJsonComments(text) {
+  let out = '';
+  let inString = false;
+  let inLine = false;
+  let inBlock = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    const next = text[i + 1];
+    if (inLine) {
+      if (ch === '\n') { inLine = false; out += ch; }
+      continue;
+    }
+    if (inBlock) {
+      if (ch === '*' && next === '/') { inBlock = false; i++; }
+      continue;
+    }
+    if (inString) {
+      out += ch;
+      if (ch === '\\') { out += next ?? ''; i++; }
+      else if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') { inString = true; out += ch; continue; }
+    if (ch === '/' && next === '/') { inLine = true; i++; continue; }
+    if (ch === '/' && next === '*') { inBlock = true; i++; continue; }
+    out += ch;
+  }
+  return out;
+}
+
+/** Shopify's theme JSON carries comments AND trailing commas; JSON.parse takes neither. */
+export const parseThemeJson = (text) =>
+  JSON.parse(stripJsonComments(String(text).replace(/^﻿/, '')).replace(/,(\s*[}\]])/g, '$1'));
+
+export const readThemeJson = (file) => parseThemeJson(fs.readFileSync(file, 'utf8'));
 
 
 /**
@@ -28,14 +68,91 @@ export const readThemeJson = (file) =>
  * snippet may share a name, and on Shopify they never collide because each tag
  * looks in exactly one place. This keeps that guarantee.
  */
-export async function renderThemeFile(engine, themeRoot, dir, name, scope) {
+export async function renderThemeFile(engine, themeRoot, dir, name, scope, globals) {
   const overridden = path.join(themeRoot, '..', 'theme-overrides', `${name}.liquid`);
   const file = fs.existsSync(overridden) ? overridden : path.join(themeRoot, dir, `${name}.liquid`);
   if (!fs.existsSync(file)) throw new Error(`theme file not found: ${dir}/${name}.liquid`);
-  return engine.parseAndRender(fs.readFileSync(file, 'utf8'), scope);
+  // `globals` overrides the engine's own per RENDER, which is how a page sets
+  // request.page_type without mutating state the next request also reads.
+  return engine.parseAndRender(fs.readFileSync(file, 'utf8'), scope, globals ? { globals } : undefined);
 }
 
-export function createEngine(themeRoot, { assetBase = '/theme-assets' } = {}) {
+/**
+ * Theme translations.
+ *
+ * Shopify resolves `| t` against locales/<locale>.json, and a theme leans on it
+ * for nearly every visible string - so with no lookup the page renders raw keys
+ * like `general.meta.page` in the TITLE. Loaded once per theme root and cached.
+ */
+const translationCache = new Map();
+
+function loadTranslations(themeRoot, locale = 'en.default') {
+  const cacheKey = `${themeRoot}|${locale}`;
+  if (translationCache.has(cacheKey)) return translationCache.get(cacheKey);
+  let data = {};
+  try {
+    data = readThemeJson(path.join(themeRoot, 'locales', `${locale}.json`));
+  } catch {
+    // A theme with no locale file shows keys, which is the previous behaviour
+    // and not a new failure. Never throw out of a translation lookup.
+    data = {};
+  }
+  translationCache.set(cacheKey, data);
+  return data;
+}
+
+/** Walk a dotted key (`general.meta.page`) through the nested locale object. */
+function translate(data, key) {
+  let node = data;
+  for (const part of String(key).split('.')) {
+    if (node == null || typeof node !== 'object') return null;
+    node = node[part];
+  }
+  return typeof node === 'string' ? node : null;
+}
+
+/**
+ * Read a theme file's {% schema %} block.
+ *
+ * Returns null when there is none - every caller treats that as "no schema",
+ * never as an error, because plenty of files legitimately have none.
+ */
+export function readSchema(themeRoot, dir, name) {
+  const overridden = path.join(themeRoot, '..', 'theme-overrides', `${name}.liquid`);
+  const file = fs.existsSync(overridden) ? overridden : path.join(themeRoot, dir, `${name}.liquid`);
+  if (!fs.existsSync(file)) return null;
+  const m = /\{%-?\s*schema\s*-?%\}([\s\S]*?)\{%-?\s*endschema\s*-?%\}/.exec(
+    fs.readFileSync(file, 'utf8'),
+  );
+  if (!m) return null;
+  try {
+    return parseThemeJson(m[1]);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Turn `link_list` settings from a stored HANDLE into the linklist OBJECT.
+ *
+ * Shopify stores "main-menu" in the template JSON but hands the theme the
+ * resolved menu, so `section.settings.main_menu.links` works. Skip this and the
+ * header prints its empty-menu notice: no error, no warning, just no menu.
+ */
+export function resolveLinkListSettings(schema, settings, linklists) {
+  if (!schema || !settings) return settings;
+  const out = { ...settings };
+  for (const setting of schema.settings ?? []) {
+    if (setting?.type !== 'link_list' || !setting.id) continue;
+    const handle = out[setting.id];
+    if (typeof handle === 'string') out[setting.id] = linklists?.[handle] ?? null;
+  }
+  return out;
+}
+
+export function createEngine(themeRoot, { assetBase = '/theme-assets', globals = {} } = {}) {
+  const translations = loadTranslations(themeRoot);
+  const lookupTranslation = (key) => translate(translations, key);
   /**
    * The search path is SNIPPETS ONLY, which is what {% render %} means on
    * Shopify. Flattening sections/, snippets/ and blocks/ into one path looks
@@ -59,6 +176,12 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets' } = {}) {
     strictVariables: false,
     strictFilters: false,
     jsTruthy: true,
+    // Shopify's `shop`, `settings`, `routes` and `request` are GLOBAL: they are
+    // readable inside a snippet even though {% render %} isolates scope. In
+    // LiquidJS an isolated scope sees globals only, so without this every
+    // snippet renders them as empty - which is silent, and shows up far away as
+    // a broken inline script or a missing class name.
+    globals,
   });
 
   /* ---- Shopify tags that have no LiquidJS equivalent ---- */
@@ -120,18 +243,38 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets' } = {}) {
   engine.registerFilter('script_tag', (src) => `<script src="${src}"></script>`);
   engine.registerFilter('preload_tag', () => '');
 
-  engine.registerFilter('t', (key, args) => {
-    // Translations live in locales/*.json; until they are wired, show the key
-    // rather than an empty string, so a missing string is visible not invisible.
-    if (args && typeof args === 'object' && args.default) return args.default;
-    return String(key);
+  engine.registerFilter('t', (key, ...rest) => {
+    // Shopify passes interpolation values as named arguments, which LiquidJS
+    // hands over as a trailing [name, value] list rather than one object.
+    const args = {};
+    for (const a of rest) {
+      if (Array.isArray(a) && a.length === 2) args[a[0]] = a[1];
+      else if (a && typeof a === 'object') Object.assign(args, a);
+    }
+
+    const value = lookupTranslation(String(key));
+    // A key with no translation still shows the KEY, never an empty string:
+    // a missing string must be visible, not invisible.
+    if (value == null) return args.default ?? String(key);
+
+    return String(value).replace(/\{\{\s*(\w+)\s*\}\}/g, (m, name) =>
+      Object.prototype.hasOwnProperty.call(args, name) ? String(args[name]) : m,
+    );
   });
   engine.registerFilter('default_errors', (x) => x);
   engine.registerFilter('handleize', (s) =>
     String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
   engine.registerFilter('handle', (s) =>
     String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''));
-  engine.registerFilter('json', (v) => JSON.stringify(v));
+  // Shopify's `json` emits `null` for a missing value. Returning undefined here
+  // writes an EMPTY STRING into the page, which turns `a: {{ x | json }},` into
+  // `a: ,` and makes the whole inline <script> a syntax error - taking out every
+  // global the theme defines in it, with the only symptom a later
+  // "themeHDN is not defined".
+  engine.registerFilter('json', (v) => {
+    const out = JSON.stringify(v === undefined ? null : v);
+    return out === undefined ? 'null' : out;
+  });
   engine.registerFilter('within', (url) => url);
   engine.registerFilter('link_to', (label, url) => `<a href="${url}">${label}</a>`);
   engine.registerFilter('placeholder_svg_tag', () => '<svg></svg>');
@@ -243,18 +386,37 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets' } = {}) {
       const file = path.join(themeRoot, 'sections', this.name + '.json');
       if (!fs.existsSync(file)) return;
       let group;
-      try { group = JSON.parse(fs.readFileSync(file, 'utf8').replace(/[/][*][\s\S]*?[*][/]/g, '')); }
+      try { group = readThemeJson(file); }
       catch { return; }
       const order = group.order || Object.keys(group.sections || {});
       for (const key of order) {
         const sec = (group.sections || {})[key];
         if (!sec || !sec.type) continue;
+        // A section group's link_list settings need resolving exactly as a
+        // template's do - the header lives in header-group.json, so skipping it
+        // here is what leaves the nav empty.
+        // ctx.getAll() returns the SCOPE only - engine globals live on
+        // ctx.globals and are absent from it, so reading linklists from the
+        // scope quietly yields undefined and every menu resolves to null.
+        const all = ctx.getAll();
+        const linklists = all.linklists || (ctx.globals && ctx.globals.linklists) || {};
+        const schema = readSchema(themeRoot, 'sections', sec.type);
         const scope = {
-          ...ctx.getAll(),
-          section: { id: key, settings: sec.settings || {}, blocks: Object.values(sec.blocks || {}) },
+          ...all,
+          section: {
+            id: key,
+            settings: resolveLinkListSettings(schema, sec.settings || {}, linklists),
+            blocks: Object.values(sec.blocks || {}),
+          },
         };
         try {
-          emitter.write(yield renderThemeFile(engine, themeRoot, 'sections', sec.type, scope));
+          // `section` must be a GLOBAL for this render, not just a scope entry:
+          // the header calls {% render 'menu_blocks' %} with no arguments and
+          // the snippet reads section.settings.main_menu. {% render %} isolates
+          // scope, so without this the snippet sees no section, the menu guard
+          // fails, and the nav renders as nothing at all - silently.
+          const sectionGlobals = { ...(ctx.globals || {}), ...all, section: scope.section };
+          emitter.write(yield renderThemeFile(engine, themeRoot, 'sections', sec.type, scope, sectionGlobals));
         } catch (err) {
           console.warn('[theme] group section "' + key + '" (' + sec.type + ') failed: '
             + String(err.message).split(String.fromCharCode(10))[0]);
