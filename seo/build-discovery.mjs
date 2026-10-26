@@ -13,7 +13,18 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ORIGIN = 'https://otrace.co';
 const UPDATED = '2026-10-26';
 
-const read = (rel) => fs.readFileSync(path.join(root, rel), 'utf8');
+/**
+ * Source files are read with their line endings NORMALISED.
+ *
+ * git here runs core.autocrlf=true and the repo stores LF, so every Windows
+ * checkout gets CRLF in the working tree. parseProducts splits on a pattern
+ * that requires a bare LF after the brace, which CRLF can never match - it
+ * found both products in one chunk and the build died with "expected 2
+ * products, parsed 1". Identical commits: passes on Linux, fails on Windows.
+ * A build script must not depend on how the tree was checked out.
+ */
+const read = (rel) =>
+  fs.readFileSync(path.join(root, rel), 'utf8').replace(/\r\n/g, '\n');
 
 function parseFaqs(src) {
   const groups = {};
