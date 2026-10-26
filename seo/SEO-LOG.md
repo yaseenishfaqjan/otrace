@@ -271,6 +271,6 @@ The index has the blockquote, `## What We Do Not Do`, `## Contact` (`info@otrace
 
 **Screenshot:** `seo/shots/2026-10-26-contact-375.png` — contact page shows info@otrace.co, the form is present, overflow 0 at 375px.
 
-**Commit:** filled in after this entry is committed.
+**Commit:** 7013f2d
 
 **Still blocked:** no real social, Wikipedia, or Wikidata URL is on file, so `sameAs` stays empty. Currency is still not implemented. IndexNow still cannot submit until the key file is on the live host.
