@@ -16,6 +16,9 @@ RUN cd api && npm install --omit=dev
 COPY api ./api
 COPY shared ./shared
 COPY theme ./theme
+# The override directory the renderer checks FIRST for any theme file.
+# Without it, an override works locally and silently does nothing here.
+COPY theme-overrides ./theme-overrides
 
 ENV NODE_ENV=production
 EXPOSE 3000

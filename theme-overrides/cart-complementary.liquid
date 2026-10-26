@@ -1,0 +1,13 @@
+{%- comment -%}
+  Renders nothing, on purpose.
+
+  Kalles ships this snippet as a SKELETON card that its JavaScript fills from
+  Shopify's product-recommendations API. We have no such API, so the skeleton
+  was being served as-is on every page: an empty product card with no title, no
+  link, and a hard-coded placeholder price of "$19.99 USD" sitting in the DOM
+  of a shop whose cheapest item is $80.
+
+  Nothing visible is lost - the card never had a product in it. If real cart
+  recommendations are built later, delete this file and the vendor snippet
+  comes back.
+{%- endcomment -%}
