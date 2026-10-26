@@ -22,6 +22,8 @@ type Props = {
   resetKey: string;
   /** view-transition-name for the photo on screen, so a card can morph into it. */
   transitionName?: string;
+  /** Fired once a mouse drag actually moves between frames. */
+  onEngage?: () => void;
 };
 
 const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -58,13 +60,31 @@ function useSnapIndex(ref: RefObject<HTMLDivElement | null>, count: number) {
   return index;
 }
 
-export function ProductGallery({ images, badge, resetKey, transitionName }: Props) {
+export function ProductGallery({ images, badge, resetKey, transitionName, onEngage }: Props) {
   const track = useRef<HTMLDivElement>(null);
   const index = useSnapIndex(track, images.length);
   const [viewer, setViewer] = useState<number | null>(null);
   const [scrubbing, setScrubbing] = useState(false);
   const scrub = useRef<{ x: number; index: number; id: number } | null>(null);
   const suppressClick = useRef(false);
+  const coast = useRef(0);
+  const sample = useRef({ t: 0, index: 0, v: 0 });
+  const [ghost, setGhost] = useState<{ src: string; width: number; height: number } | null>(null);
+  const firstSrc = images[0]?.src;
+  const previousSrc = useRef(firstSrc);
+
+  useEffect(() => () => cancelAnimationFrame(coast.current), []);
+
+  // Colourway changes dissolve the previous frame out. Reduced motion skips it.
+  useEffect(() => {
+    const before = previousSrc.current;
+    previousSrc.current = firstSrc;
+    if (!before || !firstSrc || before === firstSrc || reducedMotion()) return;
+    const size = imageSize(before);
+    setGhost({ src: before, width: size.width, height: size.height });
+    const timer = window.setTimeout(() => setGhost(null), 520);
+    return () => window.clearTimeout(timer);
+  }, [firstSrc]);
 
   // New product or colorway: straight back to the first frame, no animation.
   useEffect(() => {
@@ -118,10 +138,17 @@ export function ProductGallery({ images, badge, resetKey, transitionName }: Prop
 
   // Mouse drag steps through the existing photographs. Touch keeps the native
   // swipe. The jump is instant either way, so reduced motion does not animate.
+  const stopCoast = () => {
+    if (coast.current) cancelAnimationFrame(coast.current);
+    coast.current = 0;
+  };
+
   const onScrubDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (!many || e.pointerType !== 'mouse') return;
     if ((e.target as HTMLElement).closest('[data-gallery-control]')) return;
+    stopCoast();
     scrub.current = { x: e.clientX, index, id: e.pointerId };
+    sample.current = { t: performance.now(), index, v: 0 };
     e.currentTarget.setPointerCapture(e.pointerId);
   };
 
@@ -132,16 +159,35 @@ export function ProductGallery({ images, badge, resetKey, transitionName }: Prop
     if (Math.abs(dx) < 12) return;
     suppressClick.current = true;
     setScrubbing(true);
+    onEngage?.();
     const width = track.current?.clientWidth || 1;
     const span = Math.max(1, images.length - 1);
-    const next = Math.round(origin.index + (-dx / width) * span);
-    scrollToIndex(track.current, Math.max(0, Math.min(images.length - 1, next)), false);
+    const next = Math.max(0, Math.min(span, Math.round(origin.index + (-dx / width) * span)));
+    const now = performance.now();
+    const dt = now - sample.current.t;
+    if (dt > 0) {
+      sample.current = { t: now, index: next, v: ((next - sample.current.index) / dt) * 16 };
+    }
+    scrollToIndex(track.current, next, false);
   };
 
   const onScrubEnd = (e: React.PointerEvent<HTMLDivElement>) => {
     if (scrub.current?.id !== e.pointerId) return;
     scrub.current = null;
     setScrubbing(false);
+    const vel = sample.current.v;
+    if (reducedMotion() || Math.abs(vel) < 0.2) return;
+    let frame = sample.current.index;
+    let v = Math.max(-1.4, Math.min(1.4, vel));
+    const span = Math.max(1, images.length - 1);
+    const tick = () => {
+      frame = Math.max(0, Math.min(span, frame + v));
+      v *= 0.84;
+      scrollToIndex(track.current, Math.round(frame), false);
+      const atEnd = frame <= 0 || frame >= span;
+      if (Math.abs(v) > 0.05 && !atEnd) coast.current = requestAnimationFrame(tick);
+    };
+    coast.current = requestAnimationFrame(tick);
   };
 
   return (
@@ -157,6 +203,15 @@ export function ProductGallery({ images, badge, resetKey, transitionName }: Prop
           <span className="absolute top-4 left-4 z-10 eyebrow bg-cream text-onyx px-3 py-2 leading-none pointer-events-none">
             {badge}
           </span>
+        )}
+        {ghost && (
+          <img
+            src={ghost.src}
+            alt=""
+            width={ghost.width}
+            height={ghost.height}
+            className="colour-ghost absolute inset-0 z-[5] h-full w-full object-cover pointer-events-none"
+          />
         )}
 
         <div

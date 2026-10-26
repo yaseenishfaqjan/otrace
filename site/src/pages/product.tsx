@@ -4,7 +4,7 @@ import { ChevronDown, Check } from 'lucide-react';
 import { useCart } from '@/lib/cart';
 import { useReveal } from '@/lib/use-reveal';
 import NotFound from '@/pages/not-found';
-import { getProduct, money, PRODUCTS, SIZES, IN_STOCK_SHIPS_IN } from '@/lib/products';
+import { getProduct, money, PRODUCTS, SIZES, SIZE_CHART, IN_STOCK_SHIPS_IN } from '@/lib/products';
 import { ProductCard } from '@/components/product-card';
 import { ProductGallery } from '@/components/product-gallery';
 import { FaqList } from '@/components/faq-list';
@@ -30,6 +30,22 @@ function Accordion({ title, children, open = false }: { title: string; children:
 }
 
 // Search-facing product titles (the page H1 keeps the short product name).
+const FLAT_ROWS: Record<string, string[]> = {
+  'oversized-hoodie': ['Chest', 'Body length', 'Shoulder'],
+  'wide-leg-sweatpant': ['Outseam', 'Inseam', 'Leg opening'],
+};
+
+function flatLine(slug: string, size: string) {
+  const index = SIZES.indexOf(size as (typeof SIZES)[number]);
+  if (index < 0) return '';
+  return (FLAT_ROWS[slug] ?? [])
+    .flatMap((label) => {
+      const value = SIZE_CHART.find((row) => row.label === label)?.values[index];
+      return value == null ? [] : [`${label.toLowerCase()} ${value} cm`];
+    })
+    .join(', ');
+}
+
 const PRODUCT_SEO_TITLE: Record<string, string> = {
   'oversized-hoodie': 'Oversized Heavyweight Hoodie, 450 GSM',
   'wide-leg-sweatpant': 'Wide-Leg Heavyweight Sweatpant, 450 GSM',
@@ -78,7 +94,11 @@ export default function Product() {
   const [size, setSize] = useState<string | null>(null);
   const [needsSize, setNeedsSize] = useState(false);
   const [pastAdd, setPastAdd] = useState(false);
+  const [engaged, setEngaged] = useState(false);
+  const [addedFlash, setAddedFlash] = useState(false);
   const addButtonRef = useRef<HTMLButtonElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
+  const addedTimer = useRef(0);
 
   useReveal([params?.slug]);
 
@@ -89,6 +109,8 @@ export default function Product() {
     setSize(null);
     setNeedsSize(false);
     setPastAdd(false);
+    setEngaged(false);
+    setAddedFlash(false);
   }, [params?.slug]);
 
   useEffect(() => {
@@ -99,8 +121,10 @@ export default function Product() {
     const read = () => {
       frame = 0;
       const button = addButtonRef.current;
-      if (!button) return;
-      const next = button.getBoundingClientRect().bottom < 0;
+      const gallery = galleryRef.current;
+      const buttonGone = button ? button.getBoundingClientRect().bottom < 0 : false;
+      const galleryLeft = gallery ? gallery.getBoundingClientRect().top < 0 : false;
+      const next = buttonGone || (engaged && galleryLeft);
       setPastAdd((current) => (current === next ? current : next));
     };
     const onScroll = () => {
@@ -114,7 +138,7 @@ export default function Product() {
       window.removeEventListener('resize', onScroll);
       if (frame) cancelAnimationFrame(frame);
     };
-  }, [params?.slug]);
+  }, [params?.slug, engaged]);
 
   // Preload the other colorway so switching paints instantly instead of
   // holding the previous image while the new JPEG downloads.
@@ -123,6 +147,8 @@ export default function Product() {
       c.images.forEach((img) => { const p = new Image(); p.src = webpSrc(img.src); }),
     );
   }, [product]);
+
+  useEffect(() => () => window.clearTimeout(addedTimer.current), []);
 
   if (!product) return <NotFound />;
 
@@ -144,6 +170,9 @@ export default function Product() {
       image: gallery[0].src,
       shipsIn: product.preorder?.shipsIn,
     });
+    setAddedFlash(true);
+    window.clearTimeout(addedTimer.current);
+    addedTimer.current = window.setTimeout(() => setAddedFlash(false), 1400);
   };
 
   const others = PRODUCTS.filter((p) => p.slug !== product.slug);
@@ -160,12 +189,15 @@ export default function Product() {
 
       <div className="shell grid lg:grid-cols-2 gap-8 lg:gap-16 pb-20">
         {/* --------------------------------------------------------- gallery */}
-        <ProductGallery
-          images={gallery}
-          badge={product.preorder ? 'Pre-order' : undefined}
-          resetKey={`${product.slug}-${colorway.name}`}
-          transitionName={`product-${product.slug}`}
-        />
+        <div ref={galleryRef}>
+          <ProductGallery
+            images={gallery}
+            badge={product.preorder ? 'Pre-order' : undefined}
+            resetKey={`${product.slug}-${colorway.name}`}
+            transitionName={`product-${product.slug}`}
+            onEngage={() => setEngaged(true)}
+          />
+        </div>
 
         {/* ------------------------------------------------------------ buy */}
         <div className="lg:py-4">
@@ -228,7 +260,7 @@ export default function Product() {
                   key={s}
                   onClick={() => { setSize(s); setNeedsSize(false); }}
                   aria-pressed={size === s}
-                  className={`h-12 text-xs font-semibold tracking-wider border transition-colors ${
+                  className={`size-pick h-12 text-xs font-semibold tracking-wider border transition-colors ${
                     size === s
                       ? 'bg-cream text-onyx border-cream'
                       : 'border-line text-cream-dim hover:border-cream-dim'
@@ -239,6 +271,11 @@ export default function Product() {
               ))}
             </div>
             {needsSize && <p className="text-red-400 text-xs mt-3">Choose a size first.</p>}
+            {size && flatLine(product.slug, size) && (
+              <p className="text-muted text-xs mt-3 leading-relaxed">
+                {size}, laid flat: {flatLine(product.slug, size)}.
+              </p>
+            )}
             <FitHelp
               productSlug={product.slug}
               productName={product.name}
@@ -250,7 +287,7 @@ export default function Product() {
           {/* Desktop action. On mobile the same action is pinned to the bottom
               of the screen so it is reachable without scrolling back up. */}
           <button ref={addButtonRef} onClick={add} className="btn w-full mt-9 hidden sm:flex">
-            {product.preorder ? 'Pre-order' : 'Add to cart'} — {money(product.price)}
+            {addedFlash ? 'Added' : `${product.preorder ? 'Pre-order' : 'Add to cart'} — ${money(product.price)}`}
           </button>
 
           <ul className="mt-8 space-y-2">
@@ -319,7 +356,7 @@ export default function Product() {
       {/* ---------------------------------------------------- mobile buy bar */}
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-onyx/95 backdrop-blur-xl border-t border-line px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <button onClick={add} className="btn w-full">
-          {product.preorder ? 'Pre-order' : 'Add to cart'} — {money(product.price)}
+          {addedFlash ? 'Added' : `${product.preorder ? 'Pre-order' : 'Add to cart'} — ${money(product.price)}`}
         </button>
       </div>
 
@@ -335,7 +372,7 @@ export default function Product() {
               </p>
             </div>
             <button onClick={add} className="btn shrink-0">
-              {product.preorder ? 'Pre-order' : 'Add to cart'}
+              {addedFlash ? 'Added' : product.preorder ? 'Pre-order' : 'Add to cart'}
             </button>
           </div>
         </div>

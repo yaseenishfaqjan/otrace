@@ -46,6 +46,7 @@ function Pieces({ look }: { look: Look }) {
 function LookPicture({ look, eager = false, sizes }: { look: Look; eager?: boolean; sizes?: string }) {
   const frame = imageSize(look.src);
   return (
+    <div className="look-shift absolute inset-0">
     <SiteImage
       src={look.src}
       sources={look.wide ? [{ src: look.wide, media: '(min-width: 768px)' }] : undefined}
@@ -60,6 +61,7 @@ function LookPicture({ look, eager = false, sizes }: { look: Look; eager?: boole
       style={look.position ? { objectPosition: look.position } : undefined}
       className="look-img w-full h-full object-cover"
     />
+    </div>
   );
 }
 
@@ -166,6 +168,35 @@ export default function Lookbook() {
     const root = document.documentElement;
     root.classList.add('snap-looks');
     return () => root.classList.remove('snap-looks');
+  }, []);
+
+  // A few pixels of shift on desktop. Phones and reduced motion stay still.
+  useEffect(() => {
+    const fine = window.matchMedia('(min-width: 768px) and (prefers-reduced-motion: no-preference)').matches;
+    if (!fine) return;
+    let frame = 0;
+    const read = () => {
+      frame = 0;
+      document.querySelectorAll<HTMLElement>('[data-look]').forEach((el) => {
+        const shift = el.querySelector<HTMLElement>('.look-shift');
+        if (!shift) return;
+        const rect = el.getBoundingClientRect();
+        const place = (rect.top + rect.height / 2) / window.innerHeight - 0.5;
+        const px = Math.max(-16, Math.min(16, place * -16));
+        shift.style.setProperty('--look-shift', px.toFixed(2));
+      });
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(read);
+    };
+    read();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+      if (frame) cancelAnimationFrame(frame);
+    };
   }, []);
 
   return (

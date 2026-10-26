@@ -7,6 +7,8 @@ import { HeroMedia } from '@/components/hero-media';
 import { SiteImage } from '@/components/site-image';
 import { imageSize } from '@/lib/image-size';
 import { SplitHeadline } from '@/components/split-headline';
+import { WeightCut } from '@/components/weight-cut';
+import { QualityStrip } from '@/components/quality-strip';
 
 import { usePageMeta } from '@/lib/use-page-meta';
 import { organizationLd, websiteLd } from '@/lib/structured-data';
@@ -97,6 +99,8 @@ export default function Home() {
         </div>
       </div>
 
+      <WeightCut />
+
       {/* ============================================================ drop */}
       <section className="shell py-20 md:py-28">
         <div className="flex items-end justify-between gap-6 mb-10 md:mb-14 reveal">
@@ -185,6 +189,8 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <QualityStrip />
 
       {/* ============================================================ mark */}
       <section className="rule overflow-hidden">

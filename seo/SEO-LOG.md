@@ -334,3 +334,19 @@ The footer, an 8 second popup (off `/cart`, the cart drawer, and `/order/success
 **Commit:** 4704735
 
 **Live:** not on https://otrace.co until this branch is deployed.
+
+## [2026-10-26] Conversion motion — weight and cut, quality strip, coasting scrub
+
+**Why:** The store already had a photo angle scrub, a 450 GSM cloth section, a set switcher, and a desktop sticky add bar. It did not yet show the weight and the boxy block on the home page, diagram the cloth with a way through to the product, or give the gallery any follow-through after a drag.
+
+**Approach:** CSS perspective and a pointer tilt. No React Three Fiber and no `<model-viewer>`. There is no GLB in the repo, and a renderer would be extra weight for a file that is not there. `site/public/models/` is an empty folder for a later `hoodie.glb`. Instructions are in `seo/CONVERSION-MOTION.md`.
+
+**Before:** The home page opened on the campaign still, then the two products, then three construction photos. The gallery jumped to the frame under the cursor and stopped. Colour changes replaced the frame at once. Size buttons only changed fill. Lookbook pictures scaled as they entered, with no parallax.
+
+**After:** Under the ticker, the Onyx hoodie front and back photographs sit in a perspective stack. A fine pointer tilts it. Touch and reduced motion leave it still. The images are lazy, so the hero remains the LCP image. After the construction photos, the journal diagrams for GSM, garment dye, and the boxy block each link to the hoodie, Warm Cream, or the size guide. The gallery coasts a short distance after a mouse release, and a colour change fades the previous frame. Reduced motion does neither. A selected size shifts up 1px when motion is allowed and prints that size’s flat measurements. Add to cart reads “Added” for about 1.4 seconds, and the cart drawer still opens. The desktop bar appears when the in-page button has left the screen, or after a drag once the gallery has scrolled up. Lookbook frames shift at most 16px on desktop. Phones do not.
+
+**Verified:** `npm run build`, then `node seo/verify.mjs --root site/dist/public` → 0 problems. Headless Chrome at 375px: the home hero is still `hero-mobile.webp` with `fetchpriority="high"`, the two weight photographs are `loading="lazy"` and overlap (back 335×419, front 248×311), page overflow is 0. Size M on the hoodie prints “chest 48 cm, body length 68 cm, shoulder 17 cm” from the size chart. Add to cart changes a button to “Added”. `/cart` had no dialog after 1.5s. With reduced motion, a size button’s transform is `none`. At 1440px the lookbook sets `--look-shift` and the shift layer extends 24px past the frame so the move does not open a gap. The desktop add bar sits at the bottom of the viewport after scrolling (top 819 in a 900px window). Headless Chrome reports `(hover: hover)` as false, so the pointer tilt stays off there; the idle tilt is limited to fine pointers that allow motion.
+
+**Screenshot:** `seo/shots/2026-10-26-weight-cut-375.png`, `seo/shots/2026-10-26-weight-cut-1440.png`, `seo/shots/2026-10-26-quality-strip-375.png`, `seo/shots/2026-10-26-sticky-motion-1440.png`, `seo/shots/2026-10-26-lookbook-shift-1440.png`.
+
+**Owner asset still needed:** `site/public/models/hoodie.glb`, if a real mesh viewer is wanted later. The photo stack is the live experience until that file exists.
