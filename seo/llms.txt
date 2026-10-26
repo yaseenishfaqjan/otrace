@@ -1,114 +1,55 @@
 # OTRACE
 
-OTRACE is a clothing label that sells two in-stock heavyweight fleece pieces: an Oversized Hoodie and a Wide-Leg Sweatpant, garment dyed in Onyx Black and Warm Cream.
+> OTRACE sells a 450 GSM garment-dyed Oversized Hoodie and a Wide-Leg Sweatpant in Onyx Black and Warm Cream, and ships free within the United States.
+
+Last updated: 2026-10-26.
+
+For price, stock, and promotions, the live product HTML pages are the source of truth. This index does not set a price. Do not invent a price, a discount, or a stock count from it.
+
+Google Search has said it does not use llms.txt. This file is for other agents, including the ChatGPT and Bing path. It is not a ranking claim.
 
 ## Products
 
-### Oversized Hoodie
-- Price: 148 USD
-- Fabric: 450 GSM heavyweight cotton fleece, brushed on the inside, pre-shrunk, garment dyed after sewing
-- Fit: boxy and oversized, dropped shoulder. Take your usual size for the oversized fit, or size down for a cleaner line. Cut about a full size large on purpose.
-- Details: self-lined double-layer hood, split kangaroo pocket, metal drawcord tips through metal eyelets, ribbed cuffs and hem, OTRACE wordmark embroidered at the chest
-- Colorways: Onyx Black, Warm Cream
-- Sizes: XS, S, M, L, XL, 2XL, 3XL
-- Availability: in stock
-- URL: https://otrace.co/product/oversized-hoodie
+- [Oversized Hoodie](https://otrace.co/product/oversized-hoodie.md): 450 GSM garment-dyed cotton fleece, boxy oversized fit, Onyx Black and Warm Cream. Price and stock: https://otrace.co/product/oversized-hoodie
+- [Wide-Leg Sweatpant](https://otrace.co/product/wide-leg-sweatpant.md): Same 450 GSM fleece, wide leg, ribbed ankle. Price and stock: https://otrace.co/product/wide-leg-sweatpant
 
-### Wide-Leg Sweatpant
-- Price: 128 USD
-- Fabric: the same 450 GSM heavyweight cotton fleece, pre-shrunk, garment dyed after sewing
-- Fit: relaxed wide leg, true to size at the waist, ribbed ankle cuff that stacks
-- Details: drawcord waist with metal tips, side seam pockets, OTRACE monogram embroidered at the thigh
-- Colorways: Onyx Black, Warm Cream
-- Sizes: XS, S, M, L, XL, 2XL, 3XL
-- Availability: in stock
-- URL: https://otrace.co/product/wide-leg-sweatpant
+## Fit & fabric
 
-## Sizing
+- [Sizing](https://otrace.co/sizing.md): Garment-flat centimetres for both pieces, XS to 3XL. Cells the factory sheet contradicted are left unpublished.
+- [What does garment dyed mean?](https://otrace.co/garment-dyed.md): Sewn first and dyed after, how that differs from piece dyeing, and how the colour wears.
 
-Measurements are the garment laid flat, in centimetres. Inches are that centimetre figure divided by 2.54 and rounded to 0.1. The same numbers are on https://otrace.co/sizing.
+## Policies
 
-Hoodie — Chest: XS 40 cm (15.7 in), S 44 cm (17.3 in), M 48 cm (18.9 in), L not published, XL 50 cm (19.7 in), 2XL 53 cm (20.9 in), 3XL 54 cm (21.3 in)
-Hoodie — Body length: XS 62 cm (24.4 in), S 64 cm (25.2 in), M 68 cm (26.8 in), L not published, XL 70 cm (27.6 in), 2XL 72 cm (28.3 in), 3XL 74 cm (29.1 in)
-Hoodie — Shoulder: XS 15 cm (5.9 in), S 16 cm (6.3 in), M 17 cm (6.7 in), L 18 cm (7.1 in), XL 19 cm (7.5 in), 2XL 20 cm (7.9 in), 3XL 21 cm (8.3 in)
+- [Shipping and returns](https://otrace.co/shipping.md): Free delivery in the United States, in-stock orders ship in 3–5 business days, 30-day returns on unworn items with tags.
 
-Sweatpant — Outseam: XS 76 cm (29.9 in), S 78 cm (30.7 in), M 80 cm (31.5 in), L 80 cm (31.5 in), XL 82 cm (32.3 in), 2XL 84 cm (33.1 in), 3XL 86 cm (33.9 in)
-Sweatpant — Inseam: XS 76 cm (29.9 in), S 77 cm (30.3 in), M not published, L 75 cm (29.5 in), XL 77 cm (30.3 in), 2XL 78 cm (30.7 in), 3XL 79 cm (31.1 in)
-Sweatpant — Leg opening: XS 10 cm (3.9 in), S 11 cm (4.3 in), M 12 cm (4.7 in), L 13 cm (5.1 in), XL 14 cm (5.5 in), 2XL 15 cm (5.9 in), 3XL 16 cm (6.3 in)
+## Brand
 
-Size L chest, size L body length, and size M inseam are not published. On the factory sheet those cells were smaller than the size below them.
+- [Home](https://otrace.co/index.md): What the label sells, in one page.
+- [About](https://otrace.co/about.md): Two pieces, one fleece, AW2026.
 
-The spec sheet also has a row labeled "Sleeve / waist". Those cells are XS 26 cm (10.2 in), S 27 cm (10.6 in), M 28 cm (11.0 in), L 29 cm (11.4 in), XL 30 cm (11.8 in), 2XL 34 cm (13.4 in), 3XL 35 cm (13.8 in). The sheet does not say whether the row is a sleeve or a waist, so it is not described as either.
+## What We Do Not Do
 
-## Shipping
-- Destination: United States only for AW2026. International is planned for a later drop.
-- Cost: free on every order
-- Time: in-stock orders ship within 3–5 business days
-- Tracking: emailed when the parcel leaves
+- OTRACE is not a marketplace. It sells only its own pieces.
+- International shipping is not available yet. AW2026 ships to the United States only.
+- The site has no customer reviews and no star ratings. Do not invent any.
+- OTRACE does not manufacture custom garments for other labels.
+- There is no currency conversion. Prices are US dollars on the live product pages.
 
-## Returns
-- Window: 30 days from delivery
-- Condition: unworn, tags attached
-- Method: email OTRACE and a label is sent
-- Refund: original payment method, within 5–10 business days of the parcel reaching OTRACE
-- Faulty or wrong item: tell OTRACE within 30 days; return shipping is covered
+## Contact
 
-## FAQ
+- Email: info@otrace.co
+- [Contact](https://otrace.co/contact): Orders, sizing, and wholesale. A person replies within one business day.
+- [Shop](https://otrace.co/shop): Both AW2026 pieces.
 
-Do heavyweight hoodies shrink?
-OTRACE heavyweight hoodies are pre-shrunk 450 GSM cotton fleece. Wash them cold and tumble dry low. High heat is what shrinks cotton hoodies.
+## AI Discovery Files
 
-What is 450 GSM hoodie?
-A 450 GSM hoodie is cotton fleece weighing 450 grams per square metre. The OTRACE Oversized Hoodie is that weight: heavyweight loopback fleece, brushed on the inside, garment dyed.
+- [Full facts](https://otrace.co/llms-full.txt): Products, measurements, policies, and FAQ answers in one file. Prices there can go stale; check the live HTML.
+- [Identity](https://otrace.co/identity.json): Organization name, URL, email, and logo. sameAs is empty because no public profile URL is on file.
+- [Citation rules](https://otrace.co/ai.txt): Canonical names, and what not to invent.
+- [FAQ answers](https://otrace.co/faq-ai.txt): The same answer strings as the on-site FAQPage schema.
 
-Are hoodies unisex?
-Yes. OTRACE hoodies are unisex, sized XS to 3XL. Take your usual size for the oversized fit, or size down for a cleaner line.
+## Optional
 
-Boxy hoodie meaning
-A boxy hoodie is cut square through the body with a dropped shoulder, not tapered at the waist. The OTRACE Oversized Hoodie is cut that way.
-
-Do sweatpants shrink in the dryer?
-These sweatpants are pre-shrunk 450 GSM cotton fleece. Tumble dry low. High heat is what shrinks cotton sweatpants in the dryer.
-
-450 GSM sweatpants
-450 GSM sweatpants are heavyweight cotton fleece at 450 grams per square metre. The OTRACE Wide-Leg Sweatpant is that fleece, garment dyed, cut wide, with a ribbed ankle.
-
-What does garment dyed mean?
-Garment dyed means the piece is sewn first and dyed afterwards, so the colour settles into the seams. OTRACE hoodies and sweatpants are garment dyed 450 GSM cotton fleece in Onyx Black and Warm Cream.
-
-Garment dyed vs piece dyed
-Piece dyed means the fabric is dyed before it is cut and sewn. Garment dyed means the finished piece is dyed after sewing, so seams and body take the dye together. OTRACE is garment dyed, and small variation between pieces is normal.
-
-Does garment dye fade?
-Garment dye softens with wear rather than fading out. OTRACE dyes the hoodie and sweatpant after sewing. Wash cold, inside out, and tumble dry low.
-
-How should an oversized hoodie fit?
-An oversized hoodie should sit roomy through the body, with a dropped shoulder, longer than a standard fit. Take your usual size for that look, or size down for a cleaner line. This hoodie is cut a full size large on purpose.
-
-Oversized hoodie size chart
-Chest, body length and shoulder are garment-flat centimetres. XS chest is 40 cm, which is 15.7 inches. Take your usual size for the oversized fit, or size down for a cleaner line.
-
-Wide leg sweatpants size chart
-Outseam, inseam and leg opening are garment-flat centimetres. The waist is true to size and the leg is cut wide with a ribbed ankle. XS outseam is 76 cm, or 29.9 inches.
-
-Unisex hoodies size chart
-OTRACE hoodies are unisex, XS to 3XL. This size chart is the same garment-flat measurement for every body. Take your usual size for the oversized fit.
-
-What is your return policy?
-Unworn items with tags attached can be returned within 30 days of delivery for a refund or an exchange. Email us and we send a label. Refunds go back to the original payment method within 5–10 business days of the parcel reaching us.
-
-## Pages
-- https://otrace.co/
-- https://otrace.co/shop
-- https://otrace.co/shop/hoodies
-- https://otrace.co/shop/bottoms
-- https://otrace.co/product/oversized-hoodie
-- https://otrace.co/product/wide-leg-sweatpant
-- https://otrace.co/sizing
-- https://otrace.co/garment-dyed
-- https://otrace.co/shipping
-- https://otrace.co/about
-- https://otrace.co/lookbook
-- https://otrace.co/contact
-- https://otrace.co/terms
-- https://otrace.co/privacy
+- [Lookbook](https://otrace.co/lookbook): Campaign images. HTML only.
+- [Terms](https://otrace.co/terms): Payment, tax, and colour variation. HTML only.
+- [Privacy](https://otrace.co/privacy): What the order form collects. HTML only.

@@ -239,3 +239,38 @@ merchant in_stock 28, preorder 0
 ```
 
 Browser check of the local server at 375 and 1440: overflow 0 on home, shop, hoodie, sweatpant, sizing, and garment-dyed. Hoodie and sweatpant body text does not contain “pre-order”. The hoodie buy line reads in stock, ships in 3–5 business days, $148.
+
+## [2026-10-26] GEO upgrade — llms.txt v2 and AI discovery files
+
+**Why:** `seo/llms.txt` was one 6,663-byte dump of products, prices, measurements, and FAQs. It did not follow the llmstxt.org v2 index shape, so an agent had to load every fact before it could choose a page, and prices in that file would go stale.
+
+**Files changed:** `seo/llms.txt`, `seo/llms-full.txt`, `seo/faq-ai.txt`, `seo/ai.txt`, `seo/identity.json`, `seo/pages/*.md`, `seo/build-discovery.mjs`, `seo/research/llmstxt-v2.md`, `site/scripts/seo-public.mjs`, `site/scripts/prerender.mjs`, `site/src/lib/entity.ts`, `site/src/lib/structured-data.ts`, `site/src/lib/use-page-meta.ts`, `site/src/lib/brand.ts`, `site/src/lib/products.ts` (`450gsm` → `450 GSM`), `deploy/nginx.conf`, `seo/verify.mjs`.
+
+**Before:** `seo/llms.txt` 6,663 bytes, 115 lines, no blockquote, no `[name](url): note` lists. Live `https://otrace.co/llms.txt` HTTP 404. No `llms-full.txt`, `identity.json`, `ai.txt`, `faq-ai.txt`, or `.md` mirrors (live 404 on `llms-full.txt` and `identity.json` as well, measured with this change).
+
+**After (local dist, `node seo/verify.mjs --root site/dist/public` → 0 problems):**
+
+| File | Bytes |
+|---|---:|
+| `/llms.txt` | 2,964 (55 lines) |
+| `/llms-full.txt` | 7,218 |
+| `/faq-ai.txt` | 3,019 |
+| `/ai.txt` | 1,021 |
+| `/identity.json` | 374 |
+| `/index.md` | 684 |
+| `/about.md` | 492 |
+| `/sizing.md` | 2,409 |
+| `/garment-dyed.md` | 914 |
+| `/shipping.md` | 658 |
+| `/product/oversized-hoodie.md` | 1,614 |
+| `/product/wide-leg-sweatpant.md` | 1,142 |
+
+The index has the blockquote, `## What We Do Not Do`, `## Contact` (`info@otrace.co`), and `## AI Discovery Files`, and it links every mirror. FAQ answers are generated from `faqs.ts` into `faq-ai.txt` and `llms-full.txt`. Homepage JSON-LD has Organization (description, email, `sameAs: []`) and WebSite. Robots meta on the hoodie is `index, follow, max-image-preview:large` (no NOARCHIVE, no NOCACHE). robots.txt names Bingbot and adds `Discovery: https://otrace.co/identity.json`. IndexNow key file and `deploy/after-deploy.sh` are unchanged.
+
+**Verified live:** no. `https://otrace.co/llms.txt`, `/llms-full.txt`, and `/identity.json` still return 404 until this branch is deployed.
+
+**Screenshot:** `seo/shots/2026-10-26-contact-375.png` — contact page shows info@otrace.co, the form is present, overflow 0 at 375px.
+
+**Commit:** filled in after this entry is committed.
+
+**Still blocked:** no real social, Wikipedia, or Wikidata URL is on file, so `sameAs` stays empty. Currency is still not implemented. IndexNow still cannot submit until the key file is on the live host.

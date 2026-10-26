@@ -23,7 +23,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import puppeteer from 'puppeteer-core';
 import { createServer, DIST } from './serve.mjs';
-import { LLMS_SOURCE, robotsTxt } from './seo-public.mjs';
+import { copyDiscovery, robotsTxt } from './seo-public.mjs';
 
 const SITE_URL = (process.env.VITE_SITE_URL ?? 'https://otrace.co').replace(/\/$/, '');
 const CHROME = process.env.CHROME_PATH
@@ -148,11 +148,17 @@ if (lastmods.length === 0 || lastmods.some((day) => day !== today)) {
 // noindex pages stay crawlable so search engines can SEE the noindex; only the API is off limits.
 const robots = robotsTxt(SITE_URL);
 fs.writeFileSync(path.join(DIST, 'robots.txt'), robots);
-if (!robots.includes('User-agent: GPTBot') || !robots.includes(`LLMs: ${SITE_URL}/llms.txt`) || !robots.includes('Disallow: /api/')) {
-  throw new Error('robots.txt is missing the AI crawler block or the API disallow');
+if (
+  !robots.includes('User-agent: GPTBot') ||
+  !robots.includes('User-agent: Bingbot') ||
+  !robots.includes(`LLMs: ${SITE_URL}/llms.txt`) ||
+  !robots.includes(`Discovery: ${SITE_URL}/identity.json`) ||
+  !robots.includes('Disallow: /api/')
+) {
+  throw new Error('robots.txt is missing the AI crawler block, Discovery line, or the API disallow');
 }
 
-fs.copyFileSync(LLMS_SOURCE, path.join(DIST, 'llms.txt'));
+copyDiscovery(DIST);
 
 // Google Merchant Center feed (free product listings), one item per colour and size.
 const feedItems = [];

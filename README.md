@@ -23,9 +23,11 @@ cd site && npm install && npm run dev      # http://localhost:5180
 cd site && npm run build                   # -> site/dist/public
 ```
 
-The build copies `seo/llms.txt` into the site root and writes `robots.txt`
-with the AI crawler lines. After the new files are live on https://otrace.co,
-submit them to IndexNow (the API also does this when it boots):
+The build copies `seo/llms.txt` and the other discovery files (`llms-full.txt`,
+`identity.json`, `ai.txt`, `faq-ai.txt`, and the `.md` page mirrors) into the
+site root, and writes `robots.txt` with the AI crawler lines. After the new
+files are live on https://otrace.co, submit them to IndexNow (the API also
+does this when it boots):
 
 ```bash
 sh deploy/after-deploy.sh                  # node api/indexnow.js

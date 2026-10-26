@@ -49,6 +49,7 @@ export function pageProblems(html, label) {
       problems.push(`${label}: review markup is present`);
     }
   }
+  if (/noarchive|nocache/i.test(html)) problems.push(`${label}: robots meta carries NOARCHIVE or NOCACHE`);
   return problems;
 }
 
@@ -105,6 +106,11 @@ function checkRoot(dir) {
   }
   const index = fs.readFileSync(path.join(dir, 'index.html'), 'utf8');
   if (!/InStock/.test(index) && !/in stock/i.test(index)) problems.push('home does not say in stock');
+  if (!index.includes('rel="describedby"') || !index.includes('/llms.txt')) problems.push('home is missing the llms.txt describedby link');
+  if (!index.includes('type="text/markdown"') || !index.includes('/index.md')) problems.push('home is missing the markdown alternate');
+  if (!index.includes('info@otrace.co')) problems.push('home Organization JSON-LD is missing info@otrace.co');
+  if (!index.includes('OTRACE sells a 450 GSM garment-dyed Oversized Hoodie')) problems.push('home Organization description drifted');
+  if (!index.includes('"@type":"WebSite"') && !index.includes('"@type": "WebSite"')) problems.push('home is missing WebSite JSON-LD');
   const hoodie = files.find((f) => f.endsWith(`${path.sep}product${path.sep}oversized-hoodie.html`) || f.endsWith('product/oversized-hoodie.html'));
   if (!hoodie) problems.push('missing prerendered hoodie page');
   else {
@@ -119,18 +125,75 @@ function checkRoot(dir) {
     const llms = fs.readFileSync(llmsPath, 'utf8');
     const source = fs.readFileSync(path.join(root, 'seo', 'llms.txt'), 'utf8');
     if (llms !== source) problems.push('dist llms.txt differs from seo/llms.txt');
+    if (llms.split('\n').length > 120) problems.push(`llms.txt is ${llms.split('\n').length} lines, want an index under 120`);
+    if (Buffer.byteLength(llms) > 10240) problems.push('llms.txt is over 10 KB');
+    for (const needle of ['> OTRACE sells', '## What We Do Not Do', '## Contact', '## AI Discovery Files', 'info@otrace.co']) {
+      if (!llms.includes(needle)) problems.push(`llms.txt missing ${needle}`);
+    }
+    const entity = fs.readFileSync(path.join(root, 'site', 'src', 'lib', 'entity.ts'), 'utf8');
+    const summary = entity.match(/ENTITY_SUMMARY =\n\s*'([^']+)'/)?.[1];
+    if (!summary || !llms.includes(`> ${summary}`)) problems.push('llms.txt blockquote does not match ENTITY_SUMMARY');
+    const identityPath = path.join(dir, 'identity.json');
+    if (!fs.existsSync(identityPath)) problems.push('identity.json missing from build');
+    else {
+      const identity = JSON.parse(fs.readFileSync(identityPath, 'utf8'));
+      if (identity.description !== summary) problems.push('identity.json description does not match ENTITY_SUMMARY');
+      if (identity.email !== 'info@otrace.co' || identity.name !== 'OTRACE') problems.push('identity.json name or email drifted');
+      if (!Array.isArray(identity.sameAs) || identity.sameAs.length !== 0) problems.push('identity.json sameAs must stay empty until a real profile exists');
+      const banned = JSON.stringify(identity).toLowerCase();
+      for (const host of ['wikipedia.org', 'wikidata.org', 'instagram.com', 'tiktok.com']) {
+        if (banned.includes(host)) problems.push(`identity.json invents ${host}`);
+      }
+    }
     const faqs = fs.readFileSync(path.join(root, 'site', 'src', 'lib', 'faqs.ts'), 'utf8');
+    const full = fs.readFileSync(path.join(dir, 'llms-full.txt'), 'utf8');
+    const faqAi = fs.readFileSync(path.join(dir, 'faq-ai.txt'), 'utf8');
+    if (full !== fs.readFileSync(path.join(root, 'seo', 'llms-full.txt'), 'utf8')) problems.push('dist llms-full.txt differs from seo/llms-full.txt');
+    if (faqAi !== fs.readFileSync(path.join(root, 'seo', 'faq-ai.txt'), 'utf8')) problems.push('dist faq-ai.txt differs from seo/faq-ai.txt');
     for (const answer of faqs.matchAll(/answer:\s*\n?\s*'([^']+)'/g)) {
-      if (!llms.includes(answer[1])) problems.push(`llms.txt missing FAQ answer: ${answer[1].slice(0, 60)}`);
+      if (!full.includes(answer[1])) problems.push(`llms-full.txt missing FAQ answer: ${answer[1].slice(0, 60)}`);
+      if (!faqAi.includes(answer[1])) problems.push(`faq-ai.txt missing FAQ answer: ${answer[1].slice(0, 60)}`);
     }
     const chart = fs.readFileSync(path.join(root, 'site', 'src', 'lib', 'products.ts'), 'utf8');
+    if (/450gsm/.test(chart) || /400–450/.test(chart)) problems.push('products.ts still has a non-canonical GSM string');
     const block = chart.slice(chart.indexOf('export const SIZE_CHART'));
     for (const num of block.matchAll(/\b(\d{2,3})\b/g)) {
-      if (!llms.includes(`${num[1]} cm`)) problems.push(`llms.txt missing measurement ${num[1]} cm`);
+      if (!full.includes(`${num[1]} cm`)) problems.push(`llms-full.txt missing measurement ${num[1]} cm`);
+    }
+    const mirrors = [
+      'index.md',
+      'about.md',
+      'sizing.md',
+      'garment-dyed.md',
+      'shipping.md',
+      'product/oversized-hoodie.md',
+      'product/wide-leg-sweatpant.md',
+      'llms-full.txt',
+      'identity.json',
+      'ai.txt',
+      'faq-ai.txt',
+    ];
+    for (const rel of mirrors) {
+      if (!fs.existsSync(path.join(dir, rel))) problems.push(`missing public discovery file ${rel}`);
+      const urlPath = `/${rel}`;
+      if (!llms.includes(urlPath) && !llms.includes(`https://otrace.co${urlPath}`)) {
+        problems.push(`llms.txt does not link ${urlPath}`);
+      }
     }
   }
   const robots = fs.readFileSync(path.join(dir, 'robots.txt'), 'utf8');
-  for (const needle of ['User-agent: GPTBot', 'User-agent: ClaudeBot', 'User-agent: PerplexityBot', 'LLMs: https://otrace.co/llms.txt', 'Disallow: /api/']) {
+  for (const needle of [
+    'User-agent: GPTBot',
+    'User-agent: OAI-SearchBot',
+    'User-agent: ClaudeBot',
+    'User-agent: PerplexityBot',
+    'User-agent: Google-Extended',
+    'User-agent: Applebot-Extended',
+    'User-agent: Bingbot',
+    'LLMs: https://otrace.co/llms.txt',
+    'Discovery: https://otrace.co/identity.json',
+    'Disallow: /api/',
+  ]) {
     if (!robots.includes(needle)) problems.push(`robots.txt missing ${needle}`);
   }
   const gpt = robots.split(/User-agent: GPTBot\n/)[1]?.split(/\nUser-agent:/)[0] ?? '';

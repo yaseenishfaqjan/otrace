@@ -6,20 +6,23 @@
  * These are set at build time so they can be filled in the moment the domain
  * and the social handles exist:
  *
- *   VITE_CONTACT_EMAIL=hello@otrace.co
+ *   VITE_CONTACT_EMAIL=info@otrace.co
  *   VITE_INSTAGRAM=https://instagram.com/otrace
  *   VITE_TIKTOK=https://tiktok.com/@otrace
  *
- * Anything not set renders nothing at all. An address that bounces or a link to
- * an account that does not exist is worse than silence.
+ * The published mailbox defaults to info@otrace.co. Social links render only
+ * when a real URL is set. A link to an account that does not exist is worse
+ * than silence, so none are invented here.
  */
+
+import { CONTACT_EMAIL_PUBLIC } from '@/lib/entity';
 
 const clean = (value: string | undefined) => {
   const text = String(value ?? '').trim();
   return text && text !== 'undefined' ? text : null;
 };
 
-export const CONTACT_EMAIL = clean(import.meta.env.VITE_CONTACT_EMAIL);
+export const CONTACT_EMAIL = clean(import.meta.env.VITE_CONTACT_EMAIL) ?? CONTACT_EMAIL_PUBLIC;
 
 export type SocialLink = { name: string; href: string };
 

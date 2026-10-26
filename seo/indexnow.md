@@ -18,3 +18,5 @@ The IndexNow key is public ownership proof. IndexNow only accepts a submission a
 - The CLI refuses to POST until `GET` of the key URL returns the key. That is the check that can fail.
 
 Measured against the live host on 2026-10-26, before this branch was deployed: the key URL returned 404 and the CLI exited without submitting. Output is in `checks/indexnow-before-key-live.txt`. Do not treat that run as a successful ping.
+
+The GEO file upgrade did not rotate the key. `deploy/after-deploy.sh` is still `node api/indexnow.js`. Submission still waits until the live key URL returns the key.

@@ -27,6 +27,34 @@ type Options = {
   jsonLd?: object | object[];
 };
 
+/** Markdown mirrors served next to these HTML routes (llmstxt.org v2). */
+const MARKDOWN_BY_PATH: Record<string, string> = {
+  '/': '/index.md',
+  '/about': '/about.md',
+  '/sizing': '/sizing.md',
+  '/garment-dyed': '/garment-dyed.md',
+  '/shipping': '/shipping.md',
+  '/product/oversized-hoodie': '/product/oversized-hoodie.md',
+  '/product/wide-leg-sweatpant': '/product/wide-leg-sweatpant.md',
+};
+
+function syncDiscoveryLinks(pathname: string) {
+  document.head.querySelectorAll('link[data-discovery]').forEach((el) => el.remove());
+  const described = document.createElement('link');
+  described.rel = 'describedby';
+  described.href = absoluteUrl('/llms.txt');
+  described.dataset.discovery = '';
+  document.head.appendChild(described);
+  const md = MARKDOWN_BY_PATH[pathname];
+  if (!md) return;
+  const alt = document.createElement('link');
+  alt.rel = 'alternate';
+  alt.type = 'text/markdown';
+  alt.href = absoluteUrl(md);
+  alt.dataset.discovery = '';
+  document.head.appendChild(alt);
+}
+
 function setMeta(attr: 'name' | 'property', key: string, content: string | null) {
   let el = document.head.querySelector<HTMLMetaElement>(`meta[${attr}="${key}"]`);
   if (content === null) {
@@ -58,12 +86,14 @@ export function usePageMeta(title?: string, description: string = DEFAULT_DESCRI
 
   useEffect(() => {
     const fullTitle = title ? `${title} — ${SITE_NAME}` : DEFAULT_TITLE;
-    const url = absoluteUrl(window.location.pathname === '/' ? '/' : window.location.pathname.replace(/\/$/, ''));
+    const pathname = window.location.pathname === '/' ? '/' : window.location.pathname.replace(/\/$/, '');
+    const url = absoluteUrl(pathname);
     const img = absoluteUrl(image);
 
     document.title = fullTitle;
     setMeta('name', 'description', description);
     setMeta('name', 'robots', noindex ? 'noindex, follow' : 'index, follow, max-image-preview:large');
+    syncDiscoveryLinks(pathname);
 
     let canonical = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!canonical) {

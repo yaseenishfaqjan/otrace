@@ -26,6 +26,11 @@ User-agent: Applebot-Extended
 Allow: /
 Disallow: /api/
 
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+
 LLMs: https://otrace.co/llms.txt
+Discovery: https://otrace.co/identity.json
 
 Sitemap: https://otrace.co/sitemap.xml

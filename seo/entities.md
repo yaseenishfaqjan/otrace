@@ -18,6 +18,8 @@ These are the names and numbers the pages, the FAQ answers, and `llms.txt` are s
 | Availability | in stock. The catalogue flag `preorder` is false on both products. The API has no per-variant quantity, so every colour×size offer is `InStock` together. Nothing was marked `OutOfStock` |
 | In-stock dispatch | 3–5 business days, free, United States only for AW2026 |
 | Returns | unworn, tags attached, 30 days from delivery. Refunds 5–10 business days after the parcel arrives. Faulty items: the store covers return shipping |
+| Email | info@otrace.co |
+| sameAs | none. No Wikipedia, Wikidata, or social profile URL is published |
 
 The fabric field used to say “400–450 GSM” while the product descriptions already said 450 GSM. The field now says 450 GSM, which is the weight the descriptions and the FAQ answers use.
 

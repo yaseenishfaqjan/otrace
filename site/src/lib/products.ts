@@ -78,7 +78,7 @@ export const CATEGORIES: Category[] = [
     slug: 'hoodies',
     name: 'Hoodies',
     blurb:
-      'Boxy through the body, dropped at the shoulder, cut long enough to sit where it should. 450gsm and garment dyed.',
+      'Boxy through the body, dropped at the shoulder, cut long enough to sit where it should. 450 GSM and garment dyed.',
   },
   {
     slug: 'bottoms',

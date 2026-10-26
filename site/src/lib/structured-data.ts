@@ -8,6 +8,7 @@
  * 30-day return window from the Shipping & returns page — so nothing is
  * promised to a search engine that the store does not promise a customer.
  */
+import { CONTACT_EMAIL_PUBLIC, ENTITY_SUMMARY } from '@/lib/entity';
 import { SIZES, type Product } from '@/lib/products';
 import { SITE_NAME, SITE_URL, absoluteUrl } from '@/lib/use-page-meta';
 
@@ -19,7 +20,11 @@ export const organizationLd = () => ({
   '@id': `${SITE_URL}/#organization`,
   name: SITE_NAME,
   url: SITE_URL,
+  description: ENTITY_SUMMARY,
+  email: CONTACT_EMAIL_PUBLIC,
   logo: absoluteUrl('/icon-512.png'),
+  // Empty on purpose: no verified Wikipedia, Wikidata, or social profile URL exists in the repo.
+  sameAs: [] as string[],
 });
 
 export const websiteLd = () => ({
