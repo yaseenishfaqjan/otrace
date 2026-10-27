@@ -277,7 +277,10 @@
           "settings": {
             "collection": "fashion",
             "products_count": 8,
-            "product_list": [],
+            "product_list": [
+              "oversized-hoodie--onyx-black",
+              "wide-leg-sweatpant--warm-cream"
+            ],
             "pr_border": "none",
             "product_des": "1",
             "image_ratio": "adapt_image",
@@ -428,7 +431,7 @@
               "static": true,
               "settings": {
                 "source": "image",
-                "image": "/products/hoodie-onyx-front.jpg",
+                "image": "/products/hoodie-cream-front.jpg",
                 "external_video_url": "https://www.youtube.com/watch?v=_9VUPq3SxOc"
               },
               "blocks": {}
