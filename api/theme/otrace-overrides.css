@@ -416,3 +416,76 @@ hdt-card-product.hdt-card-product .hdt-pr_btn :is(
   color: #161513;
   background-color: #f4f1eb;
 }
+
+/*
+ * Design-token fallback (QA 2026-10-27).
+ *
+ * The preview renderer does not resolve settings.color_schemes or the
+ * font_picker settings, so css-variables.liquid printed every colour and font
+ * variable EMPTY - buttons rendered transparent (the cart's Check out button
+ * was white-on-white) and all type fell back to Times. These values restore
+ * the OTRACE palette (ink #161513 / paper #f4f1eb) until the renderer learns
+ * colour objects. Triplets, because the theme reads rgb(var(--x)).
+ */
+html:root, html [color-scheme] {
+  --f_family_1: "Poppins", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --f_family_2: "Poppins", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --f_family_3: "Libre Baskerville", Georgia, "Times New Roman", serif;
+  --color-base-background: 255 255 255;
+  --color-base-text: 22 21 19;
+  --color-background: 255 255 255;
+  --color-background2: 244 241 235;
+  --color-foreground: 22 21 19;
+  --color-foreground2: 110 106 99;
+  --color-secondary: 70 67 62;
+  --color-tertiary: 130 126 119;
+  --color-accent: 22 21 19;
+  --color-line-border: 221 218 211;
+  --color-overlay: 0 0 0;
+  --color-pr-price: 22 21 19;
+  --color-pr-sale-price: 22 21 19;
+  --color-pr-text: 22 21 19;
+  --color-pr-rating: 22 21 19;
+  --color-input-primary: 255 255 255;
+  --color-input-secondary: 22 21 19;
+  --payment-terms-background-color: rgb(255 255 255);
+  --hdt-btn-bg: 22 21 19;
+  --hdt-btn-color: 244 241 235;
+  --hdt-btn-border-color: 22 21 19;
+  --hdt-btn-hover-bg: 0 0 0;
+  --hdt-btn-hover-color: 255 255 255;
+  --hdt-btn-hover-border-color: 0 0 0;
+  --hdt-btn-secondary-bg: 244 241 235;
+  --hdt-btn-secondary-color: 22 21 19;
+  --hdt-btn-tertiary-bg: 70 67 62;
+  --hdt-btn-tertiary-color: 255 255 255;
+  --hdt-btn-outline-color: 22 21 19;
+  --hdt-btn-outline-border-color: 22 21 19;
+  --hdt-link-color: 22 21 19;
+  --hdt-link-hover-color: 110 106 99;
+}
+body { font-family: var(--f_family_1); color: rgb(22 21 19); }
+
+/* QA 2026-10-27: every size is in stock, but the card's size list cannot
+ * match the catalogue's variants and flags them all "unavailable" (struck
+ * through, like sold out). Show them as available; the PDP still enforces stock. */
+.hdt-size-list .hdt-size-list-item[unavailable] { text-decoration: none !important; opacity: 1 !important; color: inherit !important; }
+.hdt-size-list .hdt-size-list-item[unavailable]::before,
+.hdt-size-list .hdt-size-list-item[unavailable]::after { display: none !important; }
+.hdt-size-list > label { display: none; }
+
+/* QA 2026-10-27: colour swatches. The renderer has no swatch metafields, so
+ * every swatch printed as an empty circle. Fill them by colourway name. */
+input[value="Onyx Black"] + label .hdt-form-color-pattern,
+input[value="Onyx Black"] + label.hdt-color-list-color { background: #161513 !important; border: 1px solid #161513; }
+input[value="Warm Cream"] + label .hdt-form-color-pattern,
+input[value="Warm Cream"] + label.hdt-color-list-color { background: #efe6d2 !important; border: 1px solid #cfc6b2; }
+.hdt-color-list-color[unavailable]::before, .hdt-color-list-color[unavailable]::after { display: none !important; }
+.hdt-color-list-color[unavailable] { opacity: 1 !important; }
+
+/* Images the renderer could not resolve come out as src="" and show the
+ * browser's broken-image icon (cart page banner, mega menu). Hide them. */
+img[src=""], img:not([src]) { display: none !important; }
+
+/* Amazon Pay is not offered and its icon URL 404s. */
+.hdt-payment-item:has(img[src*="amazon_payments"]), img[src*="amazon_payments"] { display: none !important; }
