@@ -112,6 +112,12 @@ test('the rendered theme uses scheme colours, Poppins, and a real cart banner', 
     canonical_path: '/cart',
   });
   assert.match(cart, /\/lookbook\/look-10-tall\.jpg/);
+  assert.match(cart, /object-position:\s*center 32%/);
+  assert.match(cart, /min-height:\s*clamp\(240px, 38vw, 480px\)/);
+  const guardsAt = cart.indexOf('data-otrace-guards');
+  const customAt = cart.indexOf('custom.js');
+  assert.ok(guardsAt > 0 && customAt > guardsAt);
+  assert.match(cart, /<script data-otrace-guards>[\s\S]*hdt-sticky-header[\s\S]*hdt-country-province-selector[\s\S]*hdt-slider-thumb[\s\S]*<\/script>/);
   assert.doesNotMatch(cart, /shopify:\/\//);
   assert.doesNotMatch(cart, /src="[^"]*amazon_payments/);
   assert.match(cart, /noindex, follow/);

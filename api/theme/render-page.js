@@ -519,9 +519,11 @@ export function createThemeRenderer({
     }
   };
   const OVERRIDE_CSS = readOwn('./otrace-overrides.css');
+  const THEME_GUARDS = readOwn('./theme-guards.js');
 
   const contentForHeader = (extra = {}) =>
     (OVERRIDE_CSS ? `<style data-otrace>${OVERRIDE_CSS}</style>` : '') +
+    (THEME_GUARDS ? `<script data-otrace-guards>${THEME_GUARDS}</script>` : '') +
     '<link rel="preconnect" href="https://fonts.googleapis.com">' +
     '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
     '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;1,400&family=Poppins:wght@400;500;600;700&display=swap">' +
