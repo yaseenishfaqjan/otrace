@@ -7,7 +7,7 @@ import { PRODUCTS, SET_TOTAL_CENTS } from '../catalog.js';
 import { addLine, cartJson, changeLine, decodeVariantId } from './cart.js';
 import { parseFormBody } from './form-body.js';
 import { parseThemeJson, resolveLinkListSettings, stripJsonComments } from './liquid-engine.js';
-import { themeSettings, toShopifyProduct } from './shopify-shape.js';
+import { resolveThemeProductSettings, themeSettings, toShopifyProduct } from './shopify-shape.js';
 
 const SITE = 'https://otrace.co';
 
@@ -271,6 +271,63 @@ test('the shaped product prices the offer the way the page states it', () => {
   assert.equal(shaped.options_with_values[1].values[0].available, true);
   assert.equal(String(shaped.options_with_values[1].values[0]), product.sizes[0]);
   assert.equal(shaped.variants.length, product.sizes.length * product.colours.length);
+});
+
+test('demo product handles do not survive as suggestion cards', () => {
+  const schema = [{
+    settings: [
+      { id: 'products_suggest', type: 'product_list' },
+      { id: 'free_ship_pr', type: 'product' },
+    ],
+  }];
+  const settings = themeSettings({
+    current: {
+      products_suggest: ['ribbed-tank-top', 'oversized-hoodie'],
+      free_ship_pr: 'gift-wrap',
+    },
+  }, schema);
+  const hoodie = toShopifyProduct(PRODUCTS['OT-HOOD'], { siteUrl: SITE });
+  resolveThemeProductSettings(settings, schema, { 'oversized-hoodie': hoodie });
+  assert.equal(settings.products_suggest.length, 1);
+  assert.equal(settings.products_suggest[0].title, hoodie.title);
+  assert.equal(settings.free_ship_pr, null);
+
+  const empty = { products_suggest: ['no-such-product'] };
+  resolveThemeProductSettings(empty, schema, {});
+  // null, not [], because LiquidJS treats an empty array as truthy.
+  assert.equal(empty.products_suggest, null);
+});
+
+test('the shop lists the four colourways and no placeholder price', async () => {
+  const { createThemeRenderer } = await import('./render-page.js');
+  const themeRoot = fileURLToPath(new URL('../../theme', import.meta.url));
+  const renderer = createThemeRenderer({
+    themeRoot,
+    siteUrl: SITE,
+    assetBase: '/api/theme-assets',
+    routesRoot: '/api/theme-preview/',
+  });
+  const shop = await renderer.renderCollection({
+    handle: 'all',
+    title: 'AW2026',
+    products: Object.values(PRODUCTS),
+  });
+  const home = await renderer.renderPage('index', { title: 'OTRACE', page_title: 'OTRACE — AW2026' }, 'index');
+  for (const html of [shop, home]) {
+    assert.equal(html.includes('19.99'), false);
+    assert.equal(html.includes('href="" class="hdt-card-product__title"'), false);
+  }
+  for (const title of [
+    'Oversized Hoodie — Onyx Black',
+    'Oversized Hoodie — Warm Cream',
+    'Wide-Leg Sweatpant — Onyx Black',
+    'Wide-Leg Sweatpant — Warm Cream',
+  ]) {
+    assert.ok(shop.includes(title), title);
+  }
+  assert.ok(shop.includes('$80.00'));
+  assert.ok(shop.includes('$100.00'));
+  assert.ok(home.includes('$140'));
 });
 
 test('quick view and quick add sit on a paper chip, and the prices stay', async () => {

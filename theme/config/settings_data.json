@@ -105,14 +105,7 @@
     "predictive_search_show_vendor": true,
     "predictive_search_show_price": true,
     "search_fullwidth": true,
-    "products_suggest": [
-      "ribbed-tank-top",
-      "test-new-product",
-      "test_unavailable-ở-variant-dầu-tien-copy",
-      "lace-trimmed-satin-camisole-top-002",
-      "loose-fit-hoodie",
-      "new-product-phuong"
-    ],
+    "products_suggest": [],
     "currency_type": "1",
     "currency_code_enabled": true,
     "flag_currency": true,
