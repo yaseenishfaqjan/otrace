@@ -726,14 +726,13 @@ class countryFilter extends HTMLElement {
     super();
     this.search = $4('[name=country_filter]', this);
     this.reset = $4(".hdt-country_filter__reset", this);
-    if (this.search) {
-      this.search.addEventListener(
-        'input',
-        debounce((event) => {
-          this.filterCountries();
-        }, 200).bind(this)
-      );
-    }
+    if (!this.search) return;
+    this.search.addEventListener(
+      'input',
+      debounce((event) => {
+        this.filterCountries();
+      }, 200).bind(this)
+    );
     this.search.addEventListener('keydown', this.onSearchKeyDown.bind(this));
 
   }
