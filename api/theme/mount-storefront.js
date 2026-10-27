@@ -101,6 +101,28 @@ export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl }) 
     renderStandalone(res, 'complete-set');
   });
 
+  /**
+   * /lookbook/ is not the page route nginx's regex would have rewritten.
+   *
+   * The photo prefix `location ^~ /lookbook/` wins over the page regex, so a
+   * trailing slash is proxied here unchanged and Express answers "Cannot GET
+   * /lookbook/". The page and the photo files share that prefix: this route is
+   * only the bare directory, and the file middleware below still serves
+   * /lookbook/look-10-tall.jpg. Nav links stay /lookbook, which this also serves.
+   */
+  const renderLookbook = async (res) => {
+    if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
+    const page = pageContent('lookbook');
+    if (!page) return res.status(404).send('No such page.');
+    try {
+      sendThemeHtml(res, await themeRenderer.renderPage('page', page, 'page'));
+    } catch (err) {
+      console.error('[theme] lookbook render failed:', err.message);
+      res.status(500).send('Theme render failed: ' + err.message);
+    }
+  };
+  app.get(['/lookbook', '/lookbook/'], (req, res) => renderLookbook(res));
+
   const searchPage = async (req, res) => {
     if (req.query.view === 'wishlist') return renderStandalone(res, 'wishlist');
     res.redirect(302, '/shop');

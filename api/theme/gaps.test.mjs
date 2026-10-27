@@ -5,6 +5,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import express from 'express';
 
 import { PRODUCTS, SET_TOTAL_CENTS } from '../catalog.js';
 import { INDEXNOW_KEY } from '../indexnow.js';
@@ -146,11 +147,24 @@ test('the complete set is a $140 page and not a third Stripe product', async () 
   assert.match(page.content, /OT-PANT-/);
   assert.equal(page.canonical_path, '/product/complete-set');
   assert.equal(PRODUCTS['OT-SET'], undefined);
+  // Both colourways are in the gallery. Onyx is the first option, so it is
+  // the pair on screen until the dropdown names Warm Cream.
+  assert.match(page.content, /data-set-colour="Onyx Black"/);
+  assert.match(page.content, /data-set-colour="Warm Cream" hidden/);
+  assert.match(page.content, /\/products\/hoodie-onyx-front\.jpg/);
+  assert.match(page.content, /\/products\/pant-onyx-front\.jpg/);
+  assert.match(page.content, /\/products\/hoodie-cream-front\.jpg/);
+  assert.match(page.content, /\/products\/pant-cream-front\.jpg/);
+  assert.match(page.content, /showColour/);
+  assert.doesNotMatch(page.content, /data-set-colour="Onyx Black" hidden/);
 
   const theme = await renderer();
   const html = await theme.renderPage('page', { ...page, json_ld: null }, 'page');
   assert.match(html, /Add the set — \$140\.00/);
   assert.match(html, /cart\/add\.js/);
+  assert.match(html, /<img[^>]*src="[^"]*hoodie-cream-front\.jpg"/);
+  assert.match(html, /<img[^>]*src="[^"]*pant-cream-front\.jpg"/);
+  assert.match(html, /data-set-colour="Warm Cream" hidden/);
 });
 
 test('account and wishlist say what they are, instead of sending people home', () => {
@@ -205,6 +219,43 @@ test('the entity sentence matches the React site and identity.json', () => {
   const identity = JSON.parse(fs.readFileSync(path.join(repoRoot, 'seo/identity.json'), 'utf8'));
   assert.ok(entity.includes(ENTITY_SUMMARY));
   assert.equal(identity.description, ENTITY_SUMMARY);
+});
+
+test('lookbook answers on /lookbook and /lookbook/ and still serves a frame', async () => {
+  const { mountStorefront } = await import('./mount-storefront.js');
+  const theme = await renderer();
+  const app = express();
+  app.set('strict routing', true);
+  mountStorefront(app, {
+    themeRenderer: theme,
+    siteUrl: SITE,
+    sendThemeHtml: (res, html) => {
+      res.set('Content-Type', 'text/html; charset=utf-8');
+      res.send(html);
+    },
+  });
+  const server = await new Promise((resolve) => {
+    const listening = app.listen(0, '127.0.0.1', () => resolve(listening));
+  });
+  try {
+    const base = `http://127.0.0.1:${server.address().port}`;
+    for (const route of ['/lookbook', '/lookbook/']) {
+      const res = await fetch(base + route);
+      const html = await res.text();
+      assert.equal(res.status, 200, route);
+      assert.doesNotMatch(html, /Cannot GET/);
+      assert.match(html, /hdt-lookbook-grid/);
+      assert.match(html, /href="\/lookbook"/);
+      assert.match(html, /\/lookbook\/look-10-tall\.jpg/);
+    }
+    const photo = await fetch(base + '/lookbook/look-10-tall.jpg');
+    const bytes = Buffer.from(await photo.arrayBuffer());
+    assert.equal(photo.status, 200);
+    assert.match(photo.headers.get('content-type') || '', /image/);
+    assert.ok(bytes.length > 1000);
+  } finally {
+    await new Promise((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+  }
 });
 
 test('the nginx route file does not proxy the storefront to the React container', () => {

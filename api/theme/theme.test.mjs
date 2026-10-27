@@ -435,6 +435,24 @@ test('homepage and shop do not show the flagged stairs or cream-logo frames', as
   assert.ok(home.includes('$80.00'));
   assert.ok(home.includes('$100.00'));
   assert.ok(home.includes('$140'));
+  // THE COLLECTION pair is one Onyx card and one Warm Cream card. The
+  // HOODIES / BOTTOMS frames are the other way around, so both colourways
+  // are in the large frames. These are the soft flats, not the flagged
+  // lookbook crops.
+  const collection = sectionHtml(home, 'featured_collection_PTq36A');
+  assert.ok(collection.includes('/products/hoodie-onyx-front.jpg'));
+  assert.ok(collection.includes('/products/pant-cream-front.jpg'));
+  assert.match(collection, /<span percent>20<\/span>%/);
+  assert.ok(collection.includes('$80.00'));
+  assert.ok(collection.includes('$100.00'));
+  assert.equal(collection.includes('/products/hoodie-cream-front.jpg'), false);
+  assert.equal(collection.includes('/products/pant-onyx-front.jpg'), false);
+  const banners = sectionHtml(home, 'banner_VyWanM');
+  assert.ok(banners.includes('/products/hoodie-cream-front.jpg'));
+  assert.ok(banners.includes('/products/pant-onyx-front.jpg'));
+  assert.equal(banners.includes('/products/hoodie-onyx-front.jpg'), false);
+  assert.equal(banners.includes('/lookbook/look-02.jpg'), false);
+  assert.equal(banners.includes('/lookbook/look-05.jpg'), false);
   // Cream colourway PDP still needs its own shots. Those are not the flagged frames.
   assert.ok(hoodie.includes('/products/hoodie-cream-front.jpg'));
   assert.ok(hoodie.includes('/products/hoodie-cream-worn-front.jpg'));
@@ -494,6 +512,14 @@ test('quick view and the product page can add the chosen variant', async () => {
   const gone = changeLine(lines, 'OT-HOOD-onyx-black-m', 0);
   assert.equal(gone.length, 0);
 });
+
+function sectionHtml(html, id) {
+  const marker = `id="shopify-section-${id}"`;
+  const start = html.indexOf(marker);
+  assert.ok(start >= 0, `missing section ${id}`);
+  const next = html.indexOf('id="shopify-section-', start + marker.length);
+  return html.slice(start, next === -1 ? undefined : next);
+}
 
 function mainSlides(html) {
   const slides = [];

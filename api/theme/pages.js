@@ -363,26 +363,45 @@ const orderSuccess = () => [
   `</div>`,
 ].join('');
 
+/** Logo-side flat for one colour. Same files the product galleries use. */
+const frontShot = (product, colourName) => {
+  const colorway = (product.colorways ?? []).find((c) => c.name === colourName);
+  const images = colorway?.images ?? [];
+  return images.find((img) => img.label === 'Front') ?? images[0] ?? null;
+};
+
+const setShot = (product, colourName, hidden) => {
+  const shot = frontShot(product, colourName);
+  if (!shot?.src) return '';
+  return `<figure data-set-colour="${esc(colourName)}"${hidden ? ' hidden' : ''}><img src="${esc(shot.src)}" alt="${esc(shot.alt || product.name)}" width="${Number(shot.width) || 819}" height="${Number(shot.height) || 1024}"></figure>`;
+};
+
 const completeSet = () => {
   const hood = PRODUCTS['OT-HOOD'];
   const pant = PRODUCTS['OT-PANT'];
-  const colours = hood.colours.map((name) => `<option value="${esc(name)}">${esc(name)}</option>`).join('');
+  // Both pieces share a colour, or the pair would be a mixed set the form cannot buy.
+  const colours = (hood.colours ?? []).filter((name) =>
+    (pant.colours ?? []).includes(name) && frontShot(hood, name) && frontShot(pant, name));
+  const options = colours.map((name) => `<option value="${esc(name)}">${esc(name)}</option>`).join('');
   const sizes = hood.sizes.map((size) => `<option value="${esc(size)}">${esc(size)}</option>`).join('');
+  const figures = colours.flatMap((name, index) => [
+    setShot(hood, name, index !== 0),
+    setShot(pant, name, index !== 0),
+  ]).join('');
   return [
     `<div class="hdt-prose hdt-set">`,
     `<p>One ${esc(hood.name)} and one ${esc(pant.name)}, same size and colour. Together they are <strong>${formatMoney(SET_TOTAL_CENTS)}</strong> (was ${formatMoney(SET_LIST_CENTS)}). Each piece on its own is ${price('OT-HOOD')} (was ${listPrice('OT-HOOD')}).</p>`,
-    `<div class="hdt-dye-hero">`,
-    `<figure><img src="/products/hoodie-onyx-front.jpg" alt="OTRACE oversized hoodie, front" width="819" height="1024"></figure>`,
-    `<figure><img src="/products/pant-onyx-front.jpg" alt="OTRACE wide-leg sweatpant, front" width="819" height="1024"></figure>`,
+    `<div class="hdt-dye-hero hdt-set-gallery" id="otrace-set-gallery">`,
+    figures,
     `</div>`,
     `<form id="otrace-set" class="hdt-contact-form">`,
-    `<label>Colour<select name="colour" required>${colours}</select></label>`,
+    `<label>Colour<select name="colour" required>${options}</select></label>`,
     `<label>Size<select name="size" required>${sizes}</select></label>`,
     `<button type="submit">Add the set — ${formatMoney(SET_TOTAL_CENTS)}</button>`,
     `<p id="otrace-set-note" class="hdt-contact-note" role="status"></p>`,
     `</form>`,
     `<p>Or buy them separately: <a href="/product/${hood.slug}">${esc(hood.name)}</a> · <a href="/product/${pant.slug}">${esc(pant.name)}</a>.</p>`,
-    `<script>(function(){var form=document.getElementById('otrace-set');if(!form)return;function handle(label){return String(label).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}form.addEventListener('submit',function(event){event.preventDefault();var note=document.getElementById('otrace-set-note');note.textContent='Adding…';var colour=form.colour.value;var size=form.size.value;var root=(window.Shopify&&Shopify.routes&&Shopify.routes.root)||'/api/theme-preview/';var items=[{id:'OT-HOOD-'+handle(colour)+'-'+handle(size),quantity:1},{id:'OT-PANT-'+handle(colour)+'-'+handle(size),quantity:1}];fetch(root+'cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:items})}).then(function(res){return res.json().then(function(body){return{ok:res.ok,body:body};});}).then(function(result){if(!result.ok){note.textContent=(result.body&&(result.body.message||result.body.description||result.body.error))||'Could not add the set.';return;}note.textContent='Both pieces are in the cart.';window.location.href='/cart';}).catch(function(){note.textContent='Could not add the set.';});});})();</script>`,
+    `<script>(function(){var form=document.getElementById('otrace-set');var gallery=document.getElementById('otrace-set-gallery');if(!form)return;function handle(label){return String(label).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}function showColour(){if(!gallery||!form.colour)return;var colour=form.colour.value;var nodes=gallery.querySelectorAll('[data-set-colour]');for(var i=0;i<nodes.length;i++){nodes[i].hidden=nodes[i].getAttribute('data-set-colour')!==colour;}}if(form.colour){var params=new URLSearchParams(window.location.search);var wanted=(params.get('colour')||params.get('color')||'').toLowerCase();if(wanted){for(var j=0;j<form.colour.options.length;j++){var value=form.colour.options[j].value;if(value.toLowerCase()===wanted||handle(value)===wanted){form.colour.value=value;break;}}}form.colour.addEventListener('change',showColour);form.colour.addEventListener('input',showColour);showColour();}form.addEventListener('submit',function(event){event.preventDefault();var note=document.getElementById('otrace-set-note');note.textContent='Adding…';var colour=form.colour.value;var size=form.size.value;var root=(window.Shopify&&Shopify.routes&&Shopify.routes.root)||'/api/theme-preview/';var items=[{id:'OT-HOOD-'+handle(colour)+'-'+handle(size),quantity:1},{id:'OT-PANT-'+handle(colour)+'-'+handle(size),quantity:1}];fetch(root+'cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:items})}).then(function(res){return res.json().then(function(body){return{ok:res.ok,body:body};});}).then(function(result){if(!result.ok){note.textContent=(result.body&&(result.body.message||result.body.description||result.body.error))||'Could not add the set.';return;}note.textContent='Both pieces are in the cart.';window.location.href='/cart';}).catch(function(){note.textContent='Could not add the set.';});});})();</script>`,
     `</div>`,
   ].join('');
 };
