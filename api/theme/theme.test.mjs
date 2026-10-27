@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
@@ -575,4 +576,27 @@ test('a colour link shows that colour’s photos and submits that variant', asyn
     const mdid = visible[0].id;
     assert.match(html, new RegExp(`data-mdid="${mdid}"[^>]*value="${id}"`));
   }
+});
+
+test('garment dyed leads with the definition and keeps the four steps on one row', async () => {
+  const { pageContent } = await import('./pages.js');
+  const html = pageContent('garment-dyed').content;
+  const quote = 'Garment dyed means the piece is sewn first and dyed afterwards, so the colour settles into the seams. OTRACE hoodies and sweatpants are garment dyed 450 GSM cotton fleece in Onyx Black and Warm Cream.';
+  const leadAt = html.indexOf(`<p class="hdt-dye-lead">${quote}</p>`);
+  const stepsAt = html.indexOf('hdt-dye-steps');
+  const versusAt = html.indexOf('Garment dyed vs piece dyed');
+  assert.ok(leadAt >= 0, 'the definition has to be the lead, in his wording');
+  assert.ok(leadAt < stepsAt, 'the definition has to sit above Knit–Cut–Sew–Dye');
+  assert.ok(stepsAt < versusAt, 'the comparison stays below the process strip');
+  assert.match(html, />Knit</);
+  assert.match(html, />Cut</);
+  assert.match(html, />Sew</);
+  assert.match(html, />Dye the finished garment</);
+  assert.match(html, /\$80\.00 \(was \$100\.00\)/);
+  assert.match(html, /\$140\.00 \(was \$200\.00\)/);
+  assert.match(html, /hoodie-onyx-front\.jpg/);
+  assert.match(html, /hoodie-cream-front\.jpg/);
+  const css = readFileSync(fileURLToPath(new URL('./otrace-overrides.css', import.meta.url)), 'utf8');
+  assert.match(css, /\.hdt-dye-steps > li \{[^}]*margin-block:\s*0/);
+  assert.match(css, /body:has\(\.hdt-dye\) \.shopify-section-main-heading \.hdt-heading-liquid/);
 });
