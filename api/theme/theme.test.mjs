@@ -357,3 +357,89 @@ test('quick view and quick add sit on a paper chip, and the prices stay', async 
   assert.doesNotMatch(shop, /\$128/);
   assert.match(home, /\$140/);
 });
+
+test('homepage and shop do not show the flagged stairs or cream-logo frames', async () => {
+  const { createThemeRenderer } = await import('./render-page.js');
+  const themeRoot = fileURLToPath(new URL('../../theme', import.meta.url));
+  const renderer = createThemeRenderer({
+    themeRoot,
+    siteUrl: SITE,
+    assetBase: '/api/theme-assets',
+    routesRoot: '/api/theme-preview/',
+  });
+  const home = await renderer.renderPage('index', { title: 'OTRACE', page_title: 'OTRACE — AW2026' }, 'index');
+  const shop = await renderer.renderCollection({
+    handle: 'all',
+    title: 'AW2026',
+    products: Object.values(PRODUCTS),
+  });
+  const hoodie = await renderer.renderProduct(PRODUCTS['OT-HOOD']);
+  for (const html of [home, shop]) {
+    assert.equal(html.includes('/lookbook/look-02.jpg'), false);
+    assert.equal(html.includes('/lookbook/look-05.jpg'), false);
+  }
+  assert.ok(home.includes('/products/hoodie-onyx-front.jpg'));
+  assert.ok(home.includes('/products/pant-onyx-front.jpg'));
+  assert.ok(home.includes('/products/hoodie-onyx-back.jpg'));
+  assert.ok(home.includes('HOODIES'));
+  assert.ok(home.includes('Both colourways'));
+  assert.match(home, /#banner_VyWanM \.hdt-heading-block[\s\S]*color:\s*#161513/);
+  assert.ok(home.includes('$80.00'));
+  assert.ok(home.includes('$100.00'));
+  assert.ok(home.includes('$140'));
+  // Cream colourway PDP still needs its own shots. Those are not the flagged frames.
+  assert.ok(hoodie.includes('/products/hoodie-cream-front.jpg'));
+  assert.ok(hoodie.includes('/products/hoodie-cream-worn-front.jpg'));
+  assert.equal(hoodie.includes('/lookbook/look-02.jpg'), false);
+  assert.equal(hoodie.includes('/lookbook/look-05.jpg'), false);
+});
+
+test('quick view and the product page can add the chosen variant', async () => {
+  const { createThemeRenderer } = await import('./render-page.js');
+  const themeRoot = fileURLToPath(new URL('../../theme', import.meta.url));
+  const renderer = createThemeRenderer({
+    themeRoot,
+    siteUrl: SITE,
+    assetBase: '/api/theme-assets',
+    routesRoot: '/api/theme-preview/',
+  });
+  const quick = await renderer.renderProductConfig(PRODUCTS['OT-HOOD']);
+  const pdp = await renderer.renderProduct(PRODUCTS['OT-HOOD']);
+  for (const html of [quick, pdp]) {
+    assert.match(html, /<form method="post" action="\/api\/theme-preview\/cart\/add\.js"/);
+    assert.match(html, /class="hdt-main-product-form"/);
+    assert.match(html, /name="id" value="OT-HOOD-onyx-black-xs"/);
+    assert.match(html, /450 GSM garment-dyed heavyweight fleece/);
+    assert.equal(html.includes('Go kalles'), false);
+    assert.equal(html.includes('Nike'), false);
+  }
+  assert.match(quick, /id="product-form-main-quick-viewOT-HOOD"/);
+  assert.match(pdp, /id="product-form-main-productOT-HOOD"/);
+  assert.match(pdp, /name="Color" value="Onyx Black"[^>]*checked/);
+  assert.match(pdp, /name="Size" value="XS"[^>]*checked/);
+  assert.doesNotMatch(pdp, /name="Size" value="M"[^>]*checked/);
+
+  // The browser posts multipart FormData. The size the customer picked has to
+  // survive that parse, and the drawer HTML has to come back with the line.
+  const body = parseFormBody(
+    '--b\r\nContent-Disposition: form-data; name="id"\r\n\r\nOT-HOOD-onyx-black-m\r\n'
+    + '--b\r\nContent-Disposition: form-data; name="quantity"\r\n\r\n1\r\n'
+    + '--b\r\nContent-Disposition: form-data; name="sections"\r\n\r\ncart-drawer\r\n'
+    + '--b--\r\n',
+    'multipart/form-data; boundary=b',
+  );
+  const decoded = decodeVariantId(body.id);
+  assert.deepEqual(decoded, { sku: 'OT-HOOD', colour: 'Onyx Black', size: 'M' });
+  const lines = addLine([], { ...decoded, quantity: 1 });
+  const cart = cartJson(lines, { siteUrl: SITE });
+  const sections = await renderer.renderCartSections(cart, body.sections);
+  const drawer = sections['cart-drawer'] || '';
+  assert.match(drawer, /cart-items-component/);
+  assert.match(drawer, /data-count="1"/);
+  assert.match(drawer, /OTRACE Oversized Hoodie/);
+  assert.match(drawer, /Onyx Black \/ M/);
+  assert.match(drawer, /\$80\.00/);
+
+  const gone = changeLine(lines, 'OT-HOOD-onyx-black-m', 0);
+  assert.equal(gone.length, 0);
+});

@@ -374,11 +374,41 @@ const readCookie = (req, name) =>
     .find((c) => c.startsWith(name + '='))
     ?.slice(name.length + 1);
 
-const sendCart = (req, res, lines) => {
+/** Section ids the theme asked to re-render, from a JSON body or a form field. */
+const requestedSections = (body) => {
+  const raw = body?.sections ?? body?.section_id;
+  const list = Array.isArray(raw) ? raw : String(raw ?? '').split(',');
+  const ids = list.map((id) => String(id).trim()).filter(Boolean);
+  // The drawer always reads sections["cart-drawer"]. Include it when the
+  // caller did not name one, so an add still refreshes the basket.
+  if (!ids.length) ids.push('cart-drawer');
+  return ids;
+};
+
+const cartWantsJson = (req) => {
+  if (/xmlhttprequest/i.test(String(req.get('x-requested-with') || ''))) return true;
+  if (String(req.headers['content-type'] || '').includes('application/json')) return true;
+  if (String(req.headers.accept || '').includes('application/json')) return true;
+  return req.body?.sections != null;
+};
+
+const sendCart = async (req, res, lines) => {
+  const payload = writeCartCookie(lines);
   res.cookie
-    ? res.cookie(CART_COOKIE, writeCartCookie(lines), { httpOnly: true, sameSite: 'lax', path: '/' })
-    : res.setHeader('Set-Cookie', `${CART_COOKIE}=${writeCartCookie(lines)}; Path=/; HttpOnly; SameSite=Lax`);
-  res.json(cartJson(lines, { siteUrl: SITE_URL }));
+    ? res.cookie(CART_COOKIE, payload, { httpOnly: true, sameSite: 'lax', path: '/' })
+    : res.setHeader('Set-Cookie', `${CART_COOKIE}=${payload}; Path=/; HttpOnly; SameSite=Lax`);
+  // A no-JS product form posts here and expects a page, not JSON.
+  if (!cartWantsJson(req)) return res.redirect(303, '/cart');
+  const cart = cartJson(lines, { siteUrl: SITE_URL });
+  let sections = {};
+  if (themeRenderer?.renderCartSections) {
+    try {
+      sections = await themeRenderer.renderCartSections(cart, requestedSections(req.body));
+    } catch (err) {
+      console.error('[theme] cart sections failed:', err.message);
+    }
+  }
+  res.json({ ...cart, sections });
 };
 
 const cartLines = (req) => readCartCookie(readCookie(req, CART_COOKIE));
@@ -410,7 +440,7 @@ app.get('/api/theme-preview/cart.js', (req, res) => {
   res.json(cartJson(cartLines(req), { siteUrl: SITE_URL }));
 });
 
-app.post('/api/theme-preview/cart/add.js', rawBodyFor(), (req, res) => {
+app.post('/api/theme-preview/cart/add.js', rawBodyFor(), async (req, res) => {
   const body = req.body || {};
   // Shopify accepts one item or an items[] array; the theme sends both shapes.
   const incoming = Array.isArray(body.items) ? body.items : [body];
@@ -421,22 +451,22 @@ app.post('/api/theme-preview/cart/add.js', rawBodyFor(), (req, res) => {
     const quantity = Math.min(10, Math.max(1, Number.parseInt(item.quantity, 10) || 1));
     lines = addLine(lines, { ...decoded, quantity });
   }
-  sendCart(req, res, lines);
+  await sendCart(req, res, lines);
 });
 
-app.post('/api/theme-preview/cart/change.js', rawBodyFor(), (req, res) => {
+app.post('/api/theme-preview/cart/change.js', rawBodyFor(), async (req, res) => {
   const body = req.body || {};
   const quantity = Math.min(10, Math.max(0, Number.parseInt(body.quantity, 10) || 0));
-  sendCart(req, res, changeLine(cartLines(req), body.id ?? body.line, quantity));
+  await sendCart(req, res, changeLine(cartLines(req), body.id ?? body.line, quantity));
 });
 
-app.post('/api/theme-preview/cart/update.js', rawBodyFor(), (req, res) => {
+app.post('/api/theme-preview/cart/update.js', rawBodyFor(), async (req, res) => {
   const updates = (req.body || {}).updates || {};
   let lines = cartLines(req);
   for (const [variantId, qty] of Object.entries(updates)) {
     lines = changeLine(lines, variantId, Math.min(10, Math.max(0, Number.parseInt(qty, 10) || 0)));
   }
-  sendCart(req, res, lines);
+  await sendCart(req, res, lines);
 });
 
 /**

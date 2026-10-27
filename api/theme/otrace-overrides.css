@@ -32,14 +32,15 @@
 }
 
 /*
- * The hoodies banner is the cream fleece. White type disappears on it.
- * The copy sits on the left of the photograph, so the shadow is light.
+ * The category banners are studio product shots on a light ground.
+ * White type (the rule above) disappears on that grey. Both banners
+ * use the same dark type and a light shadow.
  */
-#banner_item_CCbabr .hdt-heading-block,
-#banner_item_CCbabr .hdt-subheading-block,
-#banner_item_CCbabr .hdt-text-warry,
-#banner_item_CCbabr .hdt-content,
-#banner_item_CCbabr .hdt-content p {
+#banner_VyWanM .hdt-heading-block,
+#banner_VyWanM .hdt-subheading-block,
+#banner_VyWanM .hdt-text-warry,
+#banner_VyWanM .hdt-content,
+#banner_VyWanM .hdt-content p {
   color: #161513;
   text-shadow: 0 1px 18px rgba(255, 255, 255, 0.75), 0 1px 2px rgba(255, 255, 255, 0.9);
 }

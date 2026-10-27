@@ -56,7 +56,10 @@
       if selected_variant.quantity_rule.min > selected_variant.inventory_quantity and check_against_inventory
         assign quantity_rule_soldout = true
       endif
-      assign variant_picker_block = section.blocks | where: 'type', 'variant_picker' | first
+      assign variant_picker_block = section.blocks | where: 'type', '_product-variant-picker' | first
+      if variant_picker_block == blank
+        assign variant_picker_block = section.blocks | where: 'type', 'variant_picker' | first
+      endif
       assign is_affiliate = false
       if product.metafields.theme.affiliate.value
         assign is_affiliate = true

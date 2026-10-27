@@ -610,11 +610,36 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
       stream.start();
     },
     * render(ctx, emitter) {
-      const kind = (String(this.args || '').match(/['"]([^'"]+)['"]/) || [])[1] || '';
+      const raw = String(this.args || '');
+      const kind = (raw.match(/['"]([^'"]+)['"]/) || [])[1] || '';
+      // The theme passes id, class and data-* as named args. Dropping them
+      // makes document.forms[id] miss, so the variant picker builds a second
+      // hidden form and the visible Add to cart button submits a stale id.
+      const attrs = [];
+      const named = /([A-Za-z_][\w:-]*)\s*:\s*([^,]+)/g;
+      let match;
+      while ((match = named.exec(raw))) {
+        const name = match[1];
+        const allowed = name === 'id' || name === 'class' || name === 'novalidate'
+          || name.startsWith('data-') || name.startsWith('aria-');
+        if (!allowed) continue;
+        let value;
+        try { value = this.liquid.evalValueSync(match[2].trim(), ctx); }
+        catch { continue; }
+        if (value == null || typeof value === 'object') continue;
+        const safe = String(value).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+        attrs.push(`${name}="${safe}"`);
+      }
+      const routes = (ctx.globals && ctx.globals.routes) || {};
+      const root = routes.root || '/api/theme-preview/';
       // Product forms stay on the cart endpoint the theme's own JS posts to.
       // Newsletter forms ({% form 'customer' %}) join the same list as the API.
-      const action = kind === 'customer' ? '/api/subscribe' : kind === 'contact' ? '/api/contact' : '/cart/add';
-      emitter.write(`<form method="post" action="${action}" accept-charset="UTF-8">`);
+      let action = '/cart/add';
+      if (kind === 'customer') action = '/api/subscribe';
+      else if (kind === 'contact' || kind === 'new_comment') action = '/api/contact';
+      else if (kind === 'product') action = `${root}cart/add.js`;
+      else if (kind === 'cart') action = routes.cart_url || `${root}cart`;
+      emitter.write(`<form method="post" action="${action}" accept-charset="UTF-8"${attrs.length ? ' ' + attrs.join(' ') : ''}>`);
       if (kind === 'customer') {
         emitter.write('<input type="hidden" name="source" value="newsletter"><input type="hidden" name="formId" value="newsletter">');
       }
