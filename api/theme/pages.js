@@ -42,7 +42,7 @@ const SHIP_COPY =
   'We ship worldwide to the address you enter at checkout, including the United Kingdom and the rest of the world. Delivery is free inside the United States, and in-stock orders leave in 3–5 business days. Checkout does not add an international carrier fee, because none is configured.';
 
 /** Digits only, 8–15. Empty when the env is unset, so the button stays hidden. */
-function whatsappHref() {
+export function whatsappHref() {
   const raw = process.env.WHATSAPP_NUMBER
     || process.env.PUBLIC_WHATSAPP_NUMBER
     || process.env.VITE_WHATSAPP_NUMBER
@@ -52,8 +52,36 @@ function whatsappHref() {
   return `https://wa.me/${digits}`;
 }
 
+/**
+ * A real Instagram URL, or a bare handle. Empty when unset.
+ * A handle is not invented here — the env has to name one.
+ */
+export function instagramHref() {
+  const raw = String(
+    process.env.INSTAGRAM_URL
+    || process.env.VITE_INSTAGRAM_URL
+    || process.env.VITE_INSTAGRAM
+    || '',
+  ).trim();
+  if (!raw) return '';
+  if (/^https:\/\/(www\.)?instagram\.com\/[A-Za-z0-9._]+\/?$/i.test(raw)) return raw;
+  if (/^[A-Za-z0-9._]{2,30}$/.test(raw)) return `https://instagram.com/${raw}`;
+  return '';
+}
+
+/**
+ * Optional Klaviyo onsite script. The private key stays on the server
+ * (api/klaviyo.js). This public company id is a different value and is
+ * omitted, not guessed, when the env is blank.
+ */
+export function klaviyoOnsite() {
+  const id = String(process.env.KLAVIYO_COMPANY_ID || '').trim();
+  if (!/^[A-Za-z0-9]{6,16}$/.test(id)) return '';
+  return `<script async src="https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=${encodeURIComponent(id)}"></script>`;
+}
+
 /** Optional chat embeds. A missing id renders nothing — never a fake agent. */
-function chatEmbed() {
+export function chatEmbed() {
   const crisp = String(process.env.CRISP_WEBSITE_ID || '').trim();
   if (/^[a-f0-9-]{8,64}$/i.test(crisp)) {
     return `<script>window.$crisp=[];window.CRISP_WEBSITE_ID=${JSON.stringify(crisp)};</script><script async src="https://client.crisp.chat/l.js"></script>`;
@@ -230,20 +258,180 @@ const contact = () => {
     `</form>`,
     `<h2>Before you write</h2>`,
     `<p><strong>Sizing.</strong> Every measurement we have is on the <a href="/sizing">sizing page</a>, garment-flat, in centimetres and inches.</p>`,
-    `<p><strong>Delivery.</strong> ${esc(SHIP_COPY)}</p>`,
+    `<p><strong>Delivery.</strong> ${esc(SHIP_COPY)} <a href="/shipping">Shipping and returns</a>.</p>`,
     faqBlock('RETURNS_FAQS', FAQS.RETURNS_FAQS[0].question),
     `<h2>The label</h2>`,
-    `<p>OTRACE makes heavyweight, garment-dyed fleece in small runs. Two pieces this season, cut oversized and dyed after they are sewn. <a href="/garment-dyed">How that is done</a>.</p>`,
+    `<p>OTRACE makes heavyweight, garment-dyed fleece in small runs. Two pieces this season, cut oversized and dyed after they are sewn. <a href="/garment-dyed">How that is done</a>. <a href="/about">About the label</a>.</p>`,
+    instagramHref() ? `<p><a href="${esc(instagramHref())}">Instagram</a></p>` : '',
     `<aside class="hdt-help"><details><summary>Help</summary>`,
     `<a href="mailto:info@otrace.co">Email info@otrace.co</a>`,
     wa ? `<a href="${esc(wa)}">WhatsApp</a>` : '',
     `<a href="/sizing">Sizing</a><a href="/shipping">Shipping</a><a href="/garment-dyed">Garment dyed</a>`,
     `</details></aside>`,
-    chatEmbed(),
     `<script>(function(){var help=document.querySelector('.hdt-help');if(help&&help.parentNode!==document.body)document.body.appendChild(help);var form=document.getElementById('otrace-contact');if(!form)return;form.addEventListener('submit',function(event){event.preventDefault();var note=document.getElementById('otrace-contact-note');note.textContent='Sending…';var data={name:form.name.value,email:form.email.value,subject:form.subject.value,inquiryType:form.inquiryType.value,message:form.message.value};fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(res){return res.json().then(function(body){return{ok:res.ok,body:body};});}).then(function(result){if(!result.ok){note.textContent=(result.body&&result.body.error)||'Could not send that.';return;}form.reset();note.textContent='Sent. A person will reply at the email you gave.';}).catch(function(){note.textContent='Could not send that. Email info@otrace.co instead.';});});})();</script>`,
     `</div>`,
   ].join('');
 };
+
+/* --------------------------------------------------------------- legal */
+
+const about = () => [
+  `<div class="hdt-prose">`,
+  `<p>OTRACE started from a simple frustration: almost nobody makes a hoodie that still looks like itself after a year. Most are thin, printed in bulk, and cut to a shape that flatters a hanger.</p>`,
+  `<p>So we made two pieces instead of twenty. A hoodie and a sweatpant, both from the same 450 GSM loopback fleece, both <a href="/garment-dyed">garment dyed</a> after they are sewn so the colour settles into the seams and softens rather than fades.</p>`,
+  `<p>AW2026 is the first drop. Two colorways — Onyx Black and Warm Cream. Each piece is ${price('OT-HOOD')} (was ${listPrice('OT-HOOD')}). One of each together is ${formatMoney(SET_TOTAL_CENTS)} (was ${formatMoney(SET_LIST_CENTS)}).</p>`,
+  `<div class="hdt-dye-details">`,
+  `<figure><img src="/detail-fabric.jpg" alt="Macro detail of heavyweight loopback fleece" width="1200" height="1500"></figure>`,
+  `<figure><img src="/detail-stitch.jpg" alt="Macro detail of a dropped shoulder seam" width="1200" height="1500"></figure>`,
+  `</div>`,
+  `<h2>How we make it</h2>`,
+  `<p><strong>Knit.</strong> 450 GSM loopback cotton fleece, brushed on the inside. Heavy enough to hang properly from the shoulder.</p>`,
+  `<p><strong>Cut.</strong> Boxy body, dropped shoulder, long enough in the hem to sit where it should rather than ride up.</p>`,
+  `<p><strong>Dye.</strong> Dyed after sewing. The seams take the colour differently, so no two pieces are identical.</p>`,
+  `<p><strong>Finish.</strong> White moulded plastic drawcord tips through metal eyelets, self-lined hood, internal branding tag.</p>`,
+  `<p><a href="/shop">Shop AW2026</a> · <a href="/product/complete-set">The complete set</a></p>`,
+  `</div>`,
+].join('');
+
+const shipping = () => {
+  const returns = FAQS.RETURNS_FAQS[0];
+  return [
+    `<div class="hdt-prose">`,
+    `<h2>Dispatch</h2>`,
+    `<p>${esc(SHIP_COPY)} We email tracking when a parcel leaves.</p>`,
+    `<h2>Where we ship</h2>`,
+    `<p>The United Kingdom and the rest of the world, to the address on the order. Free delivery applies to United States addresses.</p>`,
+    `<h2>${esc(returns.question)}</h2>`,
+    `<p>${esc(returns.answer)}</p>`,
+    `<h2>Something wrong</h2>`,
+    `<p>If a piece arrives faulty or is not what you ordered, tell us within 30 days and we make it right at our cost — no return shipping charge.</p>`,
+    `</div>`,
+  ].join('');
+};
+
+const terms = () => [
+  `<div class="hdt-prose">`,
+  `<h2>Orders</h2>`,
+  `<p>An order is an offer to buy. We confirm by email once payment has been taken. If we cannot fulfil an order we refund it in full.</p>`,
+  `<h2>Dispatch</h2>`,
+  `<p>Payment is taken when the order is placed. In-stock pieces ship within 3–5 business days. We email tracking when the parcel leaves us.</p>`,
+  `<h2>Pricing</h2>`,
+  `<p>Prices are in US dollars and shown before tax. A single piece is ${price('OT-HOOD')} (was ${listPrice('OT-HOOD')}). One hoodie and one sweatpant together are ${formatMoney(SET_TOTAL_CENTS)} (was ${formatMoney(SET_LIST_CENTS)}). Tax is calculated at checkout based on your delivery address. Prices can change, but never for an order already placed.</p>`,
+  `<h2>Payment</h2>`,
+  `<p>Payments are processed by Stripe. We never see or store your card details.</p>`,
+  `<h2>Colour and imagery</h2>`,
+  `<p>We photograph our pieces as accurately as we can, but screens vary and garment dyeing means small variation between pieces is normal — it is the process, not a fault.</p>`,
+  `</div>`,
+].join('');
+
+const privacy = () => [
+  `<div class="hdt-prose">`,
+  `<h2>What we collect</h2>`,
+  `<p>When you order: your name, email, delivery address and phone number, so we can ship to you and reach you about the order. When you join the list: your email, the page you joined from, and any size, colour or phone number you choose to add. SMS and WhatsApp stay off unless you tick them separately.</p>`,
+  `<h2>What we never hold</h2>`,
+  `<p>Card details. Payment happens on Stripe’s systems and we only ever receive a confirmation that it succeeded.</p>`,
+  `<h2>Who else sees it</h2>`,
+  `<p>Stripe for payment, our carrier for delivery, and our email provider for order confirmations. When the list is connected to an email platform, that platform receives the same signup so it can send what you asked for. We do not sell data.</p>`,
+  `<h2>Removing your data</h2>`,
+  `<p>Email us and we delete your details, other than the order records we are required to keep for tax purposes. Every marketing email carries a one-click unsubscribe.</p>`,
+  `</div>`,
+].join('');
+
+const account = () => [
+  `<div class="hdt-prose">`,
+  `<p>Every order confirmation email carries your order number and a receipt. Reply to that email with any change and we will handle it before it ships.</p>`,
+  `<p>There is no sign-in on this shop. Saved addresses and an order history are not switched on, so this page does not pretend a password would open them.</p>`,
+  `<p><a href="/contact">Contact us</a> · <a href="/shop">Keep shopping</a></p>`,
+  `</div>`,
+].join('');
+
+const wishlist = () => [
+  `<div class="hdt-prose">`,
+  `<p>Hearts on this shop are saved in this browser only. They are not an account, and they are not copied to our server.</p>`,
+  `<div id="otrace-wishlist-items"><p>Nothing saved in this browser yet.</p></div>`,
+  `<p><a href="/shop">Shop AW2026</a> · <a href="/cart">Cart</a></p>`,
+  `<script>(function(){var root=document.getElementById('otrace-wishlist-items');if(!root)return;var raw='';try{raw=localStorage.getItem('theme4:wishlist:id')||'';}catch(e){}var ids=raw.split(',').map(function(s){return s.trim();}).filter(Boolean);var known={'OT-HOOD':'/product/oversized-hoodie','OT-PANT':'/product/wide-leg-sweatpant','oversized-hoodie':'/product/oversized-hoodie','wide-leg-sweatpant':'/product/wide-leg-sweatpant'};function hrefFor(id){if(known[id])return known[id];var sku=id.split('--')[0];return known[sku]||'';}function labelFor(id){if(id.indexOf('OT-HOOD')===0||id==='oversized-hoodie')return 'Oversized Hoodie';if(id.indexOf('OT-PANT')===0||id==='wide-leg-sweatpant')return 'Wide-Leg Sweatpant';return id;}root.textContent='';if(!ids.length){var empty=document.createElement('p');empty.textContent='Nothing saved in this browser yet. The heart on a product stores it here, on this device only.';root.appendChild(empty);return;}var list=document.createElement('ul');ids.forEach(function(id){var li=document.createElement('li');var href=hrefFor(id);if(href){var a=document.createElement('a');a.href=href;a.textContent=labelFor(id);li.appendChild(a);}else{li.textContent=id;}list.appendChild(li);});root.appendChild(list);})();</script>`,
+  `</div>`,
+].join('');
+
+const orderSuccess = () => [
+  `<div class="hdt-prose">`,
+  `<p>Order confirmed</p>`,
+  `<p>Your order is in. A confirmation with your receipt is on its way to your inbox now, and we email tracking the moment it ships.</p>`,
+  `<p>In-stock orders ship within 3–5 business days. We email tracking the moment the parcel leaves us.</p>`,
+  `<p><a href="/shop">Keep shopping</a> · <a href="/account">Your orders</a></p>`,
+  `</div>`,
+].join('');
+
+const completeSet = () => {
+  const hood = PRODUCTS['OT-HOOD'];
+  const pant = PRODUCTS['OT-PANT'];
+  const colours = hood.colours.map((name) => `<option value="${esc(name)}">${esc(name)}</option>`).join('');
+  const sizes = hood.sizes.map((size) => `<option value="${esc(size)}">${esc(size)}</option>`).join('');
+  return [
+    `<div class="hdt-prose hdt-set">`,
+    `<p>One ${esc(hood.name)} and one ${esc(pant.name)}, same size and colour. Together they are <strong>${formatMoney(SET_TOTAL_CENTS)}</strong> (was ${formatMoney(SET_LIST_CENTS)}). Each piece on its own is ${price('OT-HOOD')} (was ${listPrice('OT-HOOD')}).</p>`,
+    `<div class="hdt-dye-hero">`,
+    `<figure><img src="/products/hoodie-onyx-front.jpg" alt="OTRACE oversized hoodie, front" width="819" height="1024"></figure>`,
+    `<figure><img src="/products/pant-onyx-front.jpg" alt="OTRACE wide-leg sweatpant, front" width="819" height="1024"></figure>`,
+    `</div>`,
+    `<form id="otrace-set" class="hdt-contact-form">`,
+    `<label>Colour<select name="colour" required>${colours}</select></label>`,
+    `<label>Size<select name="size" required>${sizes}</select></label>`,
+    `<button type="submit">Add the set — ${formatMoney(SET_TOTAL_CENTS)}</button>`,
+    `<p id="otrace-set-note" class="hdt-contact-note" role="status"></p>`,
+    `</form>`,
+    `<p>Or buy them separately: <a href="/product/${hood.slug}">${esc(hood.name)}</a> · <a href="/product/${pant.slug}">${esc(pant.name)}</a>.</p>`,
+    `<script>(function(){var form=document.getElementById('otrace-set');if(!form)return;function handle(label){return String(label).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}form.addEventListener('submit',function(event){event.preventDefault();var note=document.getElementById('otrace-set-note');note.textContent='Adding…';var colour=form.colour.value;var size=form.size.value;var root=(window.Shopify&&Shopify.routes&&Shopify.routes.root)||'/api/theme-preview/';var items=[{id:'OT-HOOD-'+handle(colour)+'-'+handle(size),quantity:1},{id:'OT-PANT-'+handle(colour)+'-'+handle(size),quantity:1}];fetch(root+'cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:items})}).then(function(res){return res.json().then(function(body){return{ok:res.ok,body:body};});}).then(function(result){if(!result.ok){note.textContent=(result.body&&(result.body.message||result.body.description||result.body.error))||'Could not add the set.';return;}note.textContent='Both pieces are in the cart.';window.location.href='/cart';}).catch(function(){note.textContent='Could not add the set.';});});})();</script>`,
+    `</div>`,
+  ].join('');
+};
+
+export function standalonePage(kind) {
+  const pages = {
+    account: {
+      title: 'Account',
+      page_title: 'Account — OTRACE',
+      description: 'Order lookup for OTRACE. Confirmations arrive by email. There is no sign-in yet.',
+      noindex: true,
+      content: account,
+    },
+    wishlist: {
+      title: 'Wishlist',
+      page_title: 'Wishlist — OTRACE',
+      description: 'Pieces you heart are saved in this browser only. OTRACE does not keep a wishlist account.',
+      noindex: true,
+      content: wishlist,
+    },
+    'order-success': {
+      title: 'Thank you',
+      page_title: 'Order confirmed — OTRACE',
+      description: 'Your OTRACE order is confirmed.',
+      noindex: true,
+      content: orderSuccess,
+    },
+    'complete-set': {
+      title: 'Complete set',
+      page_title: 'Complete set — OTRACE',
+      description: `One OTRACE hoodie and one sweatpant together for ${formatMoney(SET_TOTAL_CENTS)}, was ${formatMoney(SET_LIST_CENTS)}. Each piece alone is ${price('OT-HOOD')}.`,
+      noindex: false,
+      content: completeSet,
+      canonical_path: '/product/complete-set',
+    },
+  };
+  const page = pages[kind];
+  if (!page) return null;
+  return {
+    title: page.title,
+    page_title: page.page_title,
+    page_description: page.description,
+    description: page.description,
+    content: page.content(),
+    noindex: page.noindex,
+    handle: kind,
+    canonical_path: page.canonical_path || `/${kind === 'order-success' ? 'order/success' : kind}`,
+  };
+}
 
 /* ----------------------------------------------------------------------- */
 
@@ -274,7 +462,48 @@ export const PAGES = {
     description: 'Questions about fit, an order or a return. Email info@otrace.co.',
     content: contact,
   },
+  about: {
+    title: 'About the label',
+    page_title: 'About the label — OTRACE',
+    description:
+      'OTRACE makes fewer, heavier pieces: a 450 GSM garment-dyed hoodie and a wide-leg sweatpant.',
+    content: about,
+  },
+  shipping: {
+    title: 'Shipping & returns',
+    page_title: 'Shipping & returns — OTRACE',
+    description:
+      'OTRACE ships worldwide. Delivery is free in the United States. In-stock AW2026 pieces ship in 3–5 business days, and unworn items can be returned within 30 days of delivery.',
+    content: shipping,
+  },
+  terms: {
+    title: 'Terms of service',
+    page_title: 'Terms — OTRACE',
+    description: 'Terms of sale for OTRACE orders: payment, delivery, returns and what happens if something goes wrong.',
+    content: terms,
+  },
+  privacy: {
+    title: 'Privacy',
+    page_title: 'Privacy — OTRACE',
+    description: 'How OTRACE collects, uses and protects the information you share when you order or sign up.',
+    content: privacy,
+  },
 };
+
+export function faqsForSlug(slug) {
+  if (slug === 'oversized-hoodie') return FAQS.HOODIE_FAQS;
+  if (slug === 'wide-leg-sweatpant') return FAQS.PANT_FAQS;
+  if (slug === 'garment-dyed') return FAQS.GARMENT_DYE_FAQS;
+  if (slug === 'shipping') return FAQS.RETURNS_FAQS;
+  return [];
+}
+
+export function faqHtml(faqs) {
+  if (!faqs?.length) return '';
+  return `<section class="hdt-container hdt-section-spacing hdt-prose"><h2>Questions</h2>${
+    faqs.map((f) => `<h3>${esc(f.question)}</h3><p>${esc(f.answer)}</p>`).join('')
+  }</section>`;
+}
 
 /** Build one page's scope, or null when the handle is not ours. */
 export function pageContent(handle) {
@@ -285,5 +514,7 @@ export function pageContent(handle) {
     page_title: page.page_title,
     page_description: page.description,
     content: page.content(),
+    handle,
+    canonical_path: `/${handle}`,
   };
 }

@@ -8,6 +8,8 @@
  * would. Prices are in cents, as Shopify Liquid expects, and come from
  * api/catalog.js - the one place that decides what anything costs.
  */
+import { applyThemeColorAndFont, swatchFor } from './shopify-color.js';
+
 const handleize = (s) =>
   String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
@@ -22,6 +24,8 @@ function optionValue(label) {
   const value = new String(label);
   value.available = true;
   value.variant = { available: true };
+  const swatch = swatchFor(label);
+  if (swatch) value.swatch = swatch;
   return value;
 }
 
@@ -180,7 +184,7 @@ export function themeSettings(settingsData, settingsSchema) {
       }
     }
   }
-  return { ...defaults, ...saved };
+  return applyThemeColorAndFont({ ...defaults, ...saved });
 }
 
 /**

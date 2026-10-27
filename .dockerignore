@@ -7,7 +7,6 @@
 # Storefront build output and bulk source. Keep site/src/content — the theme
 # renderer imports journal posts from there at boot.
 site/dist
-site/public
 site/scripts
 site/src/components
 site/src/lib
@@ -24,10 +23,13 @@ site/*.config.*
 # Source artwork and every generated render.
 assets
 
+# Screenshot archive. The discovery text in seo/ is served by the API.
+seo/shots
+
 # Local scratch and docs.
-seo
 docs
 *.md
+!seo/**/*.md
 .claude
 .vscode
 

@@ -1,12 +1,11 @@
 /**
  * OTRACE — checkout / payment / order backend.
  *
- * The storefront is a static bundle with no server of its own, so this service
- * supplies the three things it cannot do itself:
- *   1. turn a browser cart into a Stripe Checkout Session (prices resolved
+ * The public storefront is the Kalles theme rendered here. This service also
+ *   1. turns a browser cart into a Stripe Checkout Session (prices resolved
  *      server-side, never trusted from the client),
- *   2. receive Stripe's webhook and record the paid order,
- *   3. email the customer and the shop.
+ *   2. receives Stripe's webhook and records the paid order,
+ *   3. emails the customer and the shop.
  *
  * Stripe's hosted Checkout collects the card, billing and shipping address, so
  * no card data ever touches this server or the browser bundle.
@@ -40,6 +39,7 @@ import { klaviyoConfig } from './klaviyo.js';
 import { createThemeRenderer } from './theme/render-page.js';
 import { toShopifyProduct } from './theme/shopify-shape.js';
 import { PAGES, pageContent } from './theme/pages.js';
+import { mountStorefront } from './theme/mount-storefront.js';
 import {
   CART_COOKIE,
   addLine,
@@ -313,6 +313,7 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
 });
 
 app.use(express.json({ limit: '32kb' }));
+app.use(express.urlencoded({ extended: true, limit: '32kb' }));
 
 /* -------------------------------------------------------------------- routes */
 
@@ -446,10 +447,9 @@ app.post('/api/theme-preview/cart/update.js', rawBodyFor(), (req, res) => {
  * form is a plain POST and not fetch(), so the answer has to be a redirect -
  * returning JSON here leaves the customer looking at raw JSON.
  */
-const sendThemeHtml = (res, html) => {
+const sendThemeHtml = (res, html, { noindex = false } = {}) => {
   res.set('Content-Type', 'text/html; charset=utf-8');
-  // A preview must never be indexed while the real pages exist.
-  res.set('X-Robots-Tag', 'noindex, nofollow');
+  if (noindex) res.set('X-Robots-Tag', 'noindex, nofollow');
   res.send(html);
 };
 
@@ -458,7 +458,9 @@ app.get('/api/theme-preview/', async (req, res) => {
   try {
     sendThemeHtml(res, await themeRenderer.renderPage('index', {
       title: 'OTRACE',
-      page_title: 'OTRACE — AW2026',
+      page_title: 'OTRACE — Heavyweight Oversized Hoodies & Wide-Leg Sweatpants',
+      page_description: 'OTRACE AW2026: 450 GSM heavyweight fleece hoodies and wide-leg sweatpants, cut oversized and garment dyed in Onyx Black and Warm Cream. In stock, free US shipping.',
+      canonical_path: '/',
     }, 'index'));
   } catch (err) {
     console.error('[theme] home render failed:', err.message);
@@ -524,7 +526,9 @@ app.get('/api/theme-preview/cart', async (req, res) => {
       cart: cartJson(cartLines(req), { siteUrl: SITE_URL }),
       title: 'Your cart',
       page_title: 'Your cart — OTRACE',
-    }));
+      noindex: true,
+      canonical_path: '/cart',
+    }), { noindex: true });
   } catch (err) {
     console.error('[theme] cart render failed:', err.message);
     res.status(500).send('Theme render failed: ' + err.message);
@@ -554,16 +558,18 @@ app.post('/api/theme-preview/cart', rawBodyFor(), async (req, res) => {
   }
 });
 
+mountStorefront(app, {
+  themeRenderer,
+  sendThemeHtml,
+  siteUrl: SITE_URL.replace(/\/$/, ''),
+});
+
 app.get('/api/theme-preview/product/:slug', async (req, res) => {
   if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
   const product = findBySlug(req.params.slug);
   if (!product) return res.status(404).send('No such product.');
   try {
-    const html = await themeRenderer.renderProduct(product);
-    res.set('Content-Type', 'text/html; charset=utf-8');
-    // A preview must never be indexed while the real pages exist.
-    res.set('X-Robots-Tag', 'noindex, nofollow');
-    res.send(html);
+    sendThemeHtml(res, await themeRenderer.renderProduct(product));
   } catch (err) {
     console.error('[theme] product render failed:', err.message);
     res.status(500).send('Theme render failed: ' + err.message);
@@ -590,7 +596,26 @@ app.post('/api/checkout', async (req, res) => {
 
 async function respondSubscribe(req, res, defaults = {}) {
   try {
-    const result = await handleSubscribe(pool, { ...defaults, ...(req.body ?? {}) }, { sendWelcome });
+    const raw = req.body ?? {};
+    const contact = raw.contact && typeof raw.contact === 'object' ? raw.contact : {};
+    const email = raw.email || contact.email || raw['contact[email]'];
+    const result = await handleSubscribe(pool, {
+      ...defaults,
+      ...raw,
+      email,
+      source: raw.source || defaults.source || 'newsletter',
+      formId: raw.formId || raw.form_id || defaults.formId || 'newsletter',
+    }, { sendWelcome });
+    const formPost = String(req.headers['content-type'] || '').includes('application/x-www-form-urlencoded');
+    if (formPost) {
+      const ok = result.status === 200;
+      res.status(ok ? 200 : result.status).type('html').send(
+        `<!doctype html><html><head><meta charset="utf-8"><title>${ok ? "You're on the list" : 'Could not add you'}</title></head><body><p>${
+          ok ? "You're on the list. We only email what you asked for." : (result.json?.error || 'Could not add you just now.')
+        }</p><p><a href="/">Back to OTRACE</a></p></body></html>`,
+      );
+      return;
+    }
     res.status(result.status).json(result.json);
   } catch (err) {
     console.error('[subscribe] failed:', err.message);

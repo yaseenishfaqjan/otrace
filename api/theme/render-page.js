@@ -27,6 +27,18 @@ import {
 import { resolveThemeProductSettings, toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
 import { PRODUCTS } from '../catalog.js';
 import { POSTS } from '../../site/src/content/posts.mjs';
+import { chatEmbed, faqHtml, faqsForSlug, klaviyoOnsite } from './pages.js';
+import {
+  breadcrumbLd,
+  collectionLd,
+  DEFAULT_DESCRIPTION,
+  faqLd,
+  organizationLd,
+  productLd,
+  seoHead,
+  websiteLd,
+} from './seo.js';
+import { swatchFor } from './shopify-color.js';
 
 export function createThemeRenderer({
   themeRoot,
@@ -56,6 +68,28 @@ export function createThemeRenderer({
     money_with_currency_format: '${{amount}} USD',
     email: 'info@otrace.co',
     permanent_domain: 'otrace.co',
+    metafields: {
+      ecomrise: {
+        colors: {
+          value: Object.fromEntries(['Onyx Black', 'Warm Cream'].map((name) => {
+            const handle = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+            return [handle, { colorsCSS: `background:${swatchFor(name).color};`, imageName: '' }];
+          })),
+        },
+      },
+    },
+    metaobjects: {
+      theme_swatch: {
+        values: [{
+          colors: {
+            value: Object.fromEntries(['Onyx Black', 'Warm Cream'].map((name) => {
+              const handle = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+              return [handle, { colorsCSS: `background:${swatchFor(name).color};`, imageName: '' }];
+            })),
+          },
+        }],
+      },
+    },
   };
   const ROUTES = {
     root: routesRoot, cart_url: `${routesRoot}cart`, cart_add_url: `${routesRoot}cart/add`,
@@ -84,16 +118,24 @@ export function createThemeRenderer({
       handle: 'main-menu',
       links: [
         link('Shop', '/shop', [link('Hoodies', '/shop/hoodies'), link('Bottoms', '/shop/bottoms')]),
+        link('The set', '/product/complete-set'),
         link('Lookbook', '/lookbook'),
         link('Garment dyed', '/garment-dyed'),
         link('Sizing', '/sizing'),
+        link('Journal', '/blog'),
         link('Contact', '/contact'),
       ],
     },
     footer: {
       title: 'Footer',
       handle: 'footer',
-      links: [link('Shipping', '/shipping'), link('Sizing', '/sizing'), link('Contact', '/contact'), link('Privacy', '/privacy')],
+      links: [
+        link('Shipping', '/shipping'),
+        link('Sizing', '/sizing'),
+        link('Contact', '/contact'),
+        link('Privacy', '/privacy'),
+        link('Terms', '/terms'),
+      ],
     },
     'footer-categories': {
       title: 'Categories',
@@ -327,13 +369,15 @@ export function createThemeRenderer({
       product: shaped,
       template: { name: 'product', suffix: null },
     });
-    const content = await renderTemplate('product', {
+    const faqs = faqsForSlug(shaped.handle);
+    const content = `${await renderTemplate('product', {
       product: shaped,
       request: globals.request,
       template: globals.template,
       collection: null,
       canonical_url: url,
-    }, globals);
+    }, globals)}${faqHtml(faqs)}`;
+    const path = `/product/${shaped.handle}`;
     return wrap(content, {
       product: shaped,
       request: globals.request,
@@ -341,6 +385,17 @@ export function createThemeRenderer({
       page_title: `${shaped.title} — OTRACE`,
       page_description: shaped.description,
       canonical_url: url,
+      canonical_path: path,
+      og_type: 'product',
+      json_ld: [
+        productLd(product, siteUrl),
+        faqs.length ? faqLd(faqs) : null,
+        breadcrumbLd(siteUrl, [
+          { name: 'Home', path: '/' },
+          { name: 'Shop', path: '/shop' },
+          { name: shaped.title, path },
+        ]),
+      ],
     }, globals);
   }
 
@@ -356,18 +411,36 @@ export function createThemeRenderer({
     // page_title. They are not the same string: putting the document title in
     // the heading puts " - OTRACE" in the middle of the page.
     const title = extra.title ?? 'OTRACE';
+    const handle = extra.handle ?? (pageType === 'index' ? '' : templateName);
+    const canonical_path = extra.canonical_path ?? (pageType === 'index' ? '/' : `/${handle}`);
+    const canonical_url = extra.canonical_url ?? `${siteUrl}${canonical_path === '/' ? '/' : canonical_path}`;
+    const faqs = faqsForSlug(handle);
+    const json_ld = extra.json_ld ?? (pageType === 'index'
+      ? [organizationLd(siteUrl), websiteLd(siteUrl)]
+      : faqs.length ? [faqLd(faqs)] : null);
     const globals = withGlobals({
       ...extra,
       request: { ...REQUEST, page_type: pageType },
       template: { name: templateName, suffix: null },
       // Templates print {{ page.title }} as their heading. With no `page` the
       // heading renders the literal braces, which reads as a broken page.
-      page: { title, handle: extra.handle ?? templateName, content: extra.content ?? '', url: `/${extra.handle ?? templateName}` },
+      page: { title, handle: handle || templateName, content: extra.content ?? '', url: canonical_path },
       // The heading block's own default is {{ page_title }}, not page.title.
       page_title: title,
+      canonical_url,
+      canonical_path,
+      json_ld,
     });
     const content = await renderTemplate(templateName, { ...baseScope(), ...globals }, globals);
-    return wrap(content, { ...globals, page_title: extra.page_title ?? title }, globals);
+    return wrap(content, {
+      ...globals,
+      page_title: extra.page_title ?? title,
+      page_description: extra.page_description ?? extra.description ?? (pageType === 'index' ? DEFAULT_DESCRIPTION : ''),
+      canonical_url,
+      canonical_path,
+      json_ld,
+      noindex: Boolean(extra.noindex),
+    }, globals);
   }
 
   /** The shop listing. One card per colourway, front flat first. */
@@ -391,11 +464,34 @@ export function createThemeRenderer({
       image: shaped[0]?.featured_image ?? null,
       filters: [],
     };
+    const path = handle === 'all' ? '/shop' : `/shop/${handle}`;
     return renderPage(
       'collection',
-      { collection, title, page_title: `${title} — OTRACE` },
+      {
+        collection,
+        title,
+        page_title: extraPageTitle(handle, title),
+        page_description: description ?? '',
+        handle,
+        canonical_path: path,
+        json_ld: [
+          collectionLd(siteUrl, { name: title, path, products }),
+          breadcrumbLd(siteUrl, [
+            { name: 'Home', path: '/' },
+            { name: 'Shop', path: '/shop' },
+            ...(handle === 'all' ? [] : [{ name: title, path }]),
+          ]),
+        ],
+      },
       'collection',
     );
+  }
+
+  function extraPageTitle(handle, title) {
+    if (handle === 'all') return 'Shop Heavyweight Hoodies & Sweatpants — OTRACE';
+    if (handle === 'hoodies') return 'Heavyweight Oversized Hoodies — OTRACE';
+    if (handle === 'bottoms') return 'Wide-Leg Sweatpants — OTRACE';
+    return `${title} — OTRACE`;
   }
 
   /** Drop the sections into layout/theme.liquid. */
@@ -424,8 +520,24 @@ export function createThemeRenderer({
   };
   const OVERRIDE_CSS = readOwn('./otrace-overrides.css');
 
-  const contentForHeader = () =>
+  const contentForHeader = (extra = {}) =>
     (OVERRIDE_CSS ? `<style data-otrace>${OVERRIDE_CSS}</style>` : '') +
+    '<link rel="preconnect" href="https://fonts.googleapis.com">' +
+    '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;1,400&family=Poppins:wght@400;500;600;700&display=swap">' +
+    seoHead({
+      siteUrl,
+      path: extra.canonical_path || '/',
+      title: extra.page_title || extra.title,
+      description: extra.page_description || extra.description || DEFAULT_DESCRIPTION,
+      noindex: Boolean(extra.noindex),
+      jsonLd: extra.json_ld,
+      type: extra.og_type || 'website',
+      image: extra.og_image,
+    }) +
+    chatEmbed() +
+    klaviyoOnsite() +
+    '<script>window.addEventListener("unhandledrejection",function(event){var msg=String((event.reason&&(event.reason.message||event.reason))||"");if(/browsing_context_suggestions|ipinfo\\.io|amazon_payments/.test(msg))event.preventDefault();});</script>' +
     '<script>window.Shopify = window.Shopify || ' +
     JSON.stringify({
       shop: 'otrace.co',
@@ -443,7 +555,7 @@ export function createThemeRenderer({
 
   async function wrap(contentForLayout, extra, globals) {
     const scope = { ...baseScope(), ...extra, content_for_layout: contentForLayout,
-      content_for_header: contentForHeader(), content_for_index: '' };
+      content_for_header: contentForHeader(extra), content_for_index: '' };
     return renderThemeFile(engine, themeRoot, 'layout', 'theme', scope, globals);
   }
 
