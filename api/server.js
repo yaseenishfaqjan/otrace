@@ -361,7 +361,9 @@ if (fs.existsSync(THEME_ROOT)) {
 app.get('/api/theme-preview/products/:handle.js', (req, res) => {
   const product = findBySlug(req.params.handle);
   if (!product) return res.status(404).json({ error: 'not found' });
-  res.json(toShopifyProduct(product, { siteUrl: SITE_URL }));
+  // Same shot order as the product page, so the picker's featured_image
+  // matches the gallery the HTML just rendered.
+  res.json(toShopifyProduct(product, { siteUrl: SITE_URL, featureSharpest: true }));
 });
 
 // Quick view / quick add modal markup (Shopify's ?view=only_config).
@@ -371,7 +373,7 @@ app.get('/api/theme-preview/products/:handle', async (req, res, next) => {
   const product = findBySlug(req.params.handle);
   if (!product) return res.status(404).send('No such product.');
   try {
-    const html = await themeRenderer.renderProductConfig(product);
+    const html = await themeRenderer.renderProductConfig(product, { variantId: req.query.variant });
     res.set('Content-Type', 'text/html; charset=utf-8');
     res.set('X-Robots-Tag', 'noindex, nofollow');
     res.send(html);
@@ -474,7 +476,7 @@ app.get('/api/theme-preview/product/:slug', async (req, res) => {
   const product = findBySlug(req.params.slug);
   if (!product) return res.status(404).send('No such product.');
   try {
-    sendThemeHtml(res, await themeRenderer.renderProduct(product));
+    sendThemeHtml(res, await themeRenderer.renderProduct(product, { variantId: req.query.variant }));
   } catch (err) {
     console.error('[theme] product render failed:', err.message);
     res.status(500).send('Theme render failed: ' + err.message);
