@@ -5,7 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { createCheckoutSession } from '../checkout-session.js';
 import { PRODUCTS, SET_TOTAL_CENTS } from '../catalog.js';
 import { addLine, cartJson, changeLine, decodeVariantId } from './cart.js';
-import { parseFormBody } from './form-body.js';
+import { parseFormBody, rawBodyFor } from './form-body.js';
+import { readFileSync } from 'node:fs';
 import { parseThemeJson, resolveLinkListSettings, stripJsonComments } from './liquid-engine.js';
 import { resolveThemeProductSettings, themeSettings, toShopifyProduct } from './shopify-shape.js';
 
@@ -192,6 +193,20 @@ test('a cart POST is read from multipart, urlencoded and JSON alike', () => {
   assert.deepEqual(parseFormBody('not json at all', 'application/json'), {});
 });
 
+test('a JSON cart body already read by express is not read again', () => {
+  const middleware = rawBodyFor();
+  const req = {
+    body: { id: 'OT-HOOD-onyx-black-m', quantity: 0 },
+    headers: { 'content-type': 'application/json' },
+    readableEnded: true,
+    on() { throw new Error('the stream was already consumed; waiting on it hangs until 504'); },
+  };
+  let called = false;
+  middleware(req, {}, () => { called = true; });
+  assert.equal(called, true);
+  assert.deepEqual(req.body, { id: 'OT-HOOD-onyx-black-m', quantity: 0 });
+});
+
 test('stripping JSONC comments leaves URLs intact', () => {
   // A regex strip truncates any string containing a double slash, and
   // everything after it on that line.
@@ -356,4 +371,35 @@ test('quick view and quick add sit on a paper chip, and the prices stay', async 
   assert.doesNotMatch(shop, /\$148/);
   assert.doesNotMatch(shop, /\$128/);
   assert.match(home, /\$140/);
+});
+
+test('quick view is the only_config product fragment', async () => {
+  const { createThemeRenderer } = await import('./render-page.js');
+  const themeRoot = fileURLToPath(new URL('../../theme', import.meta.url));
+  const renderer = createThemeRenderer({
+    themeRoot,
+    siteUrl: SITE,
+    assetBase: '/api/theme-assets',
+    routesRoot: '/api/theme-preview/',
+  });
+  const html = await renderer.renderProduct(PRODUCTS['OT-HOOD'], { view: 'only_config' });
+  assert.match(html, /hdt-main-section--quick-view/);
+  assert.match(html, /hdt-main-section--quick-add/);
+  assert.match(html, /hdt-page-product-config/);
+  assert.match(html, /\$80\.00/);
+  assert.doesNotMatch(html, /shopify-section-header/);
+  assert.doesNotMatch(html, /<footer/);
+});
+
+test('the live QA palette, size list, swatches and nginx prefix are in the repo', () => {
+  const css = readFileSync(fileURLToPath(new URL('./otrace-overrides.css', import.meta.url)), 'utf8');
+  assert.match(css, /--color-base-text: 22 21 19/);
+  assert.match(css, /--color-background2: 244 241 235/);
+  assert.match(css, /--hdt-btn-bg: 22 21 19/);
+  assert.match(css, /\.hdt-size-list \.hdt-size-list-item\[unavailable\]/);
+  assert.match(css, /input\[value="Onyx Black"\]/);
+  assert.match(css, /input\[value="Warm Cream"\]/);
+  assert.match(css, /img\[src=""\]/);
+  const nginx = readFileSync(fileURLToPath(new URL('../../deploy/nginx-theme-routes.conf', import.meta.url)), 'utf8');
+  assert.match(nginx, /location \^~ \/api\//);
 });
