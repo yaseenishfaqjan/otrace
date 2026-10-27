@@ -357,3 +357,39 @@ test('quick view and quick add sit on a paper chip, and the prices stay', async 
   assert.doesNotMatch(shop, /\$128/);
   assert.match(home, /\$140/);
 });
+
+test('homepage and shop do not show the flagged stairs or cream-logo frames', async () => {
+  const { createThemeRenderer } = await import('./render-page.js');
+  const themeRoot = fileURLToPath(new URL('../../theme', import.meta.url));
+  const renderer = createThemeRenderer({
+    themeRoot,
+    siteUrl: SITE,
+    assetBase: '/api/theme-assets',
+    routesRoot: '/api/theme-preview/',
+  });
+  const home = await renderer.renderPage('index', { title: 'OTRACE', page_title: 'OTRACE — AW2026' }, 'index');
+  const shop = await renderer.renderCollection({
+    handle: 'all',
+    title: 'AW2026',
+    products: Object.values(PRODUCTS),
+  });
+  const hoodie = await renderer.renderProduct(PRODUCTS['OT-HOOD']);
+  for (const html of [home, shop]) {
+    assert.equal(html.includes('/lookbook/look-02.jpg'), false);
+    assert.equal(html.includes('/lookbook/look-05.jpg'), false);
+  }
+  assert.ok(home.includes('/products/hoodie-onyx-front.jpg'));
+  assert.ok(home.includes('/products/pant-onyx-front.jpg'));
+  assert.ok(home.includes('/products/hoodie-onyx-back.jpg'));
+  assert.ok(home.includes('HOODIES'));
+  assert.ok(home.includes('Both colourways'));
+  assert.match(home, /#banner_VyWanM \.hdt-heading-block[\s\S]*color:\s*#161513/);
+  assert.ok(home.includes('$80.00'));
+  assert.ok(home.includes('$100.00'));
+  assert.ok(home.includes('$140'));
+  // Cream colourway PDP still needs its own shots. Those are not the flagged frames.
+  assert.ok(hoodie.includes('/products/hoodie-cream-front.jpg'));
+  assert.ok(hoodie.includes('/products/hoodie-cream-worn-front.jpg'));
+  assert.equal(hoodie.includes('/lookbook/look-02.jpg'), false);
+  assert.equal(hoodie.includes('/lookbook/look-05.jpg'), false);
+});

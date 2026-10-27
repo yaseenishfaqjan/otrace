@@ -365,14 +365,14 @@
             "img_effect": "rotate",
             "b_effect": "none",
             "colors_by_block": true,
-            "color_scheme": "scheme-77e4ef58-56a9-4631-876a-12098ba7d57d",
+            "color_scheme": "scheme-1",
             "gap_r": 20,
             "gap_c": 20,
-            "content_position": "center-start",
+            "content_position": "start-start",
             "alignment": "left",
             "gap_r_mb": 20,
             "gap_c_mb": 20,
-            "content_position_mb": "center-start",
+            "content_position_mb": "start-start",
             "alignment_mb": "left"
           },
           "blocks": {
@@ -428,7 +428,7 @@
               "static": true,
               "settings": {
                 "source": "image",
-                "image": "/lookbook/look-02.jpg",
+                "image": "/products/hoodie-onyx-front.jpg",
                 "external_video_url": "https://www.youtube.com/watch?v=_9VUPq3SxOc"
               },
               "blocks": {}
@@ -448,15 +448,15 @@
             "img_effect": "translateToTop",
             "b_effect": "none",
             "colors_by_block": true,
-            "color_scheme": "scheme-77e4ef58-56a9-4631-876a-12098ba7d57d",
+            "color_scheme": "scheme-1",
             "gap_r": 20,
             "gap_c": 20,
             "content_position": "end-start",
             "alignment": "left",
             "gap_r_mb": 20,
             "gap_c_mb": 20,
-            "content_position_mb": "center",
-            "alignment_mb": "center"
+            "content_position_mb": "end-start",
+            "alignment_mb": "left"
           },
           "blocks": {
             "text_qct3Q9": {
@@ -509,7 +509,7 @@
               "static": true,
               "settings": {
                 "source": "image",
-                "image": "/lookbook/look-05.jpg",
+                "image": "/products/pant-onyx-front.jpg",
                 "external_video_url": "https://www.youtube.com/watch?v=_9VUPq3SxOc"
               },
               "blocks": {}
@@ -847,7 +847,7 @@
         "lookbook_zNfrP4": {
           "type": "_lookbook",
           "settings": {
-            "image": "/lookbook/look-05.jpg",
+            "image": "/products/hoodie-onyx-back.jpg",
             "img_effect": "zoom",
             "b_effect": "none"
           },
@@ -857,12 +857,12 @@
               "settings": {
                 "pin_bg": "#222222",
                 "pin_text": "#ffffff",
-                "left": 49,
-                "top": 52,
+                "left": 50,
+                "top": 42,
                 "pin_size": "medium",
                 "pin_type": "showtext",
                 "text": "1",
-                "product": "wide-leg-sweatpant",
+                "product": "oversized-hoodie",
                 "product_des": "1",
                 "image_ratio": "adapt_image",
                 "image_size": true,
