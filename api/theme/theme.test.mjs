@@ -407,6 +407,48 @@ test('quick view and quick add sit on a paper chip, and the prices stay', async 
   assert.match(home, /\$140/);
 });
 
+test('product cards hide the size overlay and paint the sale badge black', async () => {
+  const { createThemeRenderer } = await import('./render-page.js');
+  const themeRoot = fileURLToPath(new URL('../../theme', import.meta.url));
+  const renderer = createThemeRenderer({
+    themeRoot,
+    siteUrl: SITE,
+    assetBase: '/api/theme-assets',
+    routesRoot: '/api/theme-preview/',
+  });
+  const shop = await renderer.renderCollection({
+    handle: 'all',
+    title: 'AW2026',
+    products: Object.values(PRODUCTS),
+  });
+  const home = await renderer.renderPage('index', { title: 'OTRACE', page_title: 'OTRACE — AW2026' }, 'index');
+  const hoodie = await renderer.renderProduct(PRODUCTS['OT-HOOD']);
+  const collection = sectionHtml(home, 'featured_collection_PTq36A');
+
+  for (const html of [shop, home, collection]) {
+    assert.equal(html.includes('class="hdt-size-list'), false);
+    assert.equal(html.includes('hdt-has-size-list'), false);
+    assert.match(html, /class="hdt-color-list/);
+    assert.match(html, /<span percent>20<\/span>%/);
+  }
+  for (const html of [shop, home, hoodie]) {
+    assert.match(html, /--color-on-sale-badge-background:\s*0 0 0;/);
+    assert.match(html, /--color-on-sale-badge-text:\s*255 255 255;/);
+    assert.equal(html.includes('255 78 0'), false);
+  }
+  assert.match(shop, /\$80\.00/);
+  assert.match(shop, /\$100\.00/);
+  assert.match(home, /\$140/);
+
+  // Size is chosen on the product page, not on the card.
+  assert.equal(hoodie.includes('class="hdt-size-list'), false);
+  for (const size of ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL']) {
+    assert.match(hoodie, new RegExp(`name="Size" value="${size}"`));
+  }
+  assert.match(hoodie, /\$80\.00/);
+  assert.match(hoodie, /\$100\.00/);
+});
+
 test('homepage and shop do not show the flagged stairs or cream-logo frames', async () => {
   const { createThemeRenderer } = await import('./render-page.js');
   const themeRoot = fileURLToPath(new URL('../../theme', import.meta.url));
