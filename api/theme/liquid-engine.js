@@ -14,6 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { Liquid } from 'liquidjs';
+import { colorBrightness, colorDarken, colorLighten, colorMix, fontFaceCss } from './shopify-color.js';
 
 /** Shopify ships its template JSON with /* *\/ comments. */
 /**
@@ -370,6 +371,11 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
     return '$' + (n / 100).toFixed(2);
   };
 
+  engine.registerFilter('color_brightness', (value) => colorBrightness(value));
+  engine.registerFilter('color_lighten', (value, amount) => colorLighten(value, amount));
+  engine.registerFilter('color_darken', (value, amount) => colorDarken(value, amount));
+  engine.registerFilter('color_mix', (value, other, amount) => colorMix(value, other, amount));
+  engine.registerFilter('font_face', (variant) => fontFaceCss(variant));
   engine.registerFilter('money', money);
   // Shopify's time_tag prints a <time> in a strftime pattern. The journal
   // cards use "%b %d". Anything else falls back to that same short date.
@@ -604,7 +610,14 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
       stream.start();
     },
     * render(ctx, emitter) {
-      emitter.write('<form method="post" action="/cart/add">');
+      const kind = (String(this.args || '').match(/['"]([^'"]+)['"]/) || [])[1] || '';
+      // Product forms stay on the cart endpoint the theme's own JS posts to.
+      // Newsletter forms ({% form 'customer' %}) join the same list as the API.
+      const action = kind === 'customer' ? '/api/subscribe' : kind === 'contact' ? '/api/contact' : '/cart/add';
+      emitter.write(`<form method="post" action="${action}" accept-charset="UTF-8">`);
+      if (kind === 'customer') {
+        emitter.write('<input type="hidden" name="source" value="newsletter"><input type="hidden" name="formId" value="newsletter">');
+      }
       yield this.liquid.renderer.renderTemplates(this.tpls, ctx, emitter);
       emitter.write('</form>');
     },

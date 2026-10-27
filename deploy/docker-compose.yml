@@ -61,6 +61,8 @@ services:
       SHOP_EMAIL: ${SHOP_EMAIL:-}
       KLAVIYO_PRIVATE_API_KEY: ${KLAVIYO_PRIVATE_API_KEY:-}
       KLAVIYO_LIST_ID: ${KLAVIYO_LIST_ID:-}
+      # Public onsite id only. Blank means the theme does not load Klaviyo.js.
+      KLAVIYO_COMPANY_ID: ${KLAVIYO_COMPANY_ID:-}
       # Theme contact page. Blank hides the button and the chat embed.
       WHATSAPP_NUMBER: ${WHATSAPP_NUMBER:-}
       PUBLIC_WHATSAPP_NUMBER: ${PUBLIC_WHATSAPP_NUMBER:-}
@@ -68,6 +70,10 @@ services:
       CRISP_WEBSITE_ID: ${CRISP_WEBSITE_ID:-}
       TAWK_PROPERTY_ID: ${TAWK_PROPERTY_ID:-}
       TAWK_WIDGET_ID: ${TAWK_WIDGET_ID:-}
+      # A real profile URL or a bare handle. Blank hides the Instagram link.
+      INSTAGRAM_URL: ${INSTAGRAM_URL:-}
+      VITE_INSTAGRAM_URL: ${VITE_INSTAGRAM_URL:-}
+      VITE_INSTAGRAM: ${VITE_INSTAGRAM:-}
     networks: [otrace-internal, scalaro-net]
 
 volumes:

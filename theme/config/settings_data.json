@@ -107,6 +107,8 @@
     "search_fullwidth": true,
     "products_suggest": [],
     "currency_type": "1",
+    "auto_currency": false,
+    "login_sidebar": false,
     "currency_code_enabled": true,
     "flag_currency": true,
     "round_currency": true,

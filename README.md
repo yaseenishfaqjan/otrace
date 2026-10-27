@@ -6,10 +6,16 @@ own folder, own dependencies, own database, own Stripe account.
 ```
 otrace/
   assets/      source imagery + the scripts that generated and processed it
-  site/        React + Vite storefront (mobile-first)
-  api/         Express + Stripe + MySQL backend
+  site/        React + Vite source the SEO copy was ported from
+  api/         Express + Stripe + MySQL, and the Kalles theme storefront
+  theme/       Kalles Liquid theme the API renders
   deploy/      docker-compose, nginx, .env.example
 ```
+
+Public pages (shop, products, journal, legal, order success, robots, sitemap,
+llms.txt, product photos) are served by the API theme. `site/` is no longer
+required for that traffic. Apply routes with `sh deploy/apply-nginx-routes.sh`.
+Stop the React container only after the checks in `deploy/stop-otrace-web.md`.
 
 ## Run it locally
 
@@ -51,8 +57,9 @@ SEO / AEO / GEO notes, the query research, and the change log live in `seo/`.
    reduced from $200.
 6. List and fit capture. See `seo/LEAD-CAPTURE.md`. The API stores signups in
    MySQL either way. Set `KLAVIYO_PRIVATE_API_KEY` and `KLAVIYO_LIST_ID` on the
-   API, then rebuild the storefront with `VITE_WHATSAPP_NUMBER` (E.164 digits,
-   no plus; `PUBLIC_WHATSAPP_NUMBER` is an alias) and `VITE_INSTAGRAM` (or
-   `VITE_INSTAGRAM_URL`) only when those are real. If the WhatsApp number is
-   unset, the “Ask about fit” button is hidden. If Instagram is unset, the
-   footer icon is hidden. Neither is invented in the repo.
+   API. Optional and blank by default: `KLAVIYO_COMPANY_ID` (onsite script, not
+   the private key), `WHATSAPP_NUMBER` (E.164 digits, no plus;
+   `PUBLIC_WHATSAPP_NUMBER` and `VITE_WHATSAPP_NUMBER` are aliases),
+   `INSTAGRAM_URL` or `VITE_INSTAGRAM` (a real URL or a bare handle),
+   `CRISP_WEBSITE_ID`, or `TAWK_PROPERTY_ID` plus `TAWK_WIDGET_ID`. Empty
+   values hide the control. None of them are invented in the repo.
