@@ -294,6 +294,29 @@ export function createThemeRenderer({
     return out.join('\n');
   }
 
+  /** Quick view / quick add: the theme fetches products/<handle>?view=only_config. */
+  async function renderProductConfig(product) {
+    const shaped = toShopifyProduct(product, { siteUrl });
+    const globals = withGlobals({
+      request: { ...REQUEST, page_type: 'product' },
+      product: shaped,
+      template: { name: 'product', suffix: 'only_config' },
+    });
+    const content = await renderTemplate('product.only_config', {
+      product: shaped,
+      request: globals.request,
+      template: globals.template,
+      collection: null,
+      canonical_url: `${siteUrl}/product/${shaped.handle}`,
+    }, globals);
+    // Shopify adds each section schema's "class" to its wrapper; the theme's
+    // quick view script looks the modal markup up by those classes.
+    const classed = content
+      .replace('class="shopify-section shopify-section-main-quick-view"', 'class="shopify-section shopify-section-main-quick-view hdt-main-section hdt-main-section--quick-view hdt-quick-view-modal"')
+      .replace('class="shopify-section shopify-section-main-quick-add"', 'class="shopify-section shopify-section-main-quick-add hdt-main-section hdt-main-section--quick-add hdt-quick-add-modal"');
+    return `<!doctype html><html><body><div id="hdt-page-product-config">${classed}</div></body></html>`;
+  }
+
   async function renderProduct(product) {
     const shaped = toShopifyProduct(product, { siteUrl });
     const url = `${siteUrl}/product/${shaped.handle}`;
@@ -424,5 +447,5 @@ export function createThemeRenderer({
     return renderThemeFile(engine, themeRoot, 'layout', 'theme', scope, globals);
   }
 
-  return { engine, renderTemplate, renderProduct, renderCollection, renderPage, wrap, settings };
+  return { engine, renderTemplate, renderProduct, renderProductConfig, renderCollection, renderPage, wrap, settings };
 }

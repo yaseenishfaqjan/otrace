@@ -388,6 +388,23 @@ app.get('/api/theme-preview/products/:handle.js', (req, res) => {
   res.json(toShopifyProduct(product, { siteUrl: SITE_URL }));
 });
 
+// Quick view / quick add modal markup (Shopify's ?view=only_config).
+app.get('/api/theme-preview/products/:handle', async (req, res, next) => {
+  if (req.params.handle.endsWith('.js')) return next();
+  if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
+  const product = findBySlug(req.params.handle);
+  if (!product) return res.status(404).send('No such product.');
+  try {
+    const html = await themeRenderer.renderProductConfig(product);
+    res.set('Content-Type', 'text/html; charset=utf-8');
+    res.set('X-Robots-Tag', 'noindex, nofollow');
+    res.send(html);
+  } catch (err) {
+    console.error('[theme] quick view render failed:', err.message);
+    res.status(500).send('Theme render failed: ' + err.message);
+  }
+});
+
 app.get('/api/theme-preview/cart.js', (req, res) => {
   res.json(cartJson(cartLines(req), { siteUrl: SITE_URL }));
 });
