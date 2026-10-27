@@ -17,6 +17,9 @@ __pycache__/
 Thumbs.db
 *.log
 
+# Per-visitor theme carts, if THEME_CART_FILE is pointed at the repo.
+otrace-theme-carts.json
+
 # ---------------------------------------------------------------------------
 # Generated image intermediates - DELIBERATELY NOT COMMITTED.
 #
