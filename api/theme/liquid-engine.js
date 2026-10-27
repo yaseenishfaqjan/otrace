@@ -589,7 +589,11 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
               blocks: blockList(block.blocks, block.block_order),
             },
           };
-          emitter.write(yield renderThemeFile(engine, themeRoot, 'blocks', type, childScope));
+          // Snippets rendered from a block ({% render 'media' %}) only see globals.
+          // product is a per-request global, not an engine default. Dropping it
+          // here leaves the gallery unable to name a frame's colour, so every
+          // slide stays hidden and the swatch cannot change the photo.
+          emitter.write(yield renderThemeFile(engine, themeRoot, 'blocks', type, childScope, ctx.globals));
         } catch {
           // A block the theme ships but we cannot resolve is skipped rather
           // than fatal - one missing block must not blank the page.

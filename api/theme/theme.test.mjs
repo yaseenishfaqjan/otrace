@@ -7,7 +7,7 @@ import { PRODUCTS, SET_TOTAL_CENTS } from '../catalog.js';
 import { addLine, cartJson, changeLine, decodeVariantId } from './cart.js';
 import { parseFormBody } from './form-body.js';
 import { parseThemeJson, resolveLinkListSettings, stripJsonComments } from './liquid-engine.js';
-import { resolveThemeProductSettings, themeSettings, toShopifyProduct } from './shopify-shape.js';
+import { resolveThemeProductSettings, selectShopifyVariant, themeSettings, toShopifyProduct } from './shopify-shape.js';
 
 const SITE = 'https://otrace.co';
 
@@ -273,6 +273,54 @@ test('the shaped product prices the offer the way the page states it', () => {
   assert.equal(shaped.variants.length, product.sizes.length * product.colours.length);
 });
 
+test('each colour owns its own photos, and the product page leads with the sharpest', () => {
+  for (const [sku, featured] of [
+    ['OT-HOOD', { 'Onyx Black': 'hoodie-onyx-worn-front.jpg', 'Warm Cream': 'hoodie-cream-worn-front.jpg' }],
+    ['OT-PANT', { 'Onyx Black': 'pant-onyx-worn.jpg', 'Warm Cream': 'pant-cream-worn.jpg' }],
+  ]) {
+    const product = PRODUCTS[sku];
+    const shaped = toShopifyProduct(product, { siteUrl: SITE, featureSharpest: true });
+    assert.equal(JSON.stringify(shaped.variants) && true, true, `${sku} variant JSON must not cycle`);
+    const group = shaped.metafields.theme.group_media_obj.value;
+    assert.equal(group.length, shaped.media.length, `${sku} groups every frame`);
+
+    for (const [colour, file] of Object.entries(featured)) {
+      const variant = shaped.variants.find((v) => v.option1 === colour && v.option2 === 'S');
+      assert.match(variant.featured_media.src, new RegExp(file));
+      assert.match(variant.featured_image.src, new RegExp(file));
+      assert.equal(variant.featured_media.id, variant.featured_image.id);
+      const colourIndex = product.colours.indexOf(colour);
+      const ids = new Set(group.filter((row) => row.value === colourIndex).map((row) => row.mid));
+      const shots = shaped.media.filter((item) => ids.has(item.id));
+      assert.ok(shots.length >= 3, `${sku} ${colour} should keep its gallery`);
+      assert.ok(shots.every((item) => item.src.includes(colour === 'Onyx Black' ? 'onyx' : 'cream')));
+      assert.ok(shots.every((item) => !item.src.includes(colour === 'Onyx Black' ? 'cream' : 'onyx')));
+      // The soft flat stays in the gallery; it is just not the frame the swatch opens on.
+      const soft = sku === 'OT-HOOD'
+        ? (colour === 'Onyx Black' ? 'hoodie-onyx-back.jpg' : 'hoodie-cream-back.jpg')
+        : (colour === 'Onyx Black' ? 'pant-onyx-back.jpg' : 'pant-cream-back.jpg');
+      assert.ok(shots.some((item) => item.src.includes(soft)), `${soft} was dropped`);
+    }
+  }
+
+  // Shop cards are one colour and keep the logo flat as the card image.
+  const onyx = PRODUCTS['OT-HOOD'].colorways[0];
+  const card = toShopifyProduct(
+    { ...PRODUCTS['OT-HOOD'], images: onyx.images, colours: [onyx.name] },
+    { siteUrl: SITE },
+  );
+  assert.match(card.featured_media.src, /hoodie-onyx-front\.jpg/);
+  assert.match(card.media[1].src, /hoodie-onyx-back\.jpg/);
+
+  const cream = selectShopifyVariant(
+    toShopifyProduct(PRODUCTS['OT-HOOD'], { siteUrl: SITE, featureSharpest: true }),
+    'OT-HOOD-warm-cream-xs',
+  );
+  assert.equal(cream.selected_or_first_available_variant.id, 'OT-HOOD-warm-cream-xs');
+  assert.match(cream.media[0].src, /hoodie-cream-worn-front\.jpg/);
+  assert.match(cream.featured_media.src, /hoodie-cream/);
+});
+
 test('demo product handles do not survive as suggestion cards', () => {
   const schema = [{
     settings: [
@@ -418,6 +466,9 @@ test('quick view and the product page can add the chosen variant', async () => {
   assert.match(pdp, /name="Color" value="Onyx Black"[^>]*checked/);
   assert.match(pdp, /name="Size" value="XS"[^>]*checked/);
   assert.doesNotMatch(pdp, /name="Size" value="M"[^>]*checked/);
+  assert.match(pdp, /can-has-media-group/);
+  assert.match(pdp, /data-mdid="\d+"/);
+  assert.match(pdp, /update-when-variant-change/);
 
   // The browser posts multipart FormData. The size the customer picked has to
   // survive that parse, and the drawer HTML has to come back with the line.
@@ -442,4 +493,60 @@ test('quick view and the product page can add the chosen variant', async () => {
 
   const gone = changeLine(lines, 'OT-HOOD-onyx-black-m', 0);
   assert.equal(gone.length, 0);
+});
+
+function mainSlides(html) {
+  const slides = [];
+  const re = /<div\s+([^>]*hdt-product__media-item[^>]*)>[\s\S]*?<img[^>]*src="([^"]+)"/g;
+  let match;
+  while ((match = re.exec(html))) {
+    slides.push({
+      attrs: match[1],
+      src: match[2],
+      hidden: /(?:^|\s)hidden(?:\s|$)/.test(match[1]),
+      group: /data-group-value="([^"]*)"/.exec(match[1])?.[1] ?? '',
+      id: /data-media-id="([^"]*)"/.exec(match[1])?.[1] ?? '',
+    });
+  }
+  return slides;
+}
+
+test('a colour link shows that colour’s photos and submits that variant', async () => {
+  const { createThemeRenderer } = await import('./render-page.js');
+  const themeRoot = fileURLToPath(new URL('../../theme', import.meta.url));
+  const renderer = createThemeRenderer({
+    themeRoot,
+    siteUrl: SITE,
+    assetBase: '/api/theme-assets',
+    routesRoot: '/api/theme-preview/',
+  });
+
+  const cases = [
+    ['OT-HOOD', 'OT-HOOD-warm-cream-xs', 'Warm Cream', 'XS', 'hoodie-cream-worn-front.jpg', 'hoodie-onyx'],
+    ['OT-HOOD', 'OT-HOOD-onyx-black-s', 'Onyx Black', 'S', 'hoodie-onyx-worn-front.jpg', 'hoodie-cream'],
+    ['OT-PANT', 'OT-PANT-warm-cream-m', 'Warm Cream', 'M', 'pant-cream-worn.jpg', 'pant-onyx'],
+    ['OT-PANT', 'OT-PANT-onyx-black-xl', 'Onyx Black', 'XL', 'pant-onyx-worn.jpg', 'pant-cream'],
+  ];
+
+  for (const [sku, id, colour, size, lead, other] of cases) {
+    const html = await renderer.renderProduct(PRODUCTS[sku], { variantId: id });
+    assert.match(html, new RegExp(`name="Color" value="${colour}"[^>]*checked`), id);
+    assert.match(html, new RegExp(`name="Size" value="${size}"[^>]*checked`), id);
+    assert.match(html, new RegExp(`name="id" value="${id}"`), id);
+    assert.match(html, new RegExp(`update-url="${id}"`), id);
+    assert.match(html, /\$80\.00/);
+    assert.match(html, /\$100\.00/);
+
+    const slides = mainSlides(html);
+    assert.ok(slides.length >= 3, `${id} rendered no gallery`);
+    const visible = slides.filter((slide) => !slide.hidden);
+    const hidden = slides.filter((slide) => slide.hidden);
+    assert.ok(visible.length, `${id} hid every frame`);
+    assert.ok(hidden.length, `${id} still shows both colours`);
+    assert.ok(visible.every((slide) => slide.group === colour), `${id} visible groups: ${visible.map((s) => s.group).join(',')}`);
+    assert.ok(visible.every((slide) => !slide.src.includes(other)), `${id} visible src leaked ${other}`);
+    assert.match(visible[0].src, new RegExp(lead));
+    const mdid = visible[0].id;
+    assert.match(html, new RegExp(`data-mdid="${mdid}"[^>]*value="${id}"`));
+  }
 });

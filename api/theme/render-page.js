@@ -24,7 +24,7 @@ import {
   resolveLinkListSettings,
   wrapSection,
 } from './liquid-engine.js';
-import { resolveThemeProductSettings, toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
+import { resolveThemeProductSettings, selectShopifyVariant, toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
 import { PRODUCTS } from '../catalog.js';
 import { POSTS } from '../../site/src/content/posts.mjs';
 import { chatEmbed, faqHtml, faqsForSlug, klaviyoOnsite } from './pages.js';
@@ -337,8 +337,11 @@ export function createThemeRenderer({
   }
 
   /** Quick view / quick add: the theme fetches products/<handle>?view=only_config. */
-  async function renderProductConfig(product) {
-    const shaped = toShopifyProduct(product, { siteUrl });
+  async function renderProductConfig(product, { variantId } = {}) {
+    const shaped = selectShopifyVariant(
+      toShopifyProduct(product, { siteUrl, featureSharpest: true }),
+      variantId,
+    );
     const globals = withGlobals({
       request: { ...REQUEST, page_type: 'product' },
       product: shaped,
@@ -359,8 +362,11 @@ export function createThemeRenderer({
     return `<!doctype html><html><body><div id="hdt-page-product-config">${classed}</div></body></html>`;
   }
 
-  async function renderProduct(product) {
-    const shaped = toShopifyProduct(product, { siteUrl });
+  async function renderProduct(product, { variantId } = {}) {
+    const shaped = selectShopifyVariant(
+      toShopifyProduct(product, { siteUrl, featureSharpest: true }),
+      variantId,
+    );
     const url = `${siteUrl}/product/${shaped.handle}`;
     // Snippets read `request.page_type` and `product` through {% render %},
     // which sees globals only - so both belong here, not just in the scope.

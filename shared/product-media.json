@@ -1,5 +1,5 @@
 {
-  "_comment": "Single source for product colourways and photography. api/catalog.js and site/src/lib/products.ts BOTH read this file; neither restates it. Paths are relative to the site's public root. width/height are the files' real pixel sizes: the theme sizes every media slot from the aspect ratio, so an image with no dimensions renders at HEIGHT ZERO - present in the DOM, loaded over the network, and invisible.",
+  "_comment": "Single source for product colourways and photography. api/catalog.js reads this file. Paths are relative to the site's public root. width/height are the files' real pixel sizes: the theme sizes every media slot from the aspect ratio, so an image with no dimensions renders at HEIGHT ZERO - present in the DOM, loaded over the network, and invisible. featured:true is the sharpest EXISTING file for that colour (compared in place, not upscaled). The product page leads with it. Shop cards keep file order: logo front, then back.",
   "OT-HOOD": {
     "colorways": [
       {
@@ -24,6 +24,7 @@
             "src": "/products/hoodie-onyx-worn-front.jpg",
             "label": "Worn",
             "alt": "Model wearing the OTRACE oversized hoodie in Onyx Black",
+            "featured": true,
             "width": 819,
             "height": 1024
           },
@@ -58,6 +59,7 @@
             "src": "/products/hoodie-cream-worn-front.jpg",
             "label": "Worn",
             "alt": "Model wearing the OTRACE oversized hoodie in Warm Cream",
+            "featured": true,
             "width": 819,
             "height": 1024
           },
@@ -96,6 +98,7 @@
             "src": "/products/pant-onyx-worn.jpg",
             "label": "Worn",
             "alt": "Model wearing the OTRACE wide-leg sweatpant in Onyx Black",
+            "featured": true,
             "width": 819,
             "height": 1024
           }
@@ -123,6 +126,7 @@
             "src": "/products/pant-cream-worn.jpg",
             "label": "Worn",
             "alt": "Model wearing the OTRACE wide-leg sweatpant in Warm Cream",
+            "featured": true,
             "width": 819,
             "height": 1024
           }

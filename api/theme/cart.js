@@ -352,10 +352,13 @@ export function cartJson(lines, { siteUrl = '', token } = {}) {
     const shaped = toShopifyProduct(product, { siteUrl });
     const id = variantIdFor(row.sku, row.colour, row.size);
     const original = product.priceCents * row.quantity;
-    const image =
-      shaped.images.find((i) =>
+    const variant = shaped.variants.find((v) => v.id === id);
+    const image = variant?.featured_image
+      ?? shaped.images.find((i) =>
         String(i.alt).toLowerCase().includes(String(row.colour).toLowerCase()),
-      ) ?? shaped.images[0] ?? null;
+      )
+      ?? shaped.images[0]
+      ?? null;
 
     return {
       id,
