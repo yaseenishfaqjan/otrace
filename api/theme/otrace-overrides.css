@@ -437,9 +437,9 @@ hdt-card-product.hdt-card-product .hdt-pr_btn :is(
   background-color: #f4f1eb;
 }
 
-/* QA 2026-10-27: every size is in stock, but the card's size list cannot
- * match the catalogue's variants and flags them all "unavailable" (struck
- * through, like sold out). Show them as available; the PDP still enforces stock. */
+/* Card size overlays are off (settings.size_mode = hide). If a list is
+ * rendered again, do not strike every size as sold out: the catalogue match
+ * used to flag them all unavailable. The product page still enforces stock. */
 .hdt-size-list .hdt-size-list-item[unavailable] { text-decoration: none !important; opacity: 1 !important; color: inherit !important; }
 .hdt-size-list .hdt-size-list-item[unavailable]::before,
 .hdt-size-list .hdt-size-list-item[unavailable]::after { display: none !important; }
