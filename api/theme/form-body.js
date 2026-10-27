@@ -58,6 +58,9 @@ export function parseFormBody(raw, contentType = '') {
 
 /** Express middleware: buffer the raw body for the cart routes only. */
 export const rawBodyFor = (limitBytes = 64 * 1024) => (req, res, next) => {
+  // express.json() runs first and has already drained a JSON body; waiting
+  // for "end" again would hang the request until the proxy times out.
+  if (req._body || req.readableEnded) { if (!req.body || typeof req.body !== "object") req.body = {}; return next(); }
   const chunks = [];
   let size = 0;
   req.on('data', (c) => {
