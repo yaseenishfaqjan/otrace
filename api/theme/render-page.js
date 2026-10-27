@@ -93,7 +93,7 @@ export function createThemeRenderer({
   };
   const ROUTES = {
     root: routesRoot, cart_url: `${routesRoot}cart`, cart_add_url: `${routesRoot}cart/add`,
-    cart_change_url: '/cart/change', cart_update_url: '/cart/update',
+    cart_change_url: `${routesRoot}cart/change`, cart_update_url: `${routesRoot}cart/update`,
     search_url: '/search', predictive_search_url: '/search/suggest',
     all_products_collection_url: '/shop', account_url: '/account',
   };

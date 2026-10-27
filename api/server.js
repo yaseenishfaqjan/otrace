@@ -40,16 +40,8 @@ import { createThemeRenderer } from './theme/render-page.js';
 import { toShopifyProduct } from './theme/shopify-shape.js';
 import { PAGES, pageContent } from './theme/pages.js';
 import { mountStorefront } from './theme/mount-storefront.js';
-import {
-  CART_COOKIE,
-  addLine,
-  cartJson,
-  changeLine,
-  decodeVariantId,
-  readCartCookie,
-  writeCartCookie,
-} from './theme/cart.js';
-import { rawBodyFor } from './theme/form-body.js';
+import { getThemeCartStore } from './theme/cart.js';
+import { mountCartRoutes } from './theme/cart-routes.js';
 import { createCheckoutSession } from './checkout-session.js';
 
 const {
@@ -366,53 +358,6 @@ if (fs.existsSync(THEME_ROOT)) {
 
 /* ---- Shopify AJAX endpoints the theme's own JS calls ---- */
 
-/** Parse one cookie without pulling in a dependency for it. */
-const readCookie = (req, name) =>
-  String(req.headers.cookie || '')
-    .split(';')
-    .map((c) => c.trim())
-    .find((c) => c.startsWith(name + '='))
-    ?.slice(name.length + 1);
-
-/** Section ids the theme asked to re-render, from a JSON body or a form field. */
-const requestedSections = (body) => {
-  const raw = body?.sections ?? body?.section_id;
-  const list = Array.isArray(raw) ? raw : String(raw ?? '').split(',');
-  const ids = list.map((id) => String(id).trim()).filter(Boolean);
-  // The drawer always reads sections["cart-drawer"]. Include it when the
-  // caller did not name one, so an add still refreshes the basket.
-  if (!ids.length) ids.push('cart-drawer');
-  return ids;
-};
-
-const cartWantsJson = (req) => {
-  if (/xmlhttprequest/i.test(String(req.get('x-requested-with') || ''))) return true;
-  if (String(req.headers['content-type'] || '').includes('application/json')) return true;
-  if (String(req.headers.accept || '').includes('application/json')) return true;
-  return req.body?.sections != null;
-};
-
-const sendCart = async (req, res, lines) => {
-  const payload = writeCartCookie(lines);
-  res.cookie
-    ? res.cookie(CART_COOKIE, payload, { httpOnly: true, sameSite: 'lax', path: '/' })
-    : res.setHeader('Set-Cookie', `${CART_COOKIE}=${payload}; Path=/; HttpOnly; SameSite=Lax`);
-  // A no-JS product form posts here and expects a page, not JSON.
-  if (!cartWantsJson(req)) return res.redirect(303, '/cart');
-  const cart = cartJson(lines, { siteUrl: SITE_URL });
-  let sections = {};
-  if (themeRenderer?.renderCartSections) {
-    try {
-      sections = await themeRenderer.renderCartSections(cart, requestedSections(req.body));
-    } catch (err) {
-      console.error('[theme] cart sections failed:', err.message);
-    }
-  }
-  res.json({ ...cart, sections });
-};
-
-const cartLines = (req) => readCartCookie(readCookie(req, CART_COOKIE));
-
 app.get('/api/theme-preview/products/:handle.js', (req, res) => {
   const product = findBySlug(req.params.handle);
   if (!product) return res.status(404).json({ error: 'not found' });
@@ -436,47 +381,6 @@ app.get('/api/theme-preview/products/:handle', async (req, res, next) => {
   }
 });
 
-app.get('/api/theme-preview/cart.js', (req, res) => {
-  res.json(cartJson(cartLines(req), { siteUrl: SITE_URL }));
-});
-
-app.post('/api/theme-preview/cart/add.js', rawBodyFor(), async (req, res) => {
-  const body = req.body || {};
-  // Shopify accepts one item or an items[] array; the theme sends both shapes.
-  const incoming = Array.isArray(body.items) ? body.items : [body];
-  let lines = cartLines(req);
-  for (const item of incoming) {
-    const decoded = decodeVariantId(item.id ?? item.variant_id);
-    if (!decoded) return res.status(422).json({ status: 422, message: 'Cannot find variant' });
-    const quantity = Math.min(10, Math.max(1, Number.parseInt(item.quantity, 10) || 1));
-    lines = addLine(lines, { ...decoded, quantity });
-  }
-  await sendCart(req, res, lines);
-});
-
-app.post('/api/theme-preview/cart/change.js', rawBodyFor(), async (req, res) => {
-  const body = req.body || {};
-  const quantity = Math.min(10, Math.max(0, Number.parseInt(body.quantity, 10) || 0));
-  await sendCart(req, res, changeLine(cartLines(req), body.id ?? body.line, quantity));
-});
-
-app.post('/api/theme-preview/cart/update.js', rawBodyFor(), async (req, res) => {
-  const updates = (req.body || {}).updates || {};
-  let lines = cartLines(req);
-  for (const [variantId, qty] of Object.entries(updates)) {
-    lines = changeLine(lines, variantId, Math.min(10, Math.max(0, Number.parseInt(qty, 10) || 0)));
-  }
-  await sendCart(req, res, lines);
-});
-
-/**
- * The theme's cart form posts here.
- *
- * Shopify's /cart accepts a POST from the cart form and, when the submit
- * button is named "checkout", sends the customer on to the payment page. The
- * form is a plain POST and not fetch(), so the answer has to be a redirect -
- * returning JSON here leaves the customer looking at raw JSON.
- */
 const sendThemeHtml = (res, html, { noindex = false } = {}) => {
   res.set('Content-Type', 'text/html; charset=utf-8');
   if (noindex) res.set('X-Robots-Tag', 'noindex, nofollow');
@@ -549,43 +453,14 @@ app.get('/api/theme-preview/shop/:handle?', async (req, res) => {
   }
 });
 
-app.get('/api/theme-preview/cart', async (req, res) => {
-  if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
-  try {
-    sendThemeHtml(res, await themeRenderer.renderPage('cart', {
-      cart: cartJson(cartLines(req), { siteUrl: SITE_URL }),
-      title: 'Your cart',
-      page_title: 'Your cart — OTRACE',
-      noindex: true,
-      canonical_path: '/cart',
-    }), { noindex: true });
-  } catch (err) {
-    console.error('[theme] cart render failed:', err.message);
-    res.status(500).send('Theme render failed: ' + err.message);
-  }
-});
-
-app.post('/api/theme-preview/cart', rawBodyFor(), async (req, res) => {
-  const lines = cartLines(req);
-  const wantsCheckout = Object.prototype.hasOwnProperty.call(req.body || {}, 'checkout');
-
-  if (!wantsCheckout) {
-    // An "update cart" submit: apply the quantities and show the cart again.
-    return res.redirect(303, THEME_ROUTES_ROOT + 'cart');
-  }
-
-  try {
-    const { session, error } = await createCheckoutSession(stripe, lines, { siteUrl: SITE_URL });
-    if (error) {
-      console.warn('[theme checkout] refused:', error);
-      return res.status(400).send(error);
-    }
-    console.log(`[theme checkout] session ${session.id} for ${formatMoney(session.amount_total ?? 0)}`);
-    res.redirect(303, session.url);
-  } catch (err) {
-    console.error('[theme checkout] failed:', err.message);
-    res.status(500).send('Checkout could not start. Please try again.');
-  }
+mountCartRoutes(app, {
+  store: getThemeCartStore(),
+  siteUrl: SITE_URL,
+  routesRoot: THEME_ROUTES_ROOT,
+  themeRenderer,
+  sendThemeHtml,
+  createCheckoutSession,
+  stripe,
 });
 
 mountStorefront(app, {

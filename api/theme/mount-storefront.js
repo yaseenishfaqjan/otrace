@@ -2,7 +2,7 @@
  * Public routes that used to live only on the React storefront.
  * Nginx sends the same paths here. The theme renderer draws the HTML.
  */
-import { cartJson, writeCartCookie, CART_COOKIE } from './cart.js';
+import { clearThemeCart } from './cart.js';
 import { publicBody } from './discovery.js';
 import { findPost, journalBlurb, journalIndexHtml, journalPostHtml } from './journal.js';
 import { pageContent, standalonePage } from './pages.js';
@@ -84,7 +84,7 @@ export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl }) 
   });
 
   app.get(['/api/theme-preview/order/success', '/order/success'], async (req, res) => {
-    res.cookie(CART_COOKIE, writeCartCookie([]), { httpOnly: true, sameSite: 'lax', path: '/' });
+    clearThemeCart(req, res);
     await renderStandalone(res, 'order-success');
   });
 
