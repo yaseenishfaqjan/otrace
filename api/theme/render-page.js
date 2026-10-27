@@ -561,5 +561,66 @@ export function createThemeRenderer({
     return renderThemeFile(engine, themeRoot, 'layout', 'theme', scope, globals);
   }
 
-  return { engine, renderTemplate, renderProduct, renderProductConfig, renderCollection, renderPage, wrap, settings };
+  /**
+   * Shopify's cart AJAX responses include `sections`: HTML for each section id
+   * the theme asked for. The cart drawer parses `sections[section-id]` and
+   * throws if it is missing, which is what makes Add to cart look like a no-op.
+   *
+   * cart-drawer lives in the system group. main-cart lives on the cart template.
+   * The drawer liquid renders nothing when page_type is cart, so this render
+   * always uses a product page type.
+   */
+  async function renderCartSections(cart, sectionIds) {
+    const ids = [...new Set(
+      (Array.isArray(sectionIds) ? sectionIds : [sectionIds])
+        .map((id) => String(id ?? '').replace(/[^A-Za-z0-9_-]/g, '').slice(0, 80))
+        .filter(Boolean),
+    )].slice(0, 6);
+    const maps = [];
+    try {
+      maps.push(readThemeJson(path.join(themeRoot, 'sections', 'system-group.json')).sections || {});
+    } catch { /* no system group */ }
+    try {
+      maps.push(readThemeJson(path.join(themeRoot, 'templates', 'cart.json')).sections || {});
+    } catch { /* no cart template */ }
+    const found = Object.assign({}, ...maps);
+    const request = { ...REQUEST, page_type: 'product' };
+    const sections = {};
+    for (const id of ids) {
+      const sec = found[id];
+      if (!sec?.type) continue;
+      const schema = readSchema(themeRoot, 'sections', sec.type);
+      const scope = {
+        ...baseScope(),
+        cart,
+        request,
+        section: {
+          id,
+          settings: resolveLinkListSettings(
+            schema, sec.settings ?? {}, LINKLISTS, themeRoot, BLOGS, PRODUCTS_BY_HANDLE,
+          ),
+          blocks: blockList(sec.blocks, sec.block_order),
+        },
+      };
+      try {
+        sections[id] = wrapSection(
+          id,
+          sec.type,
+          await renderThemeFile(engine, themeRoot, 'sections', sec.type, scope, withGlobals({
+            cart,
+            request,
+            section: scope.section,
+          })),
+        );
+      } catch (err) {
+        console.warn(`[theme] cart section "${id}" failed: ${String(err.message).split('\n')[0]}`);
+      }
+    }
+    return sections;
+  }
+
+  return {
+    engine, renderTemplate, renderProduct, renderProductConfig, renderCollection,
+    renderPage, renderCartSections, wrap, settings,
+  };
 }

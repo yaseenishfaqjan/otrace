@@ -8,25 +8,43 @@
  * would. Prices are in cents, as Shopify Liquid expects, and come from
  * api/catalog.js - the one place that decides what anything costs.
  */
+import { Drop } from 'liquidjs';
 import { applyThemeColorAndFont, swatchFor } from './shopify-color.js';
 
 const handleize = (s) =>
   String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
 /**
- * Option values have to be string-like AND carry `.available`.
+ * Option values have to print as the label, compare equal to that label, and
+ * still carry `.available` and `.swatch`.
  *
- * A plain string has no `.available`, so the variant picker treats every size
- * and colour as sold out and adds `is-unavailable` plus "Variant sold out".
- * `new String` prints as the label and still holds the flag.
+ * A plain string has no `.available`, so the picker marks every size sold out.
+ * `new String` keeps the flag but LiquidJS `==` does not treat it as the
+ * label, so the selected colour and size never render `checked`. The picker
+ * then ignores a size click until the colour is clicked too, and Add to cart
+ * keeps submitting the first variant.
  */
+class OptionValue extends Drop {
+  constructor(label) {
+    super();
+    this.label = String(label);
+    this.available = true;
+    this.variant = { available: true };
+    const swatch = swatchFor(label);
+    if (swatch) this.swatch = swatch;
+  }
+
+  *equals(value) {
+    const other = value && typeof value === 'object' && value.label ? value.label : value;
+    return String(other ?? '') === this.label;
+  }
+
+  valueOf() { return this.label; }
+  toString() { return this.label; }
+}
+
 function optionValue(label) {
-  const value = new String(label);
-  value.available = true;
-  value.variant = { available: true };
-  const swatch = swatchFor(label);
-  if (swatch) value.swatch = swatch;
-  return value;
+  return new OptionValue(label);
 }
 
 export function toShopifyProduct(p, { siteUrl = '' } = {}) {
