@@ -382,6 +382,28 @@ const sendCart = (req, res, lines) => {
 
 const cartLines = (req) => readCartCookie(readCookie(req, CART_COOKIE));
 
+/**
+ * Quick view and quick add.
+ *
+ * The theme fetches `${routes.root}products/<handle>?view=only_config` and
+ * drops `.hdt-main-section--quick-view` into the modal. Without this route
+ * that request 404s and the modal stays empty.
+ */
+app.get('/api/theme-preview/products/:handle', async (req, res) => {
+  if (String(req.query.view || '') !== 'only_config') {
+    return res.status(404).send('No such product view.');
+  }
+  if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
+  const product = findBySlug(req.params.handle);
+  if (!product) return res.status(404).send('No such product.');
+  try {
+    sendThemeHtml(res, await themeRenderer.renderProduct(product, { view: 'only_config' }));
+  } catch (err) {
+    console.error('[theme] quick view render failed:', err.message);
+    res.status(500).send('Theme render failed: ' + err.message);
+  }
+});
+
 app.get('/api/theme-preview/products/:handle.js', (req, res) => {
   const product = findBySlug(req.params.handle);
   if (!product) return res.status(404).json({ error: 'not found' });

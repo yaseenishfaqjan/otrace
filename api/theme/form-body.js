@@ -56,8 +56,25 @@ export function parseFormBody(raw, contentType = '') {
   }
 }
 
-/** Express middleware: buffer the raw body for the cart routes only. */
+/**
+ * Express middleware: buffer the raw body for the cart routes only.
+ *
+ * express.json() is mounted first and consumes application/json. The cart
+ * quantity and remove controls post JSON (`cart/change.js`, `cart/update.js`).
+ * Listening for `end` after that parser has already finished never fires, so
+ * the request sits open until nginx answers 504. A body that is already an
+ * object is that parsed JSON; use it and do not read the stream again.
+ */
 export const rawBodyFor = (limitBytes = 64 * 1024) => (req, res, next) => {
+  const type = String(req.headers?.['content-type'] || '');
+  const alreadyParsed =
+    req.body && typeof req.body === 'object' && !Buffer.isBuffer(req.body);
+  if (alreadyParsed && type.includes('application/json')) return next();
+  if (req.readableEnded || req.complete) {
+    const raw = typeof req.body === 'string' ? req.body : '';
+    req.body = parseFormBody(raw, type);
+    return next();
+  }
   const chunks = [];
   let size = 0;
   req.on('data', (c) => {

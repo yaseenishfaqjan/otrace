@@ -277,6 +277,10 @@ export function createThemeRenderer({
         },
       };
       try {
+        // Alternate templates (product.only_config) are fetched as a fragment.
+        // The theme's quick view looks up the section by the class in its
+        // schema, which the ordinary shop wrapper does not carry.
+        const sectionClass = String(templateName).includes('.') ? (schema?.class || '') : '';
         out.push(
           wrapSection(
             key,
@@ -285,6 +289,7 @@ export function createThemeRenderer({
               ...withGlobals(globals),
               section: scope.section,
             }),
+            sectionClass,
           ),
         );
       } catch (err) {
@@ -294,9 +299,14 @@ export function createThemeRenderer({
     return out.join('\n');
   }
 
-  async function renderProduct(product) {
+  async function renderProduct(product, options = {}) {
     const shaped = toShopifyProduct(product, { siteUrl });
     const url = `${siteUrl}/product/${shaped.handle}`;
+    // Quick view fetches `products/<handle>?view=only_config` and inserts
+    // `.hdt-main-section--quick-view`. Leave the suffix unset: when the
+    // section believes it IS that template it renders an empty modal shell
+    // instead of the product.
+    const onlyConfig = options.view === 'only_config';
     // Snippets read `request.page_type` and `product` through {% render %},
     // which sees globals only - so both belong here, not just in the scope.
     const globals = withGlobals({
@@ -304,13 +314,16 @@ export function createThemeRenderer({
       product: shaped,
       template: { name: 'product', suffix: null },
     });
-    const content = await renderTemplate('product', {
+    const content = await renderTemplate(onlyConfig ? 'product.only_config' : 'product', {
       product: shaped,
       request: globals.request,
       template: globals.template,
       collection: null,
       canonical_url: url,
     }, globals);
+    if (onlyConfig) {
+      return `<!doctype html><html><body><div id="hdt-page-product-config">${content}</div></body></html>`;
+    }
     return wrap(content, {
       product: shaped,
       request: globals.request,

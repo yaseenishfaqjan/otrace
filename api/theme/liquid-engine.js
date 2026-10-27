@@ -295,8 +295,10 @@ export const blockList = (blocks, order) => {
   return list;
 };
 
-export const wrapSection = (id, type, html) =>
-  `<div id="shopify-section-${id}" class="shopify-section shopify-section-${type}">${html}</div>`;
+export const wrapSection = (id, type, html, extraClass = '') => {
+  const extra = extraClass ? ` ${String(extraClass).trim()}` : '';
+  return `<div id="shopify-section-${id}" class="shopify-section shopify-section-${type}${extra}">${html}</div>`;
+};
 
 export function createEngine(themeRoot, { assetBase = '/theme-assets', globals = {} } = {}) {
   const translations = loadTranslations(themeRoot);
