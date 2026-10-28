@@ -10,7 +10,7 @@
 import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
-import { PRODUCTS, SET_LIST_CENTS, SET_TOTAL_CENTS, formatMoney } from '../catalog.js';
+import { PRODUCTS, SET_LIST_CENTS, SET_TOTAL_CENTS, formatMoney, productDisplayName } from '../catalog.js';
 
 const shared = (name) =>
   JSON.parse(fs.readFileSync(fileURLToPath(new URL(`../../shared/${name}`, import.meta.url)), 'utf8'));
@@ -137,25 +137,59 @@ const PANT_SVG = `<svg class="hdt-fit-drawing" viewBox="0 0 160 180" aria-hidden
 
 /* ---------------------------------------------------------------- sizing */
 
-const sizing = () => [
-  `<div class="hdt-size-page">`,
-  `<p class="hdt-size-lead">Measurements are in centimetres, taken garment-flat. Inches are the centimetre figure divided by 2.54. Lay a piece you already own flat and compare rather than measuring your body.</p>`,
-  `<section class="hdt-size-block">`,
-  HOODIE_SVG,
-  `<h2>Oversized hoodie</h2>`,
-  `<p>Chest, body length, shoulder, and the sleeve/waist row from the spec sheet. The sheet does not say whether that last row is a sleeve or a waist, so the label stays as written.</p>`,
-  sizeTable(['Chest', 'Body length', 'Shoulder', 'Sleeve / waist']),
-  `</section>`,
-  `<section class="hdt-size-block">`,
-  PANT_SVG,
-  `<h2>Wide-leg sweatpant</h2>`,
-  `<p>Outseam, inseam, and leg opening. The waist is cut true to size and the leg is left wide, with a ribbed ankle.</p>`,
-  sizeTable(['Outseam', 'Inseam', 'Leg opening']),
-  `</section>`,
-  `<h2>Fit</h2>`,
-  `<p>${esc(PRODUCTS['OT-HOOD'].name)} is cut oversized. Take your usual size for the intended fit, or size down for a cleaner line. ${esc(PRODUCTS['OT-PANT'].name)} is cut wide from the hip and left to break at the ankle. Both are unisex, XS to 3XL, and the chart is the same garment-flat measurement for every body.</p>`,
-  `</div>`,
-].join('');
+const relatedLinks = () =>
+  `<p class="otrace-related">The <a href="/product/oversized-hoodie">Oversized Hoodie</a> and the <a href="/product/wide-leg-sweatpant">Wide-Leg Sweatpant</a> are the same <a href="/garment-dyed">garment dyed</a> <a href="/product/oversized-hoodie">450 GSM</a> fleece. The <a href="/sizing">size chart</a> is garment-flat. One of each is the <a href="/product/complete-set">complete set</a>.</p>`;
+
+export function homeFactHtml() {
+  const piece = formatMoney(PRODUCTS['OT-HOOD'].priceCents);
+  const list = formatMoney(PRODUCTS['OT-HOOD'].listPriceCents);
+  return [
+    `<section class="hdt-container hdt-section-spacing hdt-prose">`,
+    `<p class="otrace-fact">OTRACE sells a 450 GSM garment-dyed Oversized Hoodie and a Wide-Leg Sweatpant in Onyx Black and Warm Cream. Each piece is ${piece} (was ${list}). The complete set is ${formatMoney(SET_TOTAL_CENTS)} (was ${formatMoney(SET_LIST_CENTS)}). OTRACE ships worldwide, with free delivery in the United States.</p>`,
+    relatedLinks(),
+    `</section>`,
+  ].join('');
+}
+
+export function productFactHtml(product) {
+  const name = productDisplayName(product);
+  return [
+    `<section class="hdt-container hdt-section-spacing hdt-prose">`,
+    `<p class="otrace-fact">The ${esc(name)} is 450 GSM garment-dyed heavyweight cotton fleece in Onyx Black and Warm Cream. It is in stock at ${formatMoney(product.priceCents)} (was ${formatMoney(product.listPriceCents)}).</p>`,
+    relatedLinks(),
+    `</section>`,
+  ].join('');
+}
+
+const sizing = () => {
+  const hoodieChart = faq('SIZING_FAQS', 'Oversized hoodie size chart');
+  const pantChart = faq('SIZING_FAQS', 'Wide leg sweatpants size chart');
+  const fit = faq('SIZING_FAQS', 'How should an oversized hoodie fit?');
+  const unisex = faq('SIZING_FAQS', 'Unisex hoodies size chart');
+  return [
+    `<div class="hdt-size-page">`,
+    `<p class="otrace-fact hdt-size-lead">OTRACE sizes the Oversized Hoodie and the Wide-Leg Sweatpant from XS to 3XL. Measurements are the garment laid flat, in centimetres. Inches are those centimetres divided by 2.54.</p>`,
+    `<section class="hdt-size-block">`,
+    HOODIE_SVG,
+    `<h2>${esc(hoodieChart.question)}</h2>`,
+    `<p>${esc(hoodieChart.answer)}</p>`,
+    sizeTable(['Chest', 'Body length', 'Shoulder', 'Sleeve / waist']),
+    `</section>`,
+    `<section class="hdt-size-block">`,
+    PANT_SVG,
+    `<h2>${esc(pantChart.question)}</h2>`,
+    `<p>${esc(pantChart.answer)}</p>`,
+    sizeTable(['Outseam', 'Inseam', 'Leg opening']),
+    `</section>`,
+    `<h2>${esc(fit.question)}</h2>`,
+    `<p>${esc(fit.answer)}</p>`,
+    `<h2>${esc(unisex.question)}</h2>`,
+    `<p>${esc(unisex.answer)}</p>`,
+    `<p>The sleeve/waist row is labeled the way the spec sheet labels it. The sheet does not say whether that row is a sleeve or a waist. Cells marked est. are estimated from the neighboring sizes. They are not factory measurements.</p>`,
+    relatedLinks(),
+    `</div>`,
+  ].join('');
+};
 
 /* --------------------------------------------------------- garment dyed */
 
@@ -165,7 +199,7 @@ const garmentDyed = () => {
   const meaning = faq('GARMENT_DYE_FAQS', 'What does garment dyed mean?');
   return [
     `<div class="hdt-dye">`,
-    `<p class="hdt-dye-lead">${esc(meaning.answer)}</p>`,
+    `<p class="hdt-dye-lead otrace-fact">${esc(meaning.answer)}</p>`,
     `<div class="hdt-dye-hero">`,
     `<figure><img src="/products/hoodie-onyx-front.jpg" alt="OTRACE oversized hoodie in Onyx Black, front" width="819" height="1024"></figure>`,
     `<figure><img src="/products/hoodie-cream-front.jpg" alt="OTRACE oversized hoodie in Warm Cream, front" width="819" height="1024"></figure>`,
@@ -183,7 +217,7 @@ const garmentDyed = () => {
     `<text x="36" y="64">Knit</text><text x="220" y="64">Cut</text><text x="404" y="64">Sew</text><text class="is-last" x="604" y="64">Dye</text>`,
     `</svg>`,
     `<p>The fleece is knit, cut, and sewn, and only then dyed. Seams, rib and body go through the dye together. Two pieces from the same lot match. A later lot can sit a step lighter or darker, which is the process.</p>`,
-    `<p>AW2026 is two pieces in that fleece: the <a href="/product/${hood.slug}">${esc(hood.name)}</a> at ${price('OT-HOOD')} (was ${listPrice('OT-HOOD')}) and the <a href="/product/${pant.slug}">${esc(pant.name)}</a> at ${price('OT-PANT')} (was ${listPrice('OT-PANT')}), in Onyx Black and Warm Cream. Together they are ${formatMoney(SET_TOTAL_CENTS)} (was ${formatMoney(SET_LIST_CENTS)}). ${esc(SHIP_COPY)}</p>`,
+    `<p>AW2026 is two pieces in that fleece: the <a href="/product/${hood.slug}">${esc(productDisplayName(hood))}</a> at ${price('OT-HOOD')} (was ${listPrice('OT-HOOD')}) and the <a href="/product/${pant.slug}">${esc(productDisplayName(pant))}</a> at ${price('OT-PANT')} (was ${listPrice('OT-PANT')}), in Onyx Black and Warm Cream. Together they are ${formatMoney(SET_TOTAL_CENTS)} (was ${formatMoney(SET_LIST_CENTS)}). ${esc(SHIP_COPY)}</p>`,
     `<div class="hdt-dye-details">`,
     `<figure><img src="/detail-fabric.jpg" alt="Close view of the 450 GSM garment-dyed fleece" width="1200" height="1500"><figcaption>450 GSM fleece</figcaption></figure>`,
     `<figure><img src="/detail-stitch.jpg" alt="Stitch line that has taken the garment dye" width="1200" height="1500"><figcaption>Dye in the stitch</figcaption></figure>`,
@@ -194,6 +228,7 @@ const garmentDyed = () => {
     faqBlock('GARMENT_DYE_FAQS', 'Does garment dye fade?'),
     `<h2>Care</h2>`,
     `<p>Machine wash cold, inside out. Tumble dry low. Do not iron the embroidery on the hoodie. The same care is on each product page.</p>`,
+    relatedLinks(),
     `</div>`,
   ].join('');
 };
@@ -390,7 +425,7 @@ const completeSet = () => {
   ]).join('');
   return [
     `<div class="hdt-prose hdt-set">`,
-    `<p>One ${esc(hood.name)} and one ${esc(pant.name)}, same size and colour. Together they are <strong>${formatMoney(SET_TOTAL_CENTS)}</strong> (was ${formatMoney(SET_LIST_CENTS)}). Each piece on its own is ${price('OT-HOOD')} (was ${listPrice('OT-HOOD')}).</p>`,
+    `<p class="otrace-fact">The Complete set is one Oversized Hoodie and one Wide-Leg Sweatpant, the same size and the same colour. Together they are <strong>${formatMoney(SET_TOTAL_CENTS)}</strong> (was ${formatMoney(SET_LIST_CENTS)}). Each piece alone is ${price('OT-HOOD')} (was ${listPrice('OT-HOOD')}). Both are 450 GSM garment-dyed heavyweight cotton fleece, in Onyx Black or Warm Cream.</p>`,
     `<div class="hdt-dye-hero hdt-set-gallery" id="otrace-set-gallery">`,
     figures,
     `</div>`,
@@ -400,7 +435,8 @@ const completeSet = () => {
     `<button type="submit">Add the set — ${formatMoney(SET_TOTAL_CENTS)}</button>`,
     `<p id="otrace-set-note" class="hdt-contact-note" role="status"></p>`,
     `</form>`,
-    `<p>Or buy them separately: <a href="/product/${hood.slug}">${esc(hood.name)}</a> · <a href="/product/${pant.slug}">${esc(pant.name)}</a>.</p>`,
+    `<p>Or buy them separately: <a href="/product/${hood.slug}">${esc(productDisplayName(hood))}</a> · <a href="/product/${pant.slug}">${esc(productDisplayName(pant))}</a>.</p>`,
+    `<p>Compare the <a href="/sizing">size chart</a> before you order. The colour is <a href="/garment-dyed">garment dyed</a> 450 GSM fleece.</p>`,
     `<script>(function(){var form=document.getElementById('otrace-set');var gallery=document.getElementById('otrace-set-gallery');if(!form)return;function handle(label){return String(label).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}function showColour(){if(!gallery||!form.colour)return;var colour=form.colour.value;var nodes=gallery.querySelectorAll('[data-set-colour]');for(var i=0;i<nodes.length;i++){nodes[i].hidden=nodes[i].getAttribute('data-set-colour')!==colour;}}if(form.colour){var params=new URLSearchParams(window.location.search);var wanted=(params.get('colour')||params.get('color')||'').toLowerCase();if(wanted){for(var j=0;j<form.colour.options.length;j++){var value=form.colour.options[j].value;if(value.toLowerCase()===wanted||handle(value)===wanted){form.colour.value=value;break;}}}form.colour.addEventListener('change',showColour);form.colour.addEventListener('input',showColour);showColour();}form.addEventListener('submit',function(event){event.preventDefault();var note=document.getElementById('otrace-set-note');note.textContent='Adding…';var colour=form.colour.value;var size=form.size.value;var root=(window.Shopify&&Shopify.routes&&Shopify.routes.root)||'/api/theme-preview/';var items=[{id:'OT-HOOD-'+handle(colour)+'-'+handle(size),quantity:1},{id:'OT-PANT-'+handle(colour)+'-'+handle(size),quantity:1}];fetch(root+'cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:items})}).then(function(res){return res.json().then(function(body){return{ok:res.ok,body:body};});}).then(function(result){if(!result.ok){note.textContent=(result.body&&(result.body.message||result.body.description||result.body.error))||'Could not add the set.';return;}note.textContent='Both pieces are in the cart.';window.location.href='/cart';}).catch(function(){note.textContent='Could not add the set.';});});})();</script>`,
     `</div>`,
   ].join('');
@@ -436,6 +472,7 @@ export function standalonePage(kind) {
       noindex: false,
       content: completeSet,
       canonical_path: '/product/complete-set',
+      og_image: '/products/hoodie-onyx-worn-front.jpg',
     },
   };
   const page = pages[kind];
@@ -449,6 +486,7 @@ export function standalonePage(kind) {
     noindex: page.noindex,
     handle: kind,
     canonical_path: page.canonical_path || `/${kind === 'order-success' ? 'order/success' : kind}`,
+    og_image: page.og_image,
   };
 }
 
@@ -513,8 +551,16 @@ export function faqsForSlug(slug) {
   if (slug === 'oversized-hoodie') return FAQS.HOODIE_FAQS;
   if (slug === 'wide-leg-sweatpant') return FAQS.PANT_FAQS;
   if (slug === 'garment-dyed') return FAQS.GARMENT_DYE_FAQS;
+  if (slug === 'sizing') return FAQS.SIZING_FAQS;
   if (slug === 'shipping') return FAQS.RETURNS_FAQS;
   return [];
+}
+
+/** Question headings whose first paragraph is the visible answer. */
+export function questionFaqs(sections) {
+  return (sections || [])
+    .filter((section) => /\?\s*$/.test(String(section.h2 || '')) && section.paragraphs?.[0])
+    .map((section) => ({ question: String(section.h2).trim(), answer: section.paragraphs[0] }));
 }
 
 export function faqHtml(faqs) {

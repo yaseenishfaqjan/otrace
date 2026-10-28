@@ -1,0 +1,119 @@
+/
+title: OTRACE — Heavyweight Oversized Hoodies & Wide-Leg Sweatpants
+h1: ["OTRACE — Heavyweight Oversized Hoodies & Wide-Leg Sweatpants"]
+ld: 4 types=Organization,WebSite,BreadcrumbList,WebPage bad=0 parse_fail=0
+Organization=1 WebSite=1 BreadcrumbList=1 FAQPage=0 WebPage=1 ProductGroup=0 Product=0
+og: https://otrace.co/og.jpg
+twitter: https://otrace.co/og.jpg
+canonical: https://otrace.co/
+theme-color: "#000000"
+page-suffix: false
+PreOrder: 0 aggregateRating: 0
+
+/shop
+title: Shop Heavyweight Hoodies & Sweatpants — OTRACE
+h1: ["AW2026"]
+ld: 3 types=Organization,CollectionPage,BreadcrumbList bad=0 parse_fail=0
+Organization=1 WebSite=0 BreadcrumbList=1 FAQPage=0 WebPage=0 ProductGroup=0 Product=0
+og: https://otrace.co/og.jpg
+twitter: https://otrace.co/og.jpg
+canonical: https://otrace.co/shop
+theme-color: "#000000"
+page-suffix: false
+PreOrder: 0 aggregateRating: 0
+
+/product/oversized-hoodie
+title: Oversized Hoodie — OTRACE
+h1: ["Oversized Hoodie"]
+ld: 5 types=Organization,ProductGroup,FAQPage,BreadcrumbList,WebPage bad=0 parse_fail=0
+Organization=1 WebSite=0 BreadcrumbList=1 FAQPage=1 WebPage=1 ProductGroup=1 Product=0
+og: https://otrace.co/products/hoodie-onyx-worn-front.jpg
+twitter: https://otrace.co/products/hoodie-onyx-worn-front.jpg
+canonical: https://otrace.co/product/oversized-hoodie
+theme-color: "#000000"
+page-suffix: false
+PreOrder: 0 aggregateRating: 0
+
+/product/wide-leg-sweatpant
+title: Wide-Leg Sweatpant — OTRACE
+h1: ["Wide-Leg Sweatpant"]
+ld: 5 types=Organization,ProductGroup,FAQPage,BreadcrumbList,WebPage bad=0 parse_fail=0
+Organization=1 WebSite=0 BreadcrumbList=1 FAQPage=1 WebPage=1 ProductGroup=1 Product=0
+og: https://otrace.co/products/pant-onyx-worn.jpg
+twitter: https://otrace.co/products/pant-onyx-worn.jpg
+canonical: https://otrace.co/product/wide-leg-sweatpant
+theme-color: "#000000"
+page-suffix: false
+PreOrder: 0 aggregateRating: 0
+
+/product/complete-set
+title: Complete set — OTRACE
+h1: ["Complete set"]
+ld: 4 types=Organization,Product,BreadcrumbList,WebPage bad=0 parse_fail=0
+Organization=1 WebSite=0 BreadcrumbList=1 FAQPage=0 WebPage=1 ProductGroup=0 Product=1
+og: https://otrace.co/products/hoodie-onyx-worn-front.jpg
+twitter: https://otrace.co/products/hoodie-onyx-worn-front.jpg
+canonical: https://otrace.co/product/complete-set
+theme-color: "#000000"
+page-suffix: false
+PreOrder: 0 aggregateRating: 0
+
+/sizing
+title: Size guide — OTRACE
+h1: ["Sizing"]
+ld: 4 types=Organization,FAQPage,BreadcrumbList,WebPage bad=0 parse_fail=0
+Organization=1 WebSite=0 BreadcrumbList=1 FAQPage=1 WebPage=1 ProductGroup=0 Product=0
+og: https://otrace.co/og.jpg
+twitter: https://otrace.co/og.jpg
+canonical: https://otrace.co/sizing
+theme-color: "#000000"
+page-suffix: false
+PreOrder: 0 aggregateRating: 0
+
+/garment-dyed
+title: What does garment dyed mean? — OTRACE
+h1: ["What does garment dyed mean?"]
+ld: 4 types=Organization,FAQPage,BreadcrumbList,WebPage bad=0 parse_fail=0
+Organization=1 WebSite=0 BreadcrumbList=1 FAQPage=1 WebPage=1 ProductGroup=0 Product=0
+og: https://otrace.co/og.jpg
+twitter: https://otrace.co/og.jpg
+canonical: https://otrace.co/garment-dyed
+theme-color: "#000000"
+page-suffix: false
+PreOrder: 0 aggregateRating: 0
+
+/blog/what-is-a-450-gsm-hoodie
+title: 450 GSM hoodie meaning — OTRACE
+h1: ["450 GSM hoodie meaning"]
+ld: 4 types=Organization,BlogPosting+Article,FAQPage,WebPage bad=0 parse_fail=0
+Organization=1 WebSite=0 BreadcrumbList=0 FAQPage=1 WebPage=1 ProductGroup=0 Product=0
+og: https://otrace.co/og.jpg
+twitter: https://otrace.co/og.jpg
+canonical: https://otrace.co/blog/what-is-a-450-gsm-hoodie
+theme-color: "#000000"
+page-suffix: false
+PreOrder: 0 aggregateRating: 0
+
+/blog/garment-dyed-vs-piece-dyed
+title: Garment dyed vs piece dyed — OTRACE
+h1: ["Garment dyed vs piece dyed"]
+ld: 4 types=Organization,BlogPosting+Article,FAQPage,WebPage bad=0 parse_fail=0
+Organization=1 WebSite=0 BreadcrumbList=0 FAQPage=1 WebPage=1 ProductGroup=0 Product=0
+og: https://otrace.co/og.jpg
+twitter: https://otrace.co/og.jpg
+canonical: https://otrace.co/blog/garment-dyed-vs-piece-dyed
+theme-color: "#000000"
+page-suffix: false
+PreOrder: 0 aggregateRating: 0
+
+/blog/how-an-oversized-hoodie-should-fit
+title: Oversized hoodie fit — OTRACE
+h1: ["Oversized hoodie fit"]
+ld: 4 types=Organization,BlogPosting+Article,FAQPage,WebPage bad=0 parse_fail=0
+Organization=1 WebSite=0 BreadcrumbList=0 FAQPage=1 WebPage=1 ProductGroup=0 Product=0
+og: https://otrace.co/og.jpg
+twitter: https://otrace.co/og.jpg
+canonical: https://otrace.co/blog/how-an-oversized-hoodie-should-fit
+theme-color: "#000000"
+page-suffix: false
+PreOrder: 0 aggregateRating: 0

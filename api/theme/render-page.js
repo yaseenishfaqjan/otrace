@@ -27,15 +27,17 @@ import {
 import { resolveThemeProductSettings, selectShopifyVariant, toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
 import { PRODUCTS } from '../catalog.js';
 import { POSTS } from '../../site/src/content/posts.mjs';
-import { chatEmbed, faqHtml, faqsForSlug, klaviyoOnsite } from './pages.js';
+import { chatEmbed, faqHtml, faqsForSlug, homeFactHtml, klaviyoOnsite, productFactHtml, questionFaqs } from './pages.js';
 import {
   breadcrumbLd,
   collectionLd,
   DEFAULT_DESCRIPTION,
   faqLd,
   organizationLd,
+  primaryImagePath,
   productLd,
   seoHead,
+  speakableLd,
   websiteLd,
 } from './seo.js';
 import { swatchFor } from './shopify-color.js';
@@ -155,6 +157,7 @@ export function createThemeRenderer({
         link('Garment dyed', '/garment-dyed'),
         link('Sizing', '/sizing'),
         link('Contact', '/contact'),
+        link('Complete set', '/product/complete-set'),
       ],
     },
   };
@@ -296,6 +299,8 @@ export function createThemeRenderer({
     localization: { available_countries: [], available_languages: [] },
     canonical_url: siteUrl,
     powered_by_link: '',
+    // Unset current_page is not 1, and the theme title then appends "– Page".
+    current_page: 1,
   });
 
   /** Render every section a template lists, in order. */
@@ -362,7 +367,7 @@ export function createThemeRenderer({
     return `<!doctype html><html><body><div id="hdt-page-product-config">${classed}</div></body></html>`;
   }
 
-  async function renderProduct(product, { variantId } = {}) {
+  async function renderProduct(product, { variantId, color } = {}) {
     const shaped = selectShopifyVariant(
       toShopifyProduct(product, { siteUrl, featureSharpest: true }),
       variantId,
@@ -382,7 +387,7 @@ export function createThemeRenderer({
       template: globals.template,
       collection: null,
       canonical_url: url,
-    }, globals)}${faqHtml(faqs)}`;
+    }, globals)}${productFactHtml(product)}${faqHtml(faqs)}`;
     const path = `/product/${shaped.handle}`;
     return wrap(content, {
       product: shaped,
@@ -393,6 +398,7 @@ export function createThemeRenderer({
       canonical_url: url,
       canonical_path: path,
       og_type: 'product',
+      og_image: primaryImagePath(product, color),
       json_ld: [
         productLd(product, siteUrl),
         faqs.length ? faqLd(faqs) : null,
@@ -401,8 +407,20 @@ export function createThemeRenderer({
           { name: 'Shop', path: '/shop' },
           { name: shaped.title, path },
         ]),
+        speakableLd(siteUrl, path),
       ],
     }, globals);
+  }
+
+  /** One trail per page. Callers that already pass a BreadcrumbList are left alone. */
+  function ensureBreadcrumb(jsonLd, path, name) {
+    const list = (Array.isArray(jsonLd) ? jsonLd : jsonLd ? [jsonLd] : []).filter(Boolean);
+    if (list.some((node) => [].concat(node['@type'] || []).includes('BreadcrumbList'))) return list;
+    const items = path === '/'
+      ? [{ name: 'Home', path: '/' }]
+      : [{ name: 'Home', path: '/' }, { name: name || 'OTRACE', path }];
+    list.push(breadcrumbLd(siteUrl, items));
+    return list;
   }
 
   /**
@@ -437,14 +455,21 @@ export function createThemeRenderer({
       canonical_path,
       json_ld,
     });
-    const content = await renderTemplate(templateName, { ...baseScope(), ...globals }, globals);
+    let content = await renderTemplate(templateName, { ...baseScope(), ...globals }, globals);
+    if (pageType === 'index') content += homeFactHtml();
+    const crumbName = pageType === 'index' ? 'Home' : title;
+    const jsonLdBase = ensureBreadcrumb(json_ld, canonical_path, crumbName);
+    const jsonLdOut = String(content).includes('otrace-fact')
+      ? [...jsonLdBase, speakableLd(siteUrl, canonical_path)]
+      : jsonLdBase;
     return wrap(content, {
       ...globals,
       page_title: extra.page_title ?? title,
       page_description: extra.page_description ?? extra.description ?? (pageType === 'index' ? DEFAULT_DESCRIPTION : ''),
       canonical_url,
       canonical_path,
-      json_ld,
+      og_image: extra.og_image,
+      json_ld: jsonLdOut,
       noindex: Boolean(extra.noindex),
     }, globals);
   }

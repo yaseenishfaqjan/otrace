@@ -551,3 +551,55 @@ Same branch, still not deployed. Live otrace.co still shows the promo bars, the 
 ## 2026-10-26 — Prices restored to the theme-kalles offer
 
 Each piece is $80, reduced from $100 (`listPriceCents` 10000, `priceCents` 8000 on both OT-HOOD and OT-PANT). One hoodie and one sweatpant together are $140, reduced from $200 (`SET_LIST_CENTS` 20000, `SET_TOTAL_CENTS` 14000, `SET_UNIT_CENTS` 7000). Matched units checkout at the set rate. Strike-through and the set line are that offer. The $148 / $128 / $276 catalogue-only figures from this branch are removed. Moulded drawcord tips, worldwide shipping, and the nav cleanup stay.
+
+## [2026-10-28] Live audit: titles, JSON-LD, complete-set, GEO mirrors
+
+**Why:** A live pass on https://otrace.co the same day found an empty `– Page` title suffix, product JSON-LD that printed `[object Object]`, duplicate Organization / WebSite / BreadcrumbList nodes, `/complete-set` answering as the homepage, product pages with no `<h1>`, product Open Graph images stuck on `/og.jpg`, an empty theme-color, no complete-set markdown mirror, and sizing without an FAQPage. PreOrder → InStock, `llms.txt`, and the AI robots allowlist from 26 October were already live and were left in place.
+
+**Files:** `theme/layout/theme.liquid`, `theme/snippets/structured-data.liquid`, `theme/templates/product.json`, `theme/sections/header-*.liquid`, `api/theme/seo.js`, `api/theme/render-page.js`, `api/theme/pages.js`, `api/theme/discovery.js`, `api/theme/journal.js`, `api/theme/shopify-shape.js`, `api/theme/mount-storefront.js`, `api/catalog.js` (`productDisplayName` only; `product.name` is still the Stripe and cart label), `api/indexnow.js`, `api/server.js`, `deploy/nginx-theme-routes.conf`, `seo/llms.txt`, `seo/llms-full.txt`, `seo/ai.txt`, `seo/pages/product/complete-set.md`, `seo/build-discovery.mjs`, `site/public/site.webmanifest`, `site/src/content/posts.mjs`. Tests: `api/theme/seo-audit.test.mjs`.
+
+**Checker:** `seoProblems()` in `api/theme/seo-audit.test.mjs` fails a fixture whose title is `OTRACE — Heavyweight Hoodies &ndash; Page` and whose JSON-LD body is the literal `[object Object]`, plus a second Organization, WebSite, and BreadcrumbList. That fixture assertion is the check that the checker can fail. Rendered pages must return an empty problem list.
+
+**Before (live, 2026-10-28, redirects not followed except where noted):**
+
+| URL | title suffix | h1 | JSON-LD | og:image | canonical |
+| --- | --- | --- | --- | --- | --- |
+| `/` | `&ndash; Page` | 1 hidden full title | Organization 2, WebSite 2, BreadcrumbList 1 | `/og.jpg` | `https://otrace.co/` |
+| `/shop` | `&ndash; Page` | AW2026 | BreadcrumbList 2, Organization 1 | `/og.jpg` | shop |
+| `/product/oversized-hoodie` | `&ndash; Page` | none | 6 scripts, 1 parse failure `[object Object]`, BreadcrumbList 2 | `/og.jpg` | product URL |
+| `/product/wide-leg-sweatpant` | `&ndash; Page` | none | same one bad script | `/og.jpg` | product URL |
+| `/product/complete-set` | `&ndash; Page` | Complete set | BreadcrumbList 2 | `/og.jpg` | product URL |
+| `/complete-set` | n/a | n/a | n/a | n/a | 302 `Location: https://otrace.co/` |
+| `/sizing` | `&ndash; Page` | Sizing | Organization 1, BreadcrumbList 1, no FAQPage | `/og.jpg` | `/sizing` |
+| `/garment-dyed` | `&ndash; Page` | the question | FAQPage 1 | `/og.jpg` | `/garment-dyed` |
+| `/product/complete-set.md`, `/complete-set.md`, `/.well-known/security.txt`, `/humans.txt`, `/site.webmanifest` | | | | | 404, and `/site.webmanifest` 302 to `/` |
+
+`theme-color` content was empty on the HTML pages. IndexNow key URL `https://otrace.co/32dfcb834125ce46de389d323db4c3b0.txt` was already 200.
+
+**After (local theme render, same checks, saved in `seo/checks/local-theme-2026-10-28.txt`):**
+
+| URL | title | h1 | JSON-LD bad / parse_fail | Organization / WebSite / BreadcrumbList | og:image |
+| --- | --- | --- | --- | --- | --- |
+| `/` | no `&ndash; Page` | the document title | 0 / 0 | 1 / 1 / 1 | `/og.jpg` |
+| `/shop` | no suffix | AW2026 | 0 / 0 | 1 / 0 / 1 | `/og.jpg` |
+| hoodie | `Oversized Hoodie — OTRACE` | one: Oversized Hoodie | 0 / 0 | 1 / 0 / 1 | `hoodie-onyx-worn-front.jpg` |
+| pant | `Wide-Leg Sweatpant — OTRACE` | one: Wide-Leg Sweatpant | 0 / 0 | 1 / 0 / 1 | `pant-onyx-worn.jpg` |
+| `/product/complete-set` | `Complete set — OTRACE` | one: Complete set | 0 / 0 | 1 / 0 / 1 | `hoodie-onyx-worn-front.jpg` |
+| `/sizing` | `Size guide — OTRACE` | Sizing | 0 / 0, FAQPage 1 | 1 / 0 / 1 | `/og.jpg` |
+| `/garment-dyed` | the question, no suffix | the question | 0 / 0, FAQPage 1 | 1 / 0 / 1 | `/og.jpg` |
+
+`theme-color` is `#000000`. Hoodie and pant offers stay `80.00` USD and `InStock`. Complete set offer is `140.00`. No `aggregateRating`. Warm Cream swaps the Open Graph file to the cream worn shot. `/complete-set` and `/complete-set/` return 301 to `/product/complete-set` on the API. Nginx in `deploy/nginx-theme-routes.conf` has the same 301 ahead of the catch-all `return 302 /`. That file is not loaded on the VPS until someone runs `deploy/apply-nginx-routes.mjs` (truncate-write, `nginx -t`, reload). Until then the live short URL still 302s home.
+
+Sizing FAQPage answers are the same strings as the first paragraph under each question heading, and each of those answers is 50 words or fewer. Garment dyed leads with the existing “sewn first and dyed afterwards” sentence, now also marked `.otrace-fact`. Journal notes open on a question `h2` whose first paragraph is the FAQPage answer. Speakable `WebPage` points at `.otrace-fact` only on pages that contain that class.
+
+`/product/complete-set.md` is generated and linked from `llms.txt`. Sitemap lastmod for non-posts is `2026-10-28`. Journal lastmod stays the post date `2026-10-26`. The sitemap lists `/product/complete-set` once and lists no `.md` URL. `node api/indexnow.js --dry-run` printed `{"ok":true,"dryRun":true,"count":19,"markdown":0,"keyLocation":"https://otrace.co/32dfcb834125ce46de389d323db4c3b0.txt"}`. It did not POST. `deploy/after-deploy.sh` still runs `node api/indexnow.js`. `/.well-known/security.txt` and `/humans.txt` are served by the API. `/site.webmanifest` is served by the API and linked from the head. `sameAs` stays `[]`.
+
+**Tests:** `node --test` on `api/theme/seo-audit.test.mjs`, `gaps.test.mjs`, `theme.test.mjs`, `cart.test.mjs`, and `api/leads.test.mjs` passed (seo-audit 8, the combined theme/gaps/cart/seo run 51 with the garment-dye lead assertion updated for the `otrace-fact` class, then 44 after the breadcrumb restore, leads 7).
+
+**Verified live:** no. This branch was not deployed.
+
+**Screenshot:** not taken. The changes are titles, JSON-LD, canonicals, and discovery files. There is no browser pass on the VPS.
+
+**Still owner-blocked, and not invented here:** Google Search Console, Bing Webmaster, Analytics, and Clarity verification meta tags; social `sameAs` URLs; reviews or `aggregateRating`; Klaviyo, WhatsApp, and chat widget keys. IndexNow will POST only after this is deployed and `sh deploy/after-deploy.sh` runs. The nginx 301 and the manifest route apply only after `deploy/apply-nginx-routes.mjs`.
+
+**Commit:** a1b4ce25b8eb9685fd738f37effe1e669c0d3423

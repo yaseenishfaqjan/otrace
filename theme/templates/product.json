@@ -36,7 +36,7 @@
               "type": "_product-title",
               "settings": {
                 "txt_tr_pr": "none",
-                "tag": "h2",
+                "tag": "h1",
                 "heading_size": "h6",
                 "font_size_heading_lg": 50,
                 "font_size_heading": 24,

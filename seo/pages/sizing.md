@@ -20,6 +20,8 @@ An oversized hoodie should sit roomy through the body, with a dropped shoulder, 
 
 OTRACE hoodies are unisex, XS to 3XL. This size chart is the same garment-flat measurement for every body. Take your usual size for the oversized fit.
 
+The [Oversized Hoodie](https://otrace.co/product/oversized-hoodie) and the [Wide-Leg Sweatpant](https://otrace.co/product/wide-leg-sweatpant) use this chart. Together they are the [Complete set](https://otrace.co/product/complete-set). The fleece is [garment dyed](https://otrace.co/garment-dyed) 450 GSM.
+
 Hoodie
 Chest: XS 40 cm (15.7 in), S 44 cm (17.3 in), M 48 cm (18.9 in), L not published, XL 50 cm (19.7 in), 2XL 53 cm (20.9 in), 3XL 54 cm (21.3 in)
 Body length: XS 62 cm (24.4 in), S 64 cm (25.2 in), M 68 cm (26.8 in), L not published, XL 70 cm (27.6 in), 2XL 72 cm (28.3 in), 3XL 74 cm (29.1 in)

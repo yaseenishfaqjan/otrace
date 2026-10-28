@@ -20,3 +20,13 @@ The IndexNow key is public ownership proof. IndexNow only accepts a submission a
 Measured against the live host on 2026-10-26, before this branch was deployed: the key URL returned 404 and the CLI exited without submitting. Output is in `checks/indexnow-before-key-live.txt`. Do not treat that run as a successful ping.
 
 The GEO file upgrade did not rotate the key. `deploy/after-deploy.sh` is still `node api/indexnow.js`. Submission still waits until the live key URL returns the key.
+
+The theme storefront uses the same hook. After a theme deploy, from the repo root:
+
+```
+sh deploy/after-deploy.sh
+```
+
+That runs `node api/indexnow.js`, which POSTs the sitemap URLs to `https://api.indexnow.org/indexnow`. The API process also calls `submitIndexNow` on boot unless `INDEXNOW_SUBMIT=0`.
+
+`node api/indexnow.js --dry-run` builds that URL list from the theme sitemap and does not POST. Markdown mirrors are not in the sitemap, so they are not in the list.

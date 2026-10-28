@@ -2,7 +2,7 @@
 
 > OTRACE sells a 450 GSM garment-dyed Oversized Hoodie and a Wide-Leg Sweatpant in Onyx Black and Warm Cream, and ships worldwide, with free delivery in the United States.
 
-Last updated: 2026-10-26.
+Last updated: 2026-10-28.
 
 For price, stock, and promotions, the live product HTML pages are the source of truth. This index does not set a price. Do not invent a price, a discount, or a stock count from it.
 
@@ -12,6 +12,7 @@ Google Search has said it does not use llms.txt. This file is for other agents, 
 
 - [Oversized Hoodie](https://otrace.co/product/oversized-hoodie.md): 450 GSM garment-dyed cotton fleece, boxy oversized fit, Onyx Black and Warm Cream. Price and stock: https://otrace.co/product/oversized-hoodie
 - [Wide-Leg Sweatpant](https://otrace.co/product/wide-leg-sweatpant.md): Same 450 GSM fleece, wide leg, ribbed ankle. Price and stock: https://otrace.co/product/wide-leg-sweatpant
+- [Complete set](https://otrace.co/product/complete-set.md): One Oversized Hoodie and one Wide-Leg Sweatpant, same size and colour. Price and stock: https://otrace.co/product/complete-set
 
 ## Fit & fabric
 
@@ -48,6 +49,7 @@ Google Search has said it does not use llms.txt. This file is for other agents, 
 - [Citation rules](https://otrace.co/ai.txt): Canonical names, and what not to invent.
 - [FAQ answers](https://otrace.co/faq-ai.txt): The same answer strings as the on-site FAQPage schema.
 - [Page folder](https://otrace.co/llms/pages/index.md): The same page mirrors, collected under /llms/pages/.
+- Markdown mirrors are listed here. They are not in the Google sitemap at https://otrace.co/sitemap.xml.
 
 ## Optional
 

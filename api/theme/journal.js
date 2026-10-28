@@ -51,7 +51,7 @@ export function journalIndexHtml() {
       </a>
     </article>`).join('');
   return `<div class="hdt-journal">
-    <p class="hdt-journal-lead">${esc(journalBlurb)}</p>
+    <p class="hdt-journal-lead otrace-fact">${esc(journalBlurb)} The notes answer what 450 GSM means, how garment dyed differs from piece dyed, and how an oversized hoodie should fit.</p>
     <div class="hdt-journal-list">${cards}</div>
   </div>`;
 }
@@ -68,7 +68,7 @@ export function journalPostHtml(post) {
     : '';
   return `<article class="hdt-journal hdt-journal-post">
     <p class="hdt-journal-eyebrow"><a href="/blog">Journal</a> / ${esc(post.eyebrow)}</p>
-    <p class="hdt-journal-answer">${esc(post.answer)}</p>
+    <p class="hdt-journal-answer otrace-fact">${esc(post.answer)}</p>
     ${figure({ ...post.hero, caption: post.hero.caption })}
     ${diagram}
     ${sections}

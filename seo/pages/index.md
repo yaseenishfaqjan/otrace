@@ -10,4 +10,6 @@ Price and stock are on the product pages, not in this file.
 
 - [Oversized Hoodie](https://otrace.co/product/oversized-hoodie.md)
 - [Wide-Leg Sweatpant](https://otrace.co/product/wide-leg-sweatpant.md)
+- [Complete set](https://otrace.co/product/complete-set.md)
 - [Sizing](https://otrace.co/sizing.md)
+- [What does garment dyed mean?](https://otrace.co/garment-dyed.md)
