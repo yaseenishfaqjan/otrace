@@ -299,6 +299,49 @@ export const blockList = (blocks, order) => {
 export const wrapSection = (id, type, html) =>
   `<div id="shopify-section-${id}" class="shopify-section shopify-section-${type}">${html}</div>`;
 
+/**
+ * Text for an HTML attribute a Liquid filter received.
+ *
+ * `nil` is LiquidJS's NullDrop, not JavaScript null. The drop's valueOf is
+ * null and it has no toString, so String(nil) is `[object Object]`. The logo
+ * passes `widths: nil` to mean "do not emit widths"; Shopify omits that
+ * attribute. A real widths list ("80, 160") is kept.
+ */
+function attributeText(value) {
+  if (value == null || value === false) return null;
+  if (typeof value === 'object') {
+    const primitive = typeof value.valueOf === 'function' ? value.valueOf() : value;
+    if (primitive == null || primitive === false) return null;
+    if (typeof primitive !== 'object') {
+      const text = String(primitive);
+      return text === '' ? null : text;
+    }
+  }
+  const text = String(value);
+  if (text === '' || text === '[object Object]') return null;
+  return text;
+}
+
+/**
+ * Quantity of one variant already in the cart.
+ *
+ * Matches `variant_id` first. Our cart lines also store that id on `id` and
+ * `variant.id`. An empty or missing cart is 0, which is what the quantity
+ * label and `data-cart-quantity` print.
+ */
+export function itemCountForVariant(cart, variantId) {
+  const wanted = variantId == null || typeof variantId === 'object' ? '' : String(variantId);
+  if (!wanted) return 0;
+  const items = cart && typeof cart === 'object' && Array.isArray(cart.items) ? cart.items : [];
+  let count = 0;
+  for (const item of items) {
+    if (!item || typeof item !== 'object') continue;
+    const id = item.variant_id ?? item.variant?.id ?? item.id;
+    if (id != null && String(id) === wanted) count += Number(item.quantity) || 0;
+  }
+  return count;
+}
+
 export function createEngine(themeRoot, { assetBase = '/theme-assets', globals = {} } = {}) {
   const translations = loadTranslations(themeRoot);
   const lookupTranslation = (key) => translate(translations, key);
@@ -417,8 +460,9 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
     for (const item of rest) {
       if (!Array.isArray(item) || item.length !== 2 || typeof item[0] !== 'string') continue;
       const [name, value] = item;
-      if (value == null || value === false || value === '') continue;
-      attrs.push(`${name}="${String(value).replace(/"/g, '&quot;')}"`);
+      const text = attributeText(value);
+      if (text == null) continue;
+      attrs.push(`${name}="${text.replace(/"/g, '&quot;')}"`);
     }
     return `<img ${attrs.join(' ')}>`;
   });
@@ -468,6 +512,16 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
   engine.registerFilter('highlight', (s) => s);
   engine.registerFilter('format_address', (a) => (a ? Object.values(a).filter(Boolean).join('<br>') : ''));
   engine.registerFilter('weight_with_unit', (g) => `${(Number(g) || 0) / 1000} kg`);
+
+  /**
+   * Shopify: `cart | item_count_for_variant: variant.id`.
+   *
+   * With the filter missing, LiquidJS returns the cart unchanged. The quantity
+   * label then stringifies that object, so shoppers see `[object Object] in cart`,
+   * and `cart_qty == 0` is false so the theme does not hide the label.
+   */
+  engine.registerFilter('item_count_for_variant', (cart, variantId) =>
+    itemCountForVariant(cart, variantId));
 
   // {% content_for 'blocks' %} renders a section's theme-editor blocks. We have
   // no editor, so it renders the blocks the template JSON declares.
