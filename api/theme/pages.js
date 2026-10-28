@@ -80,6 +80,70 @@ export function klaviyoOnsite() {
   return `<script async src="https://static.klaviyo.com/onsite/js/klaviyo.js?company_id=${encodeURIComponent(id)}"></script>`;
 }
 
+/**
+ * GA4 measurement ID. Blank unless the owner set one.
+ *
+ * `GA_MEASUREMENT_ID` wins. `OTRACE_GA_MEASUREMENT_ID` is only read when that
+ * is empty, so two variables cannot emit two tags. A GTM container id
+ * (`GTM-…`) does not match and is not loaded.
+ */
+export function gaMeasurementId() {
+  const raw = [process.env.GA_MEASUREMENT_ID, process.env.OTRACE_GA_MEASUREMENT_ID]
+    .map((value) => String(value ?? '').trim())
+    .find(Boolean) || '';
+  const id = raw.toUpperCase();
+  if (!/^G-[A-Z0-9]{6,12}$/.test(id)) return '';
+  return id;
+}
+
+/**
+ * The official gtag snippet, or nothing.
+ *
+ * One bootstrap: the async gtag.js script and a single dataLayer / config
+ * block. Enhanced measurement stays on in the GA property; this does not
+ * pass `send_page_view: false` or a consent default.
+ */
+export function googleTag() {
+  const id = gaMeasurementId();
+  if (!id) return '';
+  return `<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=${id}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '${id}');
+</script>`;
+}
+
+/**
+ * Microsoft Clarity project id. Blank unless the owner set one.
+ *
+ * `CLARITY_PROJECT_ID` wins. `OTRACE_CLARITY_PROJECT_ID` is only read when
+ * that is empty, so two variables cannot emit two scripts.
+ */
+export function clarityProjectId() {
+  const raw = [process.env.CLARITY_PROJECT_ID, process.env.OTRACE_CLARITY_PROJECT_ID]
+    .map((value) => String(value ?? '').trim())
+    .find(Boolean) || '';
+  const id = raw.toLowerCase();
+  if (!/^[a-z0-9]{6,16}$/.test(id)) return '';
+  return id;
+}
+
+/** The official Clarity snippet, or nothing. One script, no second bootstrap. */
+export function clarityTag() {
+  const id = clarityProjectId();
+  if (!id) return '';
+  return `<script type="text/javascript">
+  (function(c,l,a,r,i,t,y){
+    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+  })(window, document, "clarity", "script", "${id}");
+</script>`;
+}
+
 /** Optional chat embeds. A missing id renders nothing — never a fake agent. */
 export function chatEmbed() {
   const crisp = String(process.env.CRISP_WEBSITE_ID || '').trim();

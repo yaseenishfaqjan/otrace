@@ -10,7 +10,7 @@ import express from 'express';
 import { PRODUCTS, SET_TOTAL_CENTS } from '../catalog.js';
 import { INDEXNOW_KEY } from '../indexnow.js';
 import { publicBody, robotsTxt, sitemapXml, merchantFeedXml, INDEXABLE_PATHS } from './discovery.js';
-import { pageContent, standalonePage, chatEmbed, klaviyoOnsite, whatsappHref, instagramHref } from './pages.js';
+import { pageContent, standalonePage, chatEmbed, clarityProjectId, clarityTag, gaMeasurementId, googleTag, klaviyoOnsite, whatsappHref, instagramHref } from './pages.js';
 import { ENTITY_SUMMARY } from './seo.js';
 import { swatchFor, shopifyColor, shopifyFont } from './shopify-color.js';
 import { replaceOtraceServer, serverBlock } from '../../deploy/apply-nginx-routes.mjs';
@@ -180,18 +180,46 @@ test('account and wishlist say what they are, instead of sending people home', (
   assert.doesNotMatch(wishlist.content, /isPageWishlist/);
 });
 
+const GA_ID = 'G-KZZXSSF3L1';
+const GA_SNIPPET = `<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', '${GA_ID}');
+</script>`;
+const CLARITY_ID = 'z3xvl8jv8y';
+const CLARITY_SNIPPET = `<script type="text/javascript">
+  (function(c,l,a,r,i,t,y){
+    c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+    t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+    y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+  })(window, document, "clarity", "script", "${CLARITY_ID}");
+</script>`;
+
+function countOf(html, needle) {
+  return html.split(needle).length - 1;
+}
+
 test('chat, Klaviyo and WhatsApp stay off until a real env value is set', () => {
   const saved = { ...process.env };
   for (const key of [
     'WHATSAPP_NUMBER', 'PUBLIC_WHATSAPP_NUMBER', 'VITE_WHATSAPP_NUMBER',
     'INSTAGRAM_URL', 'VITE_INSTAGRAM_URL', 'VITE_INSTAGRAM',
     'KLAVIYO_COMPANY_ID', 'CRISP_WEBSITE_ID', 'TAWK_PROPERTY_ID', 'TAWK_WIDGET_ID',
+    'GA_MEASUREMENT_ID', 'OTRACE_GA_MEASUREMENT_ID',
+    'CLARITY_PROJECT_ID', 'OTRACE_CLARITY_PROJECT_ID',
   ]) delete process.env[key];
   try {
     assert.equal(whatsappHref(), '');
     assert.equal(instagramHref(), '');
     assert.equal(klaviyoOnsite(), '');
     assert.equal(chatEmbed(), '');
+    assert.equal(gaMeasurementId(), '');
+    assert.equal(googleTag(), '');
+    assert.equal(clarityProjectId(), '');
+    assert.equal(clarityTag(), '');
     process.env.WHATSAPP_NUMBER = 'not-a-number';
     assert.equal(whatsappHref(), '');
     process.env.WHATSAPP_NUMBER = '+1 (415) 555-0134';
@@ -206,6 +234,124 @@ test('chat, Klaviyo and WhatsApp stay off until a real env value is set', () => 
     assert.match(klaviyoOnsite(), /company_id=Ab12Cd/);
     process.env.CRISP_WEBSITE_ID = 'not a website';
     assert.equal(chatEmbed(), '');
+    process.env.GA_MEASUREMENT_ID = 'GTM-KZZXSSF3';
+    assert.equal(googleTag(), '', 'a GTM container id is not a second tag');
+    process.env.GA_MEASUREMENT_ID = 'G-KZZXSSF3L1"><script>';
+    assert.equal(googleTag(), '');
+    delete process.env.GA_MEASUREMENT_ID;
+    process.env.OTRACE_GA_MEASUREMENT_ID = 'g-kzzxssf3l1';
+    assert.equal(googleTag(), GA_SNIPPET);
+    process.env.GA_MEASUREMENT_ID = GA_ID;
+    process.env.OTRACE_GA_MEASUREMENT_ID = 'G-OTHERID99';
+    assert.equal(gaMeasurementId(), GA_ID);
+    assert.equal(countOf(googleTag(), 'googletagmanager.com/gtag/js'), 1);
+    assert.equal(countOf(googleTag(), `gtag('config', '${GA_ID}')`), 1);
+    process.env.CLARITY_PROJECT_ID = 'z3xvl8jv8y";alert(1);//';
+    assert.equal(clarityTag(), '');
+    delete process.env.CLARITY_PROJECT_ID;
+    process.env.OTRACE_CLARITY_PROJECT_ID = 'Z3XVL8JV8Y';
+    assert.equal(clarityTag(), CLARITY_SNIPPET);
+    process.env.CLARITY_PROJECT_ID = CLARITY_ID;
+    process.env.OTRACE_CLARITY_PROJECT_ID = 'otherid1234';
+    assert.equal(clarityProjectId(), CLARITY_ID);
+    assert.equal(countOf(clarityTag(), 'https://www.clarity.ms/tag/'), 1);
+  } finally {
+    for (const key of Object.keys(process.env)) {
+      if (!(key in saved)) delete process.env[key];
+    }
+    Object.assign(process.env, saved);
+  }
+});
+
+function assertGoogleTag(html, { present, marker }) {
+  const headStart = html.indexOf('<head>');
+  const headEnd = html.indexOf('</head>');
+  assert.ok(headStart >= 0 && headEnd > headStart, marker);
+  const head = html.slice(headStart, headEnd);
+  const src = `googletagmanager.com/gtag/js?id=${GA_ID}`;
+  const config = `gtag('config', '${GA_ID}')`;
+  assert.match(html, marker);
+  if (!present) {
+    assert.equal(countOf(html, 'googletagmanager.com/gtag'), 0, marker);
+    assert.equal(countOf(html, 'dataLayer'), 0, marker);
+    assert.equal(countOf(html, 'function gtag()'), 0, marker);
+    assert.equal(countOf(html, 'clarity.ms'), 0, marker);
+    return;
+  }
+  assert.equal(html.slice(headStart, headStart + '<head>\n'.length + GA_SNIPPET.length), `<head>\n${GA_SNIPPET}`, marker);
+  assert.equal(countOf(html, src), 1, marker);
+  assert.equal(countOf(head, src), 1, marker);
+  assert.equal(countOf(html, config), 1, marker);
+  assert.equal(countOf(html, 'function gtag()'), 1, marker);
+  assert.equal(countOf(html, 'window.dataLayer = window.dataLayer || []'), 1, marker);
+  assert.equal(countOf(html, 'googletagmanager.com/gtm.js'), 0, marker);
+}
+
+function assertClarity(html, { present }) {
+  const headStart = html.indexOf('<head>');
+  const headEnd = html.indexOf('</head>');
+  const head = html.slice(headStart, headEnd);
+  const src = `https://www.clarity.ms/tag/"+i`;
+  const idArg = `"script", "${CLARITY_ID}"`;
+  if (!present) {
+    assert.equal(countOf(html, 'clarity.ms'), 0);
+    return;
+  }
+  assert.equal(countOf(html, src), 1);
+  assert.equal(countOf(head, src), 1);
+  assert.equal(countOf(html, idArg), 1);
+  assert.equal(countOf(html, 'function(c,l,a,r,i,t,y)'), 1);
+}
+
+test('GA4 and Clarity tags share the head slot, one each, and stay off when blank', async () => {
+  const saved = { ...process.env };
+  delete process.env.GA_MEASUREMENT_ID;
+  delete process.env.OTRACE_GA_MEASUREMENT_ID;
+  delete process.env.CLARITY_PROJECT_ID;
+  delete process.env.OTRACE_CLARITY_PROJECT_ID;
+  const theme = await renderer();
+  const pages = async () => {
+    const home = await theme.renderPage('index', { title: 'OTRACE', page_title: 'OTRACE — AW2026' }, 'index');
+    const shop = await theme.renderCollection({
+      handle: 'all',
+      title: 'AW2026',
+      products: Object.values(PRODUCTS),
+    });
+    const pdp = await theme.renderProduct(PRODUCTS['OT-HOOD']);
+    return [
+      [home, /rel="canonical" href="https:\/\/otrace\.co\/?"/],
+      [shop, /rel="canonical" href="https:\/\/otrace\.co\/shop"/],
+      [pdp, /rel="canonical" href="https:\/\/otrace\.co\/product\/oversized-hoodie"/],
+    ];
+  };
+  try {
+    const bare = await theme.renderPage('index', { title: 'OTRACE', page_title: 'OTRACE — AW2026' }, 'index');
+    assertGoogleTag(bare, { present: false, marker: /rel="canonical" href="https:\/\/otrace\.co\/?"/ });
+
+    process.env.GA_MEASUREMENT_ID = GA_ID;
+    for (const [html, marker] of await pages()) {
+      assertGoogleTag(html, { present: true, marker });
+      assertClarity(html, { present: false });
+    }
+
+    process.env.CLARITY_PROJECT_ID = CLARITY_ID;
+    for (const [html, marker] of await pages()) {
+      assertGoogleTag(html, { present: true, marker });
+      assertClarity(html, { present: true });
+      const headStart = html.indexOf('<head>');
+      const block = `<head>\n${GA_SNIPPET}\n${CLARITY_SNIPPET}`;
+      assert.equal(html.slice(headStart, headStart + block.length), block);
+    }
+
+    delete process.env.GA_MEASUREMENT_ID;
+    delete process.env.OTRACE_GA_MEASUREMENT_ID;
+    const clarityOnly = await theme.renderPage('index', { title: 'OTRACE', page_title: 'OTRACE — AW2026' }, 'index');
+    assert.equal(countOf(clarityOnly, 'googletagmanager.com/gtag'), 0);
+    assert.equal(
+      clarityOnly.slice(clarityOnly.indexOf('<head>'), clarityOnly.indexOf('<head>') + '<head>\n'.length + CLARITY_SNIPPET.length),
+      `<head>\n${CLARITY_SNIPPET}`,
+    );
+    assertClarity(clarityOnly, { present: true });
   } finally {
     for (const key of Object.keys(process.env)) {
       if (!(key in saved)) delete process.env[key];

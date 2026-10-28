@@ -63,3 +63,10 @@ SEO / AEO / GEO notes, the query research, and the change log live in `seo/`.
    `INSTAGRAM_URL` or `VITE_INSTAGRAM` (a real URL or a bare handle),
    `CRISP_WEBSITE_ID`, or `TAWK_PROPERTY_ID` plus `TAWK_WIDGET_ID`. Empty
    values hide the control. None of them are invented in the repo.
+   `GA_MEASUREMENT_ID` (alias `OTRACE_GA_MEASUREMENT_ID`, only if the first is
+   blank) loads one GA4 gtag as the first child of `<head>` on every theme
+   page. `CLARITY_PROJECT_ID` (alias `OTRACE_CLARITY_PROJECT_ID`) loads one
+   Microsoft Clarity script in that same slot, after the gtag when both are
+   set. Blank emits nothing. Production for https://otrace.co is
+   `GA_MEASUREMENT_ID=G-KZZXSSF3L1` and `CLARITY_PROJECT_ID=z3xvl8jv8y`.
+   After changing either, rebuild the api container only.
