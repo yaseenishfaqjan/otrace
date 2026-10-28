@@ -304,6 +304,15 @@ ${pant.details.map((line) => `- ${line}`).join('\n')}
 
 ${faqBlock(faqs.PANT_FAQS)}`,
     ),
+    'faq.md': page(
+      'FAQ',
+      `HTML: ${ORIGIN}/faq
+
+These answers are the same strings the site renders and puts in FAQPage JSON-LD.
+This file does not list prices or stock.
+
+${faqBlock(allFaqs)}`,
+    ),
     'product/complete-set.md': page(
       'Complete set',
       `HTML: ${ORIGIN}/product/complete-set

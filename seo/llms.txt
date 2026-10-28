@@ -22,6 +22,7 @@ Google Search has said it does not use llms.txt. This file is for other agents, 
 ## Policies
 
 - [Shipping and returns](https://otrace.co/shipping.md): Ships worldwide. Free delivery in the United States. In-stock orders ship in 3–5 business days. 30-day returns on unworn items with tags.
+- [FAQ](https://otrace.co/faq.md): The same answers as the on-site FAQPage schema. Shrink, 450 GSM, unisex, boxy, garment dyed, and returns.
 
 ## Brand
 

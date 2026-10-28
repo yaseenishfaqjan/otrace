@@ -13,7 +13,7 @@ import express from 'express';
 import { PRODUCTS } from '../catalog.js';
 import { indexNowPayload, urlsFromSitemap } from '../indexnow.js';
 import { publicBody, sitemapXml, SITEMAP_REVISION, securityTxt, humansTxt } from './discovery.js';
-import { pageContent, questionFaqs, standalonePage } from './pages.js';
+import { allFaqs, notFoundPage, pageContent, questionFaqs, standalonePage } from './pages.js';
 import { POSTS } from '../../site/src/content/posts.mjs';
 
 const SITE = 'https://otrace.co';
@@ -222,6 +222,9 @@ test('complete-set is one product URL, and the short path redirects', async () =
   assert.match(html, /\$140\.00/);
   assert.match(html, /\$200\.00/);
   assert.match(html, /\$80\.00/);
+  assert.match(html, /class="otrace-trust"/);
+  assert.match(html, /class="otrace-sticky-atc"/);
+  assert.doesNotMatch(html, /class="otrace-set-card"/);
   assert.doesNotMatch(html, /aggregateRating/);
   assert.ok(h1s(html).some((text) => text.includes('Complete set')));
 
@@ -378,4 +381,161 @@ test('discovery files list the complete set, keep markdown out of the sitemap, a
   assert.match(hook, /node api\/indexnow\.js/);
   const key = publicBody('/32dfcb834125ce46de389d323db4c3b0.txt', SITE);
   assert.equal(String(key.body).trim(), '32dfcb834125ce46de389d323db4c3b0');
+
+  assert.match(sitemap, /<loc>https:\/\/otrace\.co\/faq<\/loc>/);
+  assert.doesNotMatch(sitemap, /\/faq\.md</);
+  assert.match(nginx, /faq/);
+  assert.match(nginx, /rewrite \^ \/api\/theme-preview\/not-found break;/);
+  assert.doesNotMatch(nginx, /location \/ \{ return 302 \/; \}/);
+});
+
+function offerNodes(productNode) {
+  if (productNode['@type'] === 'ProductGroup') {
+    return productNode.hasVariant.map((variant) => variant.offers);
+  }
+  return [productNode.offers];
+}
+
+function assertOfferPolicy(offer, label) {
+  const details = [].concat(offer.shippingDetails || []);
+  const free = details.filter((node) => node.shippingRate && Number(node.shippingRate.value) === 0);
+  assert.equal(free.length, 1, `${label} free shipping nodes`);
+  assert.equal(free[0].shippingDestination.addressCountry, 'US');
+  assert.equal(free[0].shippingRate.currency, 'USD');
+  const handling = free[0].deliveryTime.handlingTime;
+  assert.equal(handling.minValue, 3);
+  assert.equal(handling.maxValue, 5);
+  assert.equal(handling.unitCode, 'DAY');
+  assert.equal(handling.unitText, 'business days');
+  const world = details.find((node) => node !== free[0]);
+  assert.ok(world, `${label} worldwide shipping`);
+  assert.equal(world.shippingRate, undefined, `${label} must not price non-US shipping`);
+  const countries = [].concat(world.shippingDestination.addressCountry);
+  assert.equal(countries.includes('US'), false);
+  assert.ok(countries.includes('GB'));
+  const policy = offer.hasMerchantReturnPolicy;
+  assert.equal(policy.merchantReturnDays, 30);
+  assert.equal(policy.returnPolicyCategory, 'https://schema.org/MerchantReturnFiniteReturnWindow');
+  assert.equal(policy.returnMethod, 'https://schema.org/ReturnByMail');
+  assert.equal(policy.returnFees, 'https://schema.org/FreeReturn');
+  assert.equal(policy.itemCondition, 'https://schema.org/NewCondition');
+  assert.match(policy.merchantReturnLink, /\/shipping$/);
+  assert.ok([].concat(policy.applicableCountry).includes('US'));
+  assert.equal(JSON.stringify(offer).includes('aggregateRating'), false);
+  assert.equal(JSON.stringify(offer).includes('Review'), false);
+}
+
+test('product offers name US free shipping, worldwide shipping without a free rate, and a 30-day return', async () => {
+  const theme = await renderer();
+  const hoodie = await theme.renderProduct(PRODUCTS['OT-HOOD']);
+  assertClean(hoodie, 'hoodie policy');
+  assert.doesNotMatch(hoodie, /\[object Object\]/);
+  const group = ldNodes(hoodie).find((node) => node['@type'] === 'ProductGroup');
+  assert.equal(group.hasVariant[0].offers.price, '80.00');
+  for (const offer of offerNodes(group)) assertOfferPolicy(offer, 'hoodie');
+  assert.match(hoodie, /class="otrace-trust"/);
+  assert.match(hoodie, /Free US delivery/);
+  assert.match(hoodie, /Ships 3–5 days/);
+  assert.match(hoodie, /30-day returns/);
+  assert.match(hoodie, /Secure checkout \(Stripe\)/);
+  assert.match(hoodie, /href="\/product\/complete-set"/);
+  assert.match(hoodie, /Complete the set — \$140\.00/);
+  assert.match(hoodie, /was \$200\.00/);
+  assert.match(hoodie, /href="\/product\/wide-leg-sweatpant"/);
+  assert.match(hoodie, /href="\/faq"/);
+  assert.match(hoodie, /<hdt-sticky-btn-atc form="product-form-main-productOT-HOOD"/);
+  assert.match(hoodie, /id="product-form-main-productOT-HOOD"/);
+  assert.doesNotMatch(hoodie, /class="otrace-sticky-atc"/);
+  assert.equal(hoodie.includes('$148'), false);
+  assert.equal(hoodie.includes('$60'), false);
+
+  const pant = await theme.renderProduct(PRODUCTS['OT-PANT']);
+  assert.match(pant, /Complete the set — \$140\.00/);
+  assert.match(pant, /href="\/product\/oversized-hoodie"/);
+  assert.equal(ldNodes(pant).find((node) => node['@type'] === 'ProductGroup').hasVariant[0].offers.price, '80.00');
+
+  const { setLd } = await import('./seo.js');
+  const set = setLd(SITE);
+  assert.equal(set.offers.price, '140.00');
+  assertOfferPolicy(set.offers, 'set');
+});
+
+test('the FAQ page repeats faq-ai.txt answers and the unknown-path page is a 404', async () => {
+  const theme = await renderer();
+  const faqs = allFaqs();
+  assert.ok(faqs.length >= 14);
+  const faqAi = fs.readFileSync(path.join(repoRoot, 'seo/faq-ai.txt'), 'utf8');
+  const faqMd = String(publicBody('/faq.md', SITE).body);
+  assert.equal(publicBody('/llms/pages/faq.md', SITE)?.type, 'text/markdown; charset=utf-8');
+  const page = pageContent('faq');
+  const html = await theme.renderPage('page', page, 'page');
+  assertClean(html, 'faq');
+  assert.match(html, /<title>[\s\S]*FAQ — OTRACE/);
+  assert.match(html, /rel="canonical" href="https:\/\/otrace\.co\/faq"/);
+  assert.match(html, /type="text\/markdown" href="https:\/\/otrace\.co\/faq\.md"/);
+  const faqLd = ldNodes(html).find((node) => node['@type'] === 'FAQPage');
+  assert.equal(faqLd.mainEntity.length, faqs.length);
+  for (const faq of faqs) {
+    assert.equal(faqAi.includes(faq.question), true, faq.question);
+    assert.equal(faqAi.includes(faq.answer), true, faq.answer);
+    assert.equal(faqMd.includes(faq.question), true, faq.question);
+    assert.equal(faqMd.includes(faq.answer), true, faq.answer);
+    const visible = new RegExp(`<h2>${faq.question.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}</h2><p>([\\s\\S]*?)</p>`);
+    assert.equal(html.match(visible)?.[1], faq.answer, faq.question);
+    const entity = faqLd.mainEntity.find((item) => item.name === faq.question);
+    assert.equal(entity.acceptedAnswer.text, faq.answer);
+  }
+  assert.match(html, /href="\/faq"/);
+  assert.match(html, /href="\/sizing"/);
+  assert.match(html, /href="\/shipping"/);
+  assert.match(html, /href="\/contact"/);
+  assert.match(html, /href="\/lookbook"/);
+  assert.doesNotMatch(html, /aggregateRating/);
+  assert.doesNotMatch(html, /\[object Object\]/);
+
+  const home = await theme.renderPage('index', {
+    title: 'OTRACE',
+    page_title: 'OTRACE — Heavyweight Oversized Hoodies & Wide-Leg Sweatpants',
+    canonical_path: '/',
+  }, 'index');
+  assert.equal(home.includes('@OTRACE'), false);
+  assert.match(home, />OTRACE</);
+
+  const missing = notFoundPage();
+  const notFound = await theme.renderPage('page', missing, 'page');
+  assertClean(notFound, '404');
+  assert.match(notFound, /This page is not on the site\./);
+  assert.match(notFound, /href="\/shop"/);
+  assert.match(notFound, /href="\/product\/complete-set"/);
+  assert.match(notFound, /noindex/);
+  assert.doesNotMatch(notFound, /aggregateRating/);
+
+  const { mountStorefront } = await import('./mount-storefront.js');
+  const app = express();
+  mountStorefront(app, {
+    themeRenderer: theme,
+    siteUrl: SITE,
+    sendThemeHtml: (res, body, opts = {}) => {
+      if (opts.noindex) res.set('X-Robots-Tag', 'noindex, nofollow');
+      res.type('html').send(body);
+    },
+  });
+  const server = await new Promise((resolve) => {
+    const listening = app.listen(0, '127.0.0.1', () => resolve(listening));
+  });
+  try {
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const res = await fetch(base + '/api/theme-preview/not-found');
+    assert.equal(res.status, 404);
+    const body = await res.text();
+    assert.match(body, /This page is not on the site\./);
+    assert.match(body, /href="\/shop"/);
+    assert.match(body, /href="\/product\/complete-set"/);
+    assert.match(res.headers.get('x-robots-tag') || '', /noindex/);
+    const gone = await fetch(base + '/blog/not-a-real-note');
+    assert.equal(gone.status, 404);
+    assert.match(await gone.text(), /This page is not on the site\./);
+  } finally {
+    await new Promise((resolve, reject) => server.close((err) => (err ? reject(err) : resolve())));
+  }
 });

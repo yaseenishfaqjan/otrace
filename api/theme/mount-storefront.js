@@ -5,10 +5,24 @@
 import { clearThemeCart } from './cart.js';
 import { publicBody } from './discovery.js';
 import { findPost, journalBlurb, journalIndexHtml, journalPostHtml } from './journal.js';
-import { pageContent, questionFaqs, standalonePage } from './pages.js';
+import { notFoundPage, pageContent, questionFaqs, standalonePage } from './pages.js';
 import { blogIndexLd, blogPostLd, breadcrumbLd, faqLd, setLd, speakableLd } from './seo.js';
 
+export async function sendNotFound(res, { themeRenderer, sendThemeHtml }) {
+  if (!themeRenderer) return res.status(404).type('text').send('No such page.');
+  const page = notFoundPage();
+  try {
+    const html = await themeRenderer.renderPage('page', page, 'page');
+    res.status(404);
+    sendThemeHtml(res, html, { noindex: true });
+  } catch (err) {
+    console.error('[theme] 404 render failed:', err.message);
+    res.status(404).type('text').send('No such page.');
+  }
+}
+
 export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl }) {
+  const missing = (res) => sendNotFound(res, { themeRenderer, sendThemeHtml });
   const renderStandalone = async (res, kind) => {
     if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
     const page = standalonePage(kind);
@@ -28,6 +42,8 @@ export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl }) 
       res.status(500).send('Theme render failed: ' + err.message);
     }
   };
+
+  app.get(['/api/theme-preview/not-found'], (req, res) => missing(res));
 
   app.get(['/api/theme-preview/blog', '/blog'], async (req, res) => {
     if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
@@ -58,7 +74,7 @@ export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl }) 
     if (String(req.params.slug).endsWith('.md')) return next();
     if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
     const post = findPost(req.params.slug);
-    if (!post) return res.status(404).send('No such note.');
+    if (!post) return missing(res);
     try {
       const html = await themeRenderer.renderPage('page', {
         title: post.h1,

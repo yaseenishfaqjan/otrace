@@ -35,11 +35,57 @@ const faqBlock = (group, question, heading = true) => {
   return `${heading ? `<h2>${esc(f.question)}</h2>` : ''}<p>${esc(f.answer)}</p>`;
 };
 
+/** Same order as seo/faq-ai.txt. The HTML page and FAQPage schema both use this list. */
+export const FAQ_GROUPS = ['HOODIE_FAQS', 'PANT_FAQS', 'GARMENT_DYE_FAQS', 'SIZING_FAQS', 'RETURNS_FAQS'];
+
+export function allFaqs() {
+  return FAQ_GROUPS.flatMap((group) => FAQS[group] ?? []);
+}
+
 const price = (sku) => formatMoney(PRODUCTS[sku].priceCents);
 const listPrice = (sku) => formatMoney(PRODUCTS[sku].listPriceCents);
 
 const SHIP_COPY =
   'We ship worldwide to the address you enter at checkout, including the United Kingdom and the rest of the world. Delivery is free inside the United States, and in-stock orders leave in 3–5 business days. Checkout does not add an international carrier fee, because none is configured.';
+
+/** Compact buy-box line. The four phrases are the footer strip, shortened, not new claims. */
+export function trustStripHtml() {
+  return [
+    `<ul class="otrace-trust" aria-label="Delivery and checkout">`,
+    `<li><a href="/shipping">Free US delivery</a></li>`,
+    `<li><a href="/shipping">Ships 3–5 days</a></li>`,
+    `<li><a href="/shipping">30-day returns</a></li>`,
+    `<li>Secure checkout (Stripe)</li>`,
+    `</ul>`,
+  ].join('');
+}
+
+/**
+ * Hoodie and sweatpant only. The $140 / $200 figures are the published set
+ * price, not a second discount. The other piece is the pair, not a bundle deal.
+ */
+export function setCrossSellHtml(product) {
+  const other = product?.sku === 'OT-HOOD' ? PRODUCTS['OT-PANT'] : product?.sku === 'OT-PANT' ? PRODUCTS['OT-HOOD'] : null;
+  if (!other) return '';
+  return [
+    `<aside class="otrace-set-card">`,
+    `<p class="otrace-set-card__title"><a href="/product/complete-set">Complete the set — ${formatMoney(SET_TOTAL_CENTS)}</a></p>`,
+    `<p>One hoodie and one sweatpant, was ${formatMoney(SET_LIST_CENTS)}. Each piece alone is ${formatMoney(PRODUCTS['OT-HOOD'].priceCents)}.</p>`,
+    `<p><a href="/product/${other.slug}">${esc(productDisplayName(other))}</a></p>`,
+    `</aside>`,
+  ].join('');
+}
+
+/** Copy already on /shipping, plus the returns answer, for the PDP delivery modal. */
+export function deliveryReturnHtml() {
+  const returns = FAQS.RETURNS_FAQS[0];
+  return [
+    `<p>${esc(SHIP_COPY)}</p>`,
+    `<h2>${esc(returns.question)}</h2>`,
+    `<p>${esc(returns.answer)}</p>`,
+    `<p><a href="/shipping">Shipping and returns</a> · <a href="/faq">FAQ</a></p>`,
+  ].join('');
+}
 
 /** Digits only, 8–15. Empty when the env is unset, so the button stays hidden. */
 export function whatsappHref() {
@@ -499,6 +545,11 @@ const completeSet = () => {
     `<button type="submit">Add the set — ${formatMoney(SET_TOTAL_CENTS)}</button>`,
     `<p id="otrace-set-note" class="hdt-contact-note" role="status"></p>`,
     `</form>`,
+    trustStripHtml(),
+    `<div class="otrace-sticky-atc" hidden>`,
+    `<button type="button">Add the set — ${formatMoney(SET_TOTAL_CENTS)}</button>`,
+    `</div>`,
+    `<script>(function(){var bar=document.querySelector('.otrace-sticky-atc');var form=document.getElementById('otrace-set');if(!bar||!form)return;var button=bar.querySelector('button');if(button)button.addEventListener('click',function(){var submit=form.querySelector('button[type="submit"]');if(submit)submit.click();});if(!('IntersectionObserver' in window)){bar.removeAttribute('hidden');return;}var observer=new IntersectionObserver(function(entries){var entry=entries[0];var past=!entry.isIntersecting&&entry.boundingClientRect.bottom<0;if(past)bar.removeAttribute('hidden');else bar.setAttribute('hidden','');});observer.observe(form);})();</script>`,
     `<p>Or buy them separately: <a href="/product/${hood.slug}">${esc(productDisplayName(hood))}</a> · <a href="/product/${pant.slug}">${esc(productDisplayName(pant))}</a>.</p>`,
     `<p>Compare the <a href="/sizing">size chart</a> before you order. The colour is <a href="/garment-dyed">garment dyed</a> 450 GSM fleece.</p>`,
     `<script>(function(){var form=document.getElementById('otrace-set');var gallery=document.getElementById('otrace-set-gallery');if(!form)return;function handle(label){return String(label).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');}function showColour(){if(!gallery||!form.colour)return;var colour=form.colour.value;var nodes=gallery.querySelectorAll('[data-set-colour]');for(var i=0;i<nodes.length;i++){nodes[i].hidden=nodes[i].getAttribute('data-set-colour')!==colour;}}if(form.colour){var params=new URLSearchParams(window.location.search);var wanted=(params.get('colour')||params.get('color')||'').toLowerCase();if(wanted){for(var j=0;j<form.colour.options.length;j++){var value=form.colour.options[j].value;if(value.toLowerCase()===wanted||handle(value)===wanted){form.colour.value=value;break;}}}form.colour.addEventListener('change',showColour);form.colour.addEventListener('input',showColour);showColour();}form.addEventListener('submit',function(event){event.preventDefault();var note=document.getElementById('otrace-set-note');note.textContent='Adding…';var colour=form.colour.value;var size=form.size.value;var root=(window.Shopify&&Shopify.routes&&Shopify.routes.root)||'/api/theme-preview/';var items=[{id:'OT-HOOD-'+handle(colour)+'-'+handle(size),quantity:1},{id:'OT-PANT-'+handle(colour)+'-'+handle(size),quantity:1}];fetch(root+'cart/add.js',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:items})}).then(function(res){return res.json().then(function(body){return{ok:res.ok,body:body};});}).then(function(result){if(!result.ok){note.textContent=(result.body&&(result.body.message||result.body.description||result.body.error))||'Could not add the set.';return;}note.textContent='Both pieces are in the cart.';window.location.href='/cart';}).catch(function(){note.textContent='Could not add the set.';});});})();</script>`,
@@ -556,6 +607,14 @@ export function standalonePage(kind) {
 
 /* ----------------------------------------------------------------------- */
 
+const faqPage = () => [
+  `<div class="hdt-prose hdt-faq-page">`,
+  `<p class="otrace-fact">These answers are the same strings the product pages and the FAQPage schema use.</p>`,
+  allFaqs().map((f) => `<h2>${esc(f.question)}</h2><p>${esc(f.answer)}</p>`).join(''),
+  `<p><a href="/shipping">Shipping and returns</a> · <a href="/sizing">Sizing</a> · <a href="/contact">Contact</a></p>`,
+  `</div>`,
+].join('');
+
 export const PAGES = {
   sizing: {
     title: 'Sizing',
@@ -590,6 +649,13 @@ export const PAGES = {
       'OTRACE makes fewer, heavier pieces: a 450 GSM garment-dyed hoodie and a wide-leg sweatpant.',
     content: about,
   },
+  faq: {
+    title: 'FAQ',
+    page_title: 'FAQ — OTRACE',
+    description:
+      'OTRACE answers on 450 GSM, shrink, unisex and boxy fit, garment dye, and the 30-day return.',
+    content: faqPage,
+  },
   shipping: {
     title: 'Shipping & returns',
     page_title: 'Shipping & returns — OTRACE',
@@ -611,12 +677,31 @@ export const PAGES = {
   },
 };
 
+export function notFoundPage() {
+  return {
+    title: '404',
+    page_title: 'Page not found — OTRACE',
+    page_description: 'That address is not a page on OTRACE.',
+    description: 'That address is not a page on OTRACE.',
+    content: [
+      `<div class="hdt-not-found">`,
+      `<p>This page is not on the site.</p>`,
+      `<p class="hdt-not-found-actions"><a href="/shop">Shop</a><a href="/product/complete-set">Complete set</a></p>`,
+      `</div>`,
+    ].join(''),
+    noindex: true,
+    handle: '404',
+    canonical_path: '/404',
+  };
+}
+
 export function faqsForSlug(slug) {
   if (slug === 'oversized-hoodie') return FAQS.HOODIE_FAQS;
   if (slug === 'wide-leg-sweatpant') return FAQS.PANT_FAQS;
   if (slug === 'garment-dyed') return FAQS.GARMENT_DYE_FAQS;
   if (slug === 'sizing') return FAQS.SIZING_FAQS;
   if (slug === 'shipping') return FAQS.RETURNS_FAQS;
+  if (slug === 'faq') return allFaqs();
   return [];
 }
 

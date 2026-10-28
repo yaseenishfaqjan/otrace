@@ -39,7 +39,7 @@ import { klaviyoConfig } from './klaviyo.js';
 import { createThemeRenderer } from './theme/render-page.js';
 import { toShopifyProduct } from './theme/shopify-shape.js';
 import { PAGES, pageContent } from './theme/pages.js';
-import { mountStorefront } from './theme/mount-storefront.js';
+import { mountStorefront, sendNotFound } from './theme/mount-storefront.js';
 import { getThemeCartStore } from './theme/cart.js';
 import { mountCartRoutes } from './theme/cart-routes.js';
 import { createCheckoutSession } from './checkout-session.js';
@@ -426,7 +426,7 @@ const COLLECTIONS = {
 app.get('/api/theme-preview/page/:handle', async (req, res) => {
   if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
   const page = pageContent(req.params.handle);
-  if (!page) return res.status(404).send('No such page.');
+  if (!page) return sendNotFound(res, { themeRenderer, sendThemeHtml });
   try {
     sendThemeHtml(res, await themeRenderer.renderPage('page', page, 'page'));
   } catch (err) {
@@ -439,7 +439,7 @@ app.get('/api/theme-preview/shop/:handle?', async (req, res) => {
   if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
   const handle = req.params.handle;
   const group = handle ? COLLECTIONS[handle] : null;
-  if (handle && !group) return res.status(404).send('No such collection.');
+  if (handle && !group) return sendNotFound(res, { themeRenderer, sendThemeHtml });
 
   const products = Object.values(PRODUCTS).filter((p) => (group ? group.match(p) : true));
   try {
@@ -474,7 +474,7 @@ mountStorefront(app, {
 app.get('/api/theme-preview/product/:slug', async (req, res) => {
   if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
   const product = findBySlug(req.params.slug);
-  if (!product) return res.status(404).send('No such product.');
+  if (!product) return sendNotFound(res, { themeRenderer, sendThemeHtml });
   try {
     sendThemeHtml(res, await themeRenderer.renderProduct(product, {
       variantId: req.query.variant,
