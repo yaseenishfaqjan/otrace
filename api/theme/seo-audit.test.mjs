@@ -357,6 +357,14 @@ test('discovery files list the complete set, keep markdown out of the sitemap, a
   assert.equal(manifest.background_color, '#000000');
   assert.equal(manifest.name, 'OTRACE');
 
+  const bing = publicBody('/BingSiteAuth.xml', SITE);
+  assert.equal(bing?.type, 'application/xml; charset=utf-8');
+  assert.equal(
+    String(bing.body),
+    '<?xml version="1.0"?>\n<users>\n\t<user>B84578EA798497426806EE05427AAD83</user>\n</users>',
+  );
+  assert.doesNotMatch(sitemap, /BingSiteAuth/);
+
   const urls = urlsFromSitemap(sitemap);
   const payload = indexNowPayload(SITE, urls);
   assert.equal(payload.keyLocation, `https://otrace.co/32dfcb834125ce46de389d323db4c3b0.txt`);
@@ -365,6 +373,7 @@ test('discovery files list the complete set, keep markdown out of the sitemap, a
 
   const nginx = fs.readFileSync(path.join(repoRoot, 'deploy/nginx-theme-routes.conf'), 'utf8');
   assert.match(nginx, /location ~ \^\/complete-set\/\?\$ \{ return 301 \/product\/complete-set; \}/);
+  assert.match(nginx, /location = \/BingSiteAuth\.xml \{/);
   const hook = fs.readFileSync(path.join(repoRoot, 'deploy/after-deploy.sh'), 'utf8');
   assert.match(hook, /node api\/indexnow\.js/);
   const key = publicBody('/32dfcb834125ce46de389d323db4c3b0.txt', SITE);
