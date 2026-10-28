@@ -109,6 +109,21 @@ function colorizeValue(value) {
 }
 
 /**
+ * A color scheme the theme both reads and prints.
+ *
+ * css-variables walks `.settings`. Drawers, modals and menus print the same
+ * drop into `color-scheme="{{ settings.color_scheme_dialog }}"`. LiquidJS
+ * stringifies a plain object with String(), which is the text `[object Object]`.
+ * Shopify prints the scheme id, and the stylesheet keys off that id.
+ */
+function colorScheme(id, settings) {
+  const scheme = { id, settings };
+  Object.defineProperty(scheme, 'toString', { value: () => id });
+  Object.defineProperty(scheme, 'valueOf', { value: () => id });
+  return scheme;
+}
+
+/**
  * Turn the theme's saved schemes and font handles into the drops Liquid reads.
  * `color_schemes` stays an array so `{% for scheme in settings.color_schemes %}`
  * yields `{ id, settings }`.
@@ -125,7 +140,7 @@ export function applyThemeColorAndFont(settings) {
       const source = scheme?.settings || scheme || {};
       const colored = {};
       for (const [key, value] of Object.entries(source)) colored[key] = colorizeValue(value);
-      return { id, settings: colored };
+      return colorScheme(id, colored);
     });
     settings.color_schemes = list;
     const byId = Object.fromEntries(list.map((scheme) => [scheme.id, scheme]));

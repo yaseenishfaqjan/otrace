@@ -7,7 +7,8 @@ import { createCheckoutSession } from '../checkout-session.js';
 import { PRODUCTS, SET_TOTAL_CENTS } from '../catalog.js';
 import { addLine, cartJson, changeLine, decodeVariantId } from './cart.js';
 import { parseFormBody } from './form-body.js';
-import { parseThemeJson, resolveLinkListSettings, stripJsonComments } from './liquid-engine.js';
+import { createEngine, itemCountForVariant, parseThemeJson, resolveLinkListSettings, stripJsonComments } from './liquid-engine.js';
+import { applyThemeColorAndFont } from './shopify-color.js';
 import { resolveThemeProductSettings, selectShopifyVariant, themeSettings, toShopifyProduct } from './shopify-shape.js';
 
 const SITE = 'https://otrace.co';
@@ -641,4 +642,88 @@ test('garment dyed leads with the definition and keeps the four steps on one row
   const css = readFileSync(fileURLToPath(new URL('./otrace-overrides.css', import.meta.url)), 'utf8');
   assert.match(css, /\.hdt-dye-steps > li \{[^}]*margin-block:\s*0/);
   assert.match(css, /body:has\(\.hdt-dye\) \.shopify-section-main-heading \.hdt-heading-liquid/);
+});
+
+test('item_count_for_variant is a number, zero when that variant is not in the cart', () => {
+  assert.equal(itemCountForVariant({ items: [] }, 'OT-HOOD-onyx-black-m'), 0);
+  assert.equal(itemCountForVariant(null, 'OT-HOOD-onyx-black-m'), 0);
+  assert.equal(itemCountForVariant({
+    items: [
+      { variant_id: 'OT-HOOD-onyx-black-m', quantity: 2 },
+      { variant_id: 'OT-PANT-warm-cream-s', id: 'line-key', quantity: 1 },
+    ],
+  }, 'OT-HOOD-onyx-black-m'), 2);
+  assert.equal(itemCountForVariant({
+    items: [{ id: 'OT-PANT-warm-cream-s', quantity: 1 }],
+  }, 'OT-PANT-warm-cream-s'), 1);
+});
+
+test('a color scheme prints as its id and still exposes its colours', async () => {
+  const settings = applyThemeColorAndFont({
+    color_scheme_dialog: 'scheme-1',
+    color_schemes: {
+      'scheme-1': { settings: { text: '#111111', background: '#ffffff' } },
+    },
+  });
+  assert.equal(String(settings.color_scheme_dialog), 'scheme-1');
+  assert.equal(settings.color_scheme_dialog.settings.text.rgb, '17 17 17');
+  const engine = createEngine(fileURLToPath(new URL('../../theme', import.meta.url)));
+  const html = await engine.parseAndRender(
+    'color-scheme="{{ settings.color_scheme_dialog }}" rgb="{{ settings.color_scheme_dialog.settings.text.rgb }}"',
+    {},
+    { globals: { settings } },
+  );
+  assert.equal(html, 'color-scheme="scheme-1" rgb="17 17 17"');
+});
+
+test('nil widths are omitted, and a widths list is kept', async () => {
+  const engine = createEngine(fileURLToPath(new URL('../../theme', import.meta.url)));
+  const omitted = await engine.parseAndRender(
+    "{{ '/brand/logo.svg' | image_tag: class: 'hdt-logo-img', widths: nil, width: 200 }}",
+  );
+  assert.match(omitted, /class="hdt-logo-img"/);
+  assert.match(omitted, /width="200"/);
+  assert.doesNotMatch(omitted, /widths=/);
+  assert.doesNotMatch(omitted, /\[object Object\]/);
+  const kept = await engine.parseAndRender(
+    "{{ '/brand/logo.svg' | image_tag: widths: '80, 160' }}",
+  );
+  assert.match(kept, /widths="80, 160"/);
+});
+
+test('home and product HTML do not stringify objects', async () => {
+  const { createThemeRenderer } = await import('./render-page.js');
+  const themeRoot = fileURLToPath(new URL('../../theme', import.meta.url));
+  const renderer = createThemeRenderer({
+    themeRoot,
+    siteUrl: SITE,
+    assetBase: '/api/theme-assets',
+    routesRoot: '/api/theme-preview/',
+  });
+  const home = await renderer.renderPage('index', { title: 'OTRACE', page_title: 'OTRACE — AW2026' }, 'index');
+  const product = await renderer.renderProduct(PRODUCTS['OT-HOOD']);
+
+  for (const [name, html] of [['home', home], ['product', product]]) {
+    assert.equal(html.includes('[object Object]'), false, `${name} rendered [object Object]`);
+    assert.doesNotMatch(html, /widths="\[object Object\]"/, name);
+    assert.doesNotMatch(html, /color-scheme="\[object Object\]"/, name);
+    const logos = [...html.matchAll(/<img\b[^>]*class="hdt-logo-img"[^>]*>/g)];
+    assert.ok(logos.length, `${name} has no logo`);
+    for (const logo of logos) {
+      assert.equal(/[\s]widths=/.test(logo[0]), false, logo[0]);
+      assert.match(logo[0], /src="[^"]+"/);
+    }
+    const schemes = [...html.matchAll(/\bcolor-scheme="([^"]*)"/g)].map((match) => match[1]);
+    assert.ok(schemes.includes('scheme-1'), `${name} lost the dialog scheme id`);
+    assert.ok(schemes.every((id) => id === '' || /^scheme-[\w-]+$/.test(id)), schemes.join(','));
+  }
+
+  assert.match(product, /<span class="hdt-quantity-cart">0<\/span>/);
+  assert.match(product, /data-cart-quantity="0"/);
+  assert.doesNotMatch(product, /data-cart-quantity="\[object Object\]"/);
+  assert.match(product, /\$80\.00/);
+  assert.match(product, /\$100\.00/);
+  assert.match(home, /\$80\.00/);
+  assert.match(home, /\$140\.00/);
+  assert.match(home, /\$200\.00/);
 });
