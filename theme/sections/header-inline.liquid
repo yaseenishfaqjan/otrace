@@ -258,38 +258,6 @@
 </dialog>
 </hdt-drawer>
 
-<script type="application/ld+json">
-  {
-    "@context": "http://schema.org",
-    "@type": "Organization",
-    "name": {{ shop.name | json }},
-    {%- if section.settings.logo %}
-    "logo": {{ section.settings.logo | image_url: width: 500 | prepend: "https:" | json }},
-    {% endif -%}
-    "sameAs": [
-      {%- capture socials -%}
-      {{ settings.social_facebook_link | json }},
-      {{ settings.social_x_link | json }},
-      {{ settings.social_instagram_link | json }},
-      {{ settings.social_threads_link | json }},
-      {{ settings.social_youtube_link | json }},
-      {{ settings.social_tiktok_link | json }},
-      {{ settings.social_pinterest_link | json }},
-      {{ settings.social_tumblr_link | json }},
-      {{ settings.social_vimeo_link | json }},
-      {{ settings.social_snapchat_link | json }},
-      {{ settings.social_whatsapp_link | json }},
-      {{ settings.social_linked_in_link | json }},
-      {{ settings.social_wechat_link | json }},
-      {{ settings.social_reddit_link | json }},
-      {{ settings.social_line_link | json }},
-      {{ settings.social_spotify_link | json }}
-      {%- endcapture -%}
-      {{ socials | strip_newlines | remove: '"",' | remove: '  ' | remove: '  ' }}
-    ],
-    "url": {{ request.origin | append: page.url | json }}
-  }
-</script>
 
 {% schema %}
 {

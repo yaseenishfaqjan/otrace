@@ -104,6 +104,15 @@ for (const product of Object.values(PRODUCTS)) {
 export const findBySlug = (slug) =>
   Object.values(PRODUCTS).find((p) => p.slug === slug) || null;
 
+/**
+ * Name used on the page and in schema.
+ * `product.name` stays the Stripe and cart label, which already includes the brand.
+ */
+export function productDisplayName(product) {
+  const name = String(product?.name ?? '');
+  return name.replace(/^OTRACE\s+/, '') || name;
+}
+
 export const imageUrl = (product, siteUrl) => {
   const src = String(product?.image ?? '');
   if (!src) return undefined;

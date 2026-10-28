@@ -5,8 +5,8 @@
 import { clearThemeCart } from './cart.js';
 import { publicBody } from './discovery.js';
 import { findPost, journalBlurb, journalIndexHtml, journalPostHtml } from './journal.js';
-import { pageContent, standalonePage } from './pages.js';
-import { blogIndexLd, blogPostLd, breadcrumbLd, setLd } from './seo.js';
+import { pageContent, questionFaqs, standalonePage } from './pages.js';
+import { blogIndexLd, blogPostLd, breadcrumbLd, faqLd, setLd, speakableLd } from './seo.js';
 
 export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl }) {
   const renderStandalone = async (res, kind) => {
@@ -69,11 +69,13 @@ export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl }) 
         canonical_path: `/blog/${post.slug}`,
         json_ld: [
           blogPostLd(post, siteUrl),
+          questionFaqs(post.sections).length ? faqLd(questionFaqs(post.sections)) : null,
           breadcrumbLd(siteUrl, [
             { name: 'Home', path: '/' },
             { name: 'Journal', path: '/blog' },
             { name: post.h1, path: `/blog/${post.slug}` },
           ]),
+          speakableLd(siteUrl, `/blog/${post.slug}`),
         ],
       }, 'article');
       sendThemeHtml(res, html);
@@ -99,6 +101,14 @@ export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl }) 
 
   app.get(['/api/theme-preview/product/complete-set', '/product/complete-set'], (req, res) => {
     renderStandalone(res, 'complete-set');
+  });
+
+  // /complete-set used to fall through to the homepage. The product URL is canonical.
+  app.get(['/complete-set', '/complete-set/', '/api/theme-preview/complete-set'], (req, res) => {
+    res.redirect(301, '/product/complete-set');
+  });
+  app.get(['/complete-set.md', '/api/theme-preview/complete-set.md'], (req, res) => {
+    res.redirect(301, '/product/complete-set.md');
   });
 
   /**

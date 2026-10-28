@@ -9,6 +9,7 @@
  * api/catalog.js - the one place that decides what anything costs.
  */
 import { Drop } from 'liquidjs';
+import { productDisplayName } from '../catalog.js';
 import { applyThemeColorAndFont, swatchFor } from './shopify-color.js';
 
 const handleize = (s) =>
@@ -191,7 +192,7 @@ export function toShopifyProduct(p, { siteUrl = '', featureSharpest = false } = 
   return {
     id: p.sku,
     handle: p.slug,
-    title: p.name,
+    title: productDisplayName(p),
     vendor: 'OTRACE',
     type: p.category ?? 'Apparel',
     url: `/product/${p.slug}`,

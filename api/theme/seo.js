@@ -3,7 +3,7 @@
  * describedby / markdown alternates, and JSON-LD. The theme layout already
  * prints the title, the description and the canonical URL.
  */
-import { PRODUCTS, SET_LIST_CENTS, SET_TOTAL_CENTS, formatMoney } from '../catalog.js';
+import { PRODUCTS, SET_LIST_CENTS, SET_TOTAL_CENTS, formatMoney, productDisplayName } from '../catalog.js';
 import { POSTS, journalBlurb } from '../../site/src/content/posts.mjs';
 
 export const ENTITY_SUMMARY =
@@ -28,8 +28,12 @@ export const MARKDOWN_BY_PATH = {
   '/shipping': '/shipping.md',
   '/product/oversized-hoodie': '/product/oversized-hoodie.md',
   '/product/wide-leg-sweatpant': '/product/wide-leg-sweatpant.md',
+  '/product/complete-set': '/product/complete-set.md',
   '/blog': '/blog/index.md',
 };
+
+export const FACT_SELECTOR = '.otrace-fact';
+export const FABRIC = '450 GSM garment-dyed heavyweight cotton fleece';
 
 for (const post of POSTS) MARKDOWN_BY_PATH[`/blog/${post.slug}`] = `/blog/${post.slug}.md`;
 
@@ -89,6 +93,58 @@ export function breadcrumbLd(siteUrl, items) {
   };
 }
 
+/** One WebPage node, only when the HTML actually contains FACT_SELECTOR. */
+export function speakableLd(siteUrl, path) {
+  const origin = originOf(siteUrl);
+  const canonicalPath = path === '/' ? '/' : String(path || '/');
+  const url = `${origin}${canonicalPath === '/' ? '/' : canonicalPath}`;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    '@id': `${url}#webpage`,
+    url,
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: [FACT_SELECTOR],
+    },
+  };
+}
+
+/**
+ * The gallery leads with the featured shot for the selected colour.
+ * That file is the Open Graph image. Home stays on /og.jpg.
+ */
+export function primaryImagePath(product, color) {
+  const colorways = product?.colorways ?? [];
+  const raw = String(color || '').trim().toLowerCase();
+  const wanted = raw.replace(/-/g, ' ');
+  const colorway = colorways.find((item) => {
+    const name = String(item?.name || '').toLowerCase();
+    return name === wanted || name.replace(/\s+/g, '-') === raw;
+  }) || colorways[0];
+  const shots = [...(colorway?.images ?? [])];
+  const lead = shots.findIndex((shot) => shot?.featured);
+  const ordered = lead > 0 ? [shots[lead], ...shots.slice(0, lead), ...shots.slice(lead + 1)] : shots;
+  return ordered[0]?.src || product?.image || '/og.jpg';
+}
+
+const ONCE_PER_PAGE = new Set(['Organization', 'WebSite', 'BreadcrumbList', 'FAQPage', 'WebPage']);
+
+/** Drop a second copy of the types that must appear once, and keep one Organization. */
+export function normalizeJsonLd(siteUrl, jsonLd) {
+  const list = (Array.isArray(jsonLd) ? jsonLd : [jsonLd]).filter(Boolean);
+  const seen = new Set();
+  const out = [];
+  for (const node of list) {
+    const types = [].concat(node['@type'] || []);
+    if (types.some((type) => ONCE_PER_PAGE.has(type) && seen.has(type))) continue;
+    for (const type of types) if (ONCE_PER_PAGE.has(type)) seen.add(type);
+    out.push(node);
+  }
+  if (!seen.has('Organization')) out.unshift(organizationLd(siteUrl));
+  return out;
+}
+
 export function faqLd(faqs) {
   return {
     '@context': 'https://schema.org',
@@ -117,7 +173,7 @@ export function productLd(product, siteUrl) {
       variants.push({
         '@type': 'Product',
         sku: `${product.sku}-${color}-${size}`.toUpperCase(),
-        name: `${product.name} — ${colorway.name} — ${size}`,
+        name: `${productDisplayName(product)} — ${colorway.name} — ${size}`,
         color: colorway.name,
         size,
         image: (colorway.images ?? []).map((image) => `${origin}${image.src}`),
@@ -138,13 +194,13 @@ export function productLd(product, siteUrl) {
     '@context': 'https://schema.org',
     '@type': 'ProductGroup',
     '@id': `${url}#product`,
-    name: product.name,
+    name: productDisplayName(product),
     description: product.description,
     url,
     brand: { '@type': 'Brand', name: 'OTRACE' },
     productGroupID: product.sku,
     variesBy: ['https://schema.org/color', 'https://schema.org/size'],
-    material: 'Cotton',
+    material: FABRIC,
     image: images,
     hasVariant: variants,
   };
@@ -157,7 +213,7 @@ export function setLd(siteUrl) {
     '@context': 'https://schema.org',
     '@type': 'Product',
     '@id': `${url}#set`,
-    name: 'OTRACE Complete Set',
+    name: 'Complete set',
     description: `One Oversized Hoodie and one Wide-Leg Sweatpant, ${formatMoney(SET_TOTAL_CENTS)} together (was ${formatMoney(SET_LIST_CENTS)}). Each piece alone is ${formatMoney(PRODUCTS['OT-HOOD'].priceCents)}.`,
     url,
     brand: { '@type': 'Brand', name: 'OTRACE' },
@@ -224,7 +280,7 @@ export function collectionLd(siteUrl, { name, path, products }) {
         '@type': 'ListItem',
         position: i + 1,
         url: `${origin}/product/${product.slug}`,
-        name: product.name,
+        name: productDisplayName(product),
       })),
     },
   };
@@ -272,6 +328,7 @@ export function seoHead({
   if (markdown) {
     parts.push(`<link rel="alternate" type="text/markdown" href="${origin}${markdown}">`);
   }
-  if (jsonLd) parts.push(jsonScript(jsonLd));
+  parts.push(`<link rel="manifest" href="${origin}/site.webmanifest">`);
+  parts.push(jsonScript(normalizeJsonLd(siteUrl, jsonLd)));
   return parts.join('\n');
 }

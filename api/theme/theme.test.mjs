@@ -624,7 +624,7 @@ test('garment dyed leads with the definition and keeps the four steps on one row
   const { pageContent } = await import('./pages.js');
   const html = pageContent('garment-dyed').content;
   const quote = 'Garment dyed means the piece is sewn first and dyed afterwards, so the colour settles into the seams. OTRACE hoodies and sweatpants are garment dyed 450 GSM cotton fleece in Onyx Black and Warm Cream.';
-  const leadAt = html.indexOf(`<p class="hdt-dye-lead">${quote}</p>`);
+  const leadAt = html.indexOf(`<p class="hdt-dye-lead otrace-fact">${quote}</p>`);
   const stepsAt = html.indexOf('hdt-dye-steps');
   const versusAt = html.indexOf('Garment dyed vs piece dyed');
   assert.ok(leadAt >= 0, 'the definition has to be the lead, in his wording');

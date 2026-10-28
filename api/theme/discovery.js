@@ -7,7 +7,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { PRODUCTS, SIZES, SHIPPING, formatMoney } from '../catalog.js';
+import { PRODUCTS, SIZES, SHIPPING, formatMoney, productDisplayName } from '../catalog.js';
 import { INDEXNOW_KEY } from '../indexnow.js';
 import { POSTS } from '../../site/src/content/posts.mjs';
 
@@ -78,11 +78,18 @@ function productImages(product) {
   return images;
 }
 
-export function sitemapXml(siteUrl, today = new Date().toISOString().slice(0, 10)) {
+/** Content revision for URLs that are not a dated journal post. Markdown mirrors stay out. */
+export const SITEMAP_REVISION = '2026-10-28';
+
+export function sitemapXml(siteUrl, today = SITEMAP_REVISION) {
   const origin = String(siteUrl).replace(/\/$/, '');
   const urls = INDEXABLE_PATHS.map((route) => {
     const product = Object.values(PRODUCTS).find((item) => route === `/product/${item.slug}`);
-    const images = product ? productImages(product).slice(0, 20) : [];
+    const post = POSTS.find((item) => route === `/blog/${item.slug}`);
+    const images = route === '/product/complete-set'
+      ? ['/products/hoodie-onyx-worn-front.jpg', '/products/pant-onyx-worn.jpg', '/products/hoodie-cream-worn-front.jpg', '/products/pant-cream-worn.jpg']
+      : product ? productImages(product).slice(0, 20) : [];
+    const lastmod = post?.date || today;
     const imageXml = images
       .map((src) => `\n    <image:image><image:loc>${escapeXml(origin + src)}</image:loc></image:image>`)
       .join('');
@@ -91,7 +98,7 @@ export function sitemapXml(siteUrl, today = new Date().toISOString().slice(0, 10
         : route.startsWith('/shop') || route === '/lookbook' ? '0.8'
           : '0.5';
     const loc = route === '/' ? `${origin}/` : `${origin}${route}`;
-    return `  <url>\n    <loc>${escapeXml(loc)}</loc>\n    <lastmod>${today}</lastmod>\n    <priority>${priority}</priority>${imageXml}\n  </url>`;
+    return `  <url>\n    <loc>${escapeXml(loc)}</loc>\n    <lastmod>${lastmod}</lastmod>\n    <priority>${priority}</priority>${imageXml}\n  </url>`;
   });
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">\n${urls.join('\n')}\n</urlset>\n`;
 }
@@ -107,7 +114,7 @@ export function merchantFeedXml(siteUrl) {
   const items = [];
   for (const product of Object.values(PRODUCTS)) {
     const price = `${(product.priceCents / 100).toFixed(2)} USD`;
-    const material = 'Cotton';
+    const material = '450 GSM garment-dyed heavyweight cotton fleece';
     const productType = product.sku === 'OT-HOOD' ? 'Hoodies' : 'Bottoms';
     for (const colorway of product.colorways ?? []) {
       const images = (colorway.images ?? []).map((image) => `${origin}${image.src}`);
@@ -120,7 +127,7 @@ export function merchantFeedXml(siteUrl) {
         items.push(`    <item>
       <g:id>${escapeXml(id)}</g:id>
       <g:item_group_id>${escapeXml(product.sku)}</g:item_group_id>
-      <title>${escapeXml(`${product.name} — ${colorway.name} — ${size}`)}</title>
+      <title>${escapeXml(`${productDisplayName(product)} — ${colorway.name} — ${size}`)}</title>
       <description>${escapeXml(product.description)}</description>
       <link>${escapeXml(`${origin}/product/${product.slug}`)}</link>
       <g:image_link>${escapeXml(main)}</g:image_link>${extraXml}
@@ -162,6 +169,7 @@ const MARKDOWN = {
   '/shipping.md': 'pages/shipping.md',
   '/product/oversized-hoodie.md': 'pages/product/oversized-hoodie.md',
   '/product/wide-leg-sweatpant.md': 'pages/product/wide-leg-sweatpant.md',
+  '/product/complete-set.md': 'pages/product/complete-set.md',
   '/blog/index.md': 'pages/blog/index.md',
   '/llms/pages/index.md': 'pages/index.md',
   '/llms/pages/about.md': 'pages/about.md',
@@ -170,6 +178,7 @@ const MARKDOWN = {
   '/llms/pages/shipping.md': 'pages/shipping.md',
   '/llms/pages/oversized-hoodie.md': 'pages/product/oversized-hoodie.md',
   '/llms/pages/wide-leg-sweatpant.md': 'pages/product/wide-leg-sweatpant.md',
+  '/llms/pages/complete-set.md': 'pages/product/complete-set.md',
   '/llms/pages/journal.md': 'pages/blog/index.md',
 };
 
@@ -195,6 +204,31 @@ export function resolveStaticFile(urlPath) {
   if (!file.startsWith(PUBLIC_DIR + path.sep) && file !== PUBLIC_DIR) return null;
   if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return null;
   return file;
+}
+
+export function securityTxt(siteUrl) {
+  const origin = String(siteUrl || 'https://otrace.co').replace(/\/$/, '');
+  return [
+    'Contact: mailto:info@otrace.co',
+    'Expires: 2027-10-28T23:59:59.000Z',
+    'Preferred-Languages: en',
+    `Canonical: ${origin}/.well-known/security.txt`,
+    '',
+  ].join('\n');
+}
+
+export function humansTxt(siteUrl) {
+  const origin = String(siteUrl || 'https://otrace.co').replace(/\/$/, '');
+  return [
+    '/* TEAM */',
+    'Contact: info@otrace.co',
+    `Site: ${origin}`,
+    '',
+    '/* SITE */',
+    'Brand: OTRACE',
+    'Language: English',
+    '',
+  ].join('\n');
 }
 
 function readSeo(rel) {
@@ -226,6 +260,13 @@ export function publicBody(urlPath, siteUrl) {
   if (pathOnly === '/sitemap.xml') return { body: sitemapXml(siteUrl), type: 'application/xml; charset=utf-8' };
   if (pathOnly === '/merchant-feed.xml') return { body: merchantFeedXml(siteUrl), type: 'application/xml; charset=utf-8' };
   if (pathOnly === `/${INDEXNOW_KEY}.txt`) return { body: INDEXNOW_KEY, type: 'text/plain; charset=utf-8' };
+  if (pathOnly === '/.well-known/security.txt') return { body: securityTxt(siteUrl), type: 'text/plain; charset=utf-8' };
+  if (pathOnly === '/humans.txt') return { body: humansTxt(siteUrl), type: 'text/plain; charset=utf-8' };
+  if (pathOnly === '/site.webmanifest') {
+    const file = path.join(PUBLIC_DIR, 'site.webmanifest');
+    if (!fs.existsSync(file)) return null;
+    return { body: fs.readFileSync(file), type: 'application/manifest+json; charset=utf-8' };
+  }
   const file = resolveStaticFile(pathOnly);
   if (file) return { file };
   return null;

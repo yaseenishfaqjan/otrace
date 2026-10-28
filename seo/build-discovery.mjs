@@ -11,7 +11,7 @@ import { POSTS, journalBlurb } from '../site/src/content/posts.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ORIGIN = 'https://otrace.co';
-const UPDATED = '2026-10-26';
+const UPDATED = '2026-10-28';
 
 /**
  * Source files are read with their line endings NORMALISED.
@@ -162,6 +162,16 @@ export function buildDiscovery() {
         '',
       ].join('\n'),
     ),
+    '### Complete set',
+    '',
+    `- URL: ${ORIGIN}/product/complete-set`,
+    `- Markdown: ${ORIGIN}/product/complete-set.md`,
+    '- What it is: one Oversized Hoodie and one Wide-Leg Sweatpant, the same size and the same colour',
+    '- Price: 140 USD together, reduced from 200 USD. Each piece alone is 80 USD, reduced from 100 USD',
+    '- Fabric: 450 GSM garment-dyed heavyweight cotton fleece',
+    '- Colorways: Onyx Black, Warm Cream',
+    '- The set is a basket price, not a third SKU. There is no separate stock count.',
+    '',
     '## Sizing',
     '',
     'Measurements are the garment laid flat, in centimetres. Inches are that centimetre figure divided by 2.54 and rounded to 0.1.',
@@ -209,7 +219,9 @@ Price and stock are on the product pages, not in this file.
 
 - [Oversized Hoodie](${ORIGIN}/product/oversized-hoodie.md)
 - [Wide-Leg Sweatpant](${ORIGIN}/product/wide-leg-sweatpant.md)
-- [Sizing](${ORIGIN}/sizing.md)`,
+- [Complete set](${ORIGIN}/product/complete-set.md)
+- [Sizing](${ORIGIN}/sizing.md)
+- [What does garment dyed mean?](${ORIGIN}/garment-dyed.md)`,
     ),
     'about.md': page(
       'About OTRACE',
@@ -229,6 +241,8 @@ Measurements are garment-flat centimetres. Inches are centimetres divided by 2.5
 
 ${faqBlock(faqs.SIZING_FAQS)}
 
+The [Oversized Hoodie](${ORIGIN}/product/oversized-hoodie) and the [Wide-Leg Sweatpant](${ORIGIN}/product/wide-leg-sweatpant) use this chart. Together they are the [Complete set](${ORIGIN}/product/complete-set). The fleece is [garment dyed](${ORIGIN}/garment-dyed) 450 GSM.
+
 Hoodie
 ${chartLines(chart, ['Chest', 'Body length', 'Shoulder'])}
 
@@ -246,7 +260,7 @@ ${chartLines(chart, ['Sleeve / waist'])}`,
 
 ${faqBlock(faqs.GARMENT_DYE_FAQS)}
 
-The Oversized Hoodie is 80 USD on the catalogue date ${UPDATED}, reduced from 100 USD. The Wide-Leg Sweatpant is 80 USD on that date, reduced from 100 USD. Both pieces bought together are 140 USD, reduced from 200 USD. Check the live product pages before quoting a price.`,
+The Oversized Hoodie is 80 USD on the catalogue date ${UPDATED}, reduced from 100 USD. The Wide-Leg Sweatpant is 80 USD on that date, reduced from 100 USD. Both pieces bought together are 140 USD, reduced from 200 USD, as the [Complete set](${ORIGIN}/product/complete-set). Measurements are on the [size chart](${ORIGIN}/sizing). Check the live product pages before quoting a price.`,
     ),
     'shipping.md': page(
       'Shipping and returns',
@@ -289,6 +303,24 @@ Catalogue price on ${UPDATED}: ${pant.price} USD. Confirm on the HTML page befor
 ${pant.details.map((line) => `- ${line}`).join('\n')}
 
 ${faqBlock(faqs.PANT_FAQS)}`,
+    ),
+    'product/complete-set.md': page(
+      'Complete set',
+      `HTML: ${ORIGIN}/product/complete-set
+
+The Complete set is one Oversized Hoodie and one Wide-Leg Sweatpant, the same size and the same colour. Catalogue price on ${UPDATED}: 140 USD together, reduced from 200 USD. Each piece alone is 80 USD, reduced from 100 USD. Confirm on the HTML page before quoting a price. Availability: in stock. There is no per-variant unit count, and the set is not a third SKU.
+
+- Fabric: 450 GSM garment-dyed heavyweight cotton fleece
+- Colorways: Onyx Black, Warm Cream
+- Sizes: XS to 3XL, unisex
+- [Oversized Hoodie](${ORIGIN}/product/oversized-hoodie)
+- [Wide-Leg Sweatpant](${ORIGIN}/product/wide-leg-sweatpant)
+- [Size chart](${ORIGIN}/sizing)
+- [What does garment dyed mean?](${ORIGIN}/garment-dyed)
+
+## What is in the complete set?
+
+One Oversized Hoodie and one Wide-Leg Sweatpant, same size and colour, in 450 GSM garment-dyed heavyweight cotton fleece. Together they are 140 USD on the catalogue date above, was 200 USD.`,
     ),
   };
 

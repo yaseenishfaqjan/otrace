@@ -476,7 +476,10 @@ app.get('/api/theme-preview/product/:slug', async (req, res) => {
   const product = findBySlug(req.params.slug);
   if (!product) return res.status(404).send('No such product.');
   try {
-    sendThemeHtml(res, await themeRenderer.renderProduct(product, { variantId: req.query.variant }));
+    sendThemeHtml(res, await themeRenderer.renderProduct(product, {
+      variantId: req.query.variant,
+      color: req.query.color || req.query.colour,
+    }));
   } catch (err) {
     console.error('[theme] product render failed:', err.message);
     res.status(500).send('Theme render failed: ' + err.message);

@@ -4,8 +4,9 @@ HTML: https://otrace.co/blog/what-is-a-450-gsm-hoodie
 
 A 450 GSM hoodie is cotton fleece weighing 450 grams for every square metre of cloth. GSM means grams per square metre. The OTRACE Oversized Hoodie is that weight: heavyweight loopback fleece, brushed on the inside, garment dyed.
 
-## What the number counts
+## What is a 450 GSM hoodie?
 
+A 450 GSM hoodie is cotton fleece weighing 450 grams per square metre. The OTRACE Oversized Hoodie is that weight: heavyweight loopback fleece, brushed on the inside, garment dyed.
 GSM is a weight, not a size and not a fit. Cut one square metre of the cloth and weigh it. If the scale reads 450 grams, the cloth is 450 GSM. A heavier number is more fibre in that square, which is why the hoodie feels dense in the hand.
 There is no single public standard that grades 450 as a named class such as “ultra-heavyweight”. Brands use those words loosely. OTRACE publishes the grams. The Oversized Hoodie is 450 GSM heavyweight cotton fleece, the same figure on the product page and in the size of the knit.
 
@@ -17,5 +18,5 @@ It is cut boxy, with a dropped shoulder, a self-lined double-layer hood, a split
 ## The hoodie that uses it
 
 The [Oversized Hoodie](/product/oversized-hoodie) is sold in Onyx Black and Warm Cream. The price on 26 October 2026 is 80 USD, reduced from 100 USD. Read the product page for the current price and for stock. The page is the source of truth, not this note.
-AW2026 is in stock. We ship worldwide. Delivery is free inside the United States, and in-stock orders ship in 3–5 business days. The same fleece is used for the [Wide-Leg Sweatpant](/product/wide-leg-sweatpant).
+AW2026 is in stock. We ship worldwide. Delivery is free inside the United States, and in-stock orders ship in 3–5 business days. The same fleece is used for the [Wide-Leg Sweatpant](/product/wide-leg-sweatpant). One of each is the [complete set](/product/complete-set).
 Fit and the garment-flat measurements are on the [size chart](/sizing). How the dye is done is on [what garment dyed means](/garment-dyed). Both hoodies are in the [hoodies shop](/shop/hoodies).
