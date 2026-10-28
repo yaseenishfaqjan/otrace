@@ -63,6 +63,12 @@ services:
       KLAVIYO_LIST_ID: ${KLAVIYO_LIST_ID:-}
       # Public onsite id only. Blank means the theme does not load Klaviyo.js.
       KLAVIYO_COMPANY_ID: ${KLAVIYO_COMPANY_ID:-}
+      # Public GA4 measurement ID. Blank omits the tag. Production: G-KZZXSSF3L1
+      GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-}
+      OTRACE_GA_MEASUREMENT_ID: ${OTRACE_GA_MEASUREMENT_ID:-}
+      # Public Clarity project id. Blank omits the script. Production: z3xvl8jv8y
+      CLARITY_PROJECT_ID: ${CLARITY_PROJECT_ID:-}
+      OTRACE_CLARITY_PROJECT_ID: ${OTRACE_CLARITY_PROJECT_ID:-}
       # Theme contact page. Blank hides the button and the chat embed.
       WHATSAPP_NUMBER: ${WHATSAPP_NUMBER:-}
       PUBLIC_WHATSAPP_NUMBER: ${PUBLIC_WHATSAPP_NUMBER:-}

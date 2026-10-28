@@ -27,7 +27,7 @@ import {
 import { resolveThemeProductSettings, selectShopifyVariant, toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
 import { PRODUCTS } from '../catalog.js';
 import { POSTS } from '../../site/src/content/posts.mjs';
-import { chatEmbed, faqHtml, faqsForSlug, homeFactHtml, klaviyoOnsite, productFactHtml, questionFaqs } from './pages.js';
+import { chatEmbed, clarityTag, faqHtml, faqsForSlug, googleTag, homeFactHtml, klaviyoOnsite, productFactHtml, questionFaqs } from './pages.js';
 import {
   breadcrumbLd,
   collectionLd,
@@ -586,10 +586,34 @@ export function createThemeRenderer({
     }) +
     ';<\/script>';
 
+  /**
+   * Optional GA4 and Clarity tags, in that order, as the first children of
+   * <head>.
+   *
+   * Every full page is this layout (`layout/theme.liquid`). Neither snippet
+   * is copied into templates. `content_for_header` stays the hook for CSS,
+   * SEO, and the other optional embeds. A blank id omits that tag, and a
+   * page that already has one is not given a second.
+   */
+  function withHeadTags(html) {
+    const open = html.indexOf('<head>');
+    if (open === -1) return html;
+    const headEnd = html.indexOf('</head>', open);
+    const head = headEnd === -1 ? html.slice(open) : html.slice(open, headEnd);
+    const parts = [];
+    const ga = googleTag();
+    const clarity = clarityTag();
+    if (ga && !head.includes('googletagmanager.com/gtag/js?id=')) parts.push(ga);
+    if (clarity && !head.includes('https://www.clarity.ms/tag/')) parts.push(clarity);
+    if (!parts.length) return html;
+    const at = open + '<head>'.length;
+    return `${html.slice(0, at)}\n${parts.join('\n')}${html.slice(at)}`;
+  }
+
   async function wrap(contentForLayout, extra, globals) {
     const scope = { ...baseScope(), ...extra, content_for_layout: contentForLayout,
       content_for_header: contentForHeader(extra), content_for_index: '' };
-    return renderThemeFile(engine, themeRoot, 'layout', 'theme', scope, globals);
+    return withHeadTags(await renderThemeFile(engine, themeRoot, 'layout', 'theme', scope, globals));
   }
 
   /**
