@@ -267,6 +267,11 @@ export function publicBody(urlPath, siteUrl) {
     if (!fs.existsSync(file)) return null;
     return { body: fs.readFileSync(file), type: 'application/manifest+json; charset=utf-8' };
   }
+  if (pathOnly === '/BingSiteAuth.xml') {
+    const file = path.join(PUBLIC_DIR, 'BingSiteAuth.xml');
+    if (!fs.existsSync(file)) return null;
+    return { body: fs.readFileSync(file), type: 'application/xml; charset=utf-8' };
+  }
   const file = resolveStaticFile(pathOnly);
   if (file) return { file };
   return null;
