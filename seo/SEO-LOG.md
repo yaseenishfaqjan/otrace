@@ -602,4 +602,4 @@ Sizing FAQPage answers are the same strings as the first paragraph under each qu
 
 **Still owner-blocked, and not invented here:** Google Search Console, Bing Webmaster, Analytics, and Clarity verification meta tags; social `sameAs` URLs; reviews or `aggregateRating`; Klaviyo, WhatsApp, and chat widget keys. IndexNow will POST only after this is deployed and `sh deploy/after-deploy.sh` runs. The nginx 301 and the manifest route apply only after `deploy/apply-nginx-routes.mjs`.
 
-**Commit:** filled in the next line after this commit lands.
+**Commit:** a1b4ce25b8eb9685fd738f37effe1e669c0d3423
