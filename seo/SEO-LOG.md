@@ -603,3 +603,15 @@ Sizing FAQPage answers are the same strings as the first paragraph under each qu
 **Still owner-blocked, and not invented here:** Google Search Console, Bing Webmaster, Analytics, and Clarity verification meta tags; social `sameAs` URLs; reviews or `aggregateRating`; Klaviyo, WhatsApp, and chat widget keys. IndexNow will POST only after this is deployed and `sh deploy/after-deploy.sh` runs. The nginx 301 and the manifest route apply only after `deploy/apply-nginx-routes.mjs`.
 
 **Commit:** a1b4ce25b8eb9685fd738f37effe1e669c0d3423
+
+## [2026-10-28] Conversion pack: trust strip, FAQ page, offer policy, branded 404
+
+**Why:** The buy box did not repeat the footer promises next to Add to cart. Hoodie and sweatpant pages did not point at the published $140 set. FAQ answers lived in JSON-LD and `faq-ai.txt` with no human URL. Offer shipping named a $0 US rate and a 30-day mail return, without handling time, a non-US destination, return fees, or the unworn condition. Unknown URLs 302’d to the homepage.
+
+**Before:** PDP trust was payment icons plus an empty Delivery & Return modal. No `/faq`. Sitemap had no FAQ URL. `OfferShippingDetails` was US `$0` only. `location / { return 302 /; }`. Lookbook strip heading was `@OTRACE` with no profile URL. Hoodie and sweatpant already render `hdt-sticky-btn-atc` wired to `product-form-main-product{SKU}`. Prices were $80 / $100 and the set $140 / $200.
+
+**After:** Buy box shows Free US delivery, Ships 3–5 days, 30-day returns, Secure checkout (Stripe). Hoodie and sweatpant cards link to `/product/complete-set` at `$140.00` (was `$200.00`) and to the other piece. Complete set gets the same trust line and a sticky button that submits the existing set form. `/faq` renders every `shared/faqs.json` answer, with FAQPage JSON-LD from those strings, footer links, sitemap entry, and `/faq.md`. US shipping keeps rate 0 and adds handling time 3–5 business days. Other checkout countries are listed with no shipping rate. Return policy is 30 days, mail, free label, new condition, refund or exchange. Unknown paths proxy to a black/cream 404 with Shop and Complete set. `@OTRACE` is now the wordmark `OTRACE`.
+
+**Not done:** No deploy. Nginx 404 and `/faq` apply only after `deploy/apply-nginx-routes.mjs`. No Klaviyo, WhatsApp, chat, `sameAs`, reviews, price change, colour gallery, GA, or Clarity edit. Theme sticky ATC on the two product templates was left in place. `site/src/lib/structured-data.ts` is not on the request path and was not edited.
+
+**Checked:** `node --test` on `api/theme/seo-audit.test.mjs`, `gaps.test.mjs`, `theme.test.mjs`, `cart.test.mjs`, and `api/leads.test.mjs`. Local preview of `/product/oversized-hoodie`, `/product/complete-set`, `/faq`, and an unknown path (HTTP 404). Prices on those pages stayed `$80.00`, `$100.00`, `$140.00`, `$200.00`.

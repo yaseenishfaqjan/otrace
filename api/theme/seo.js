@@ -3,7 +3,7 @@
  * describedby / markdown alternates, and JSON-LD. The theme layout already
  * prints the title, the description and the canonical URL.
  */
-import { PRODUCTS, SET_LIST_CENTS, SET_TOTAL_CENTS, formatMoney, productDisplayName } from '../catalog.js';
+import { PRODUCTS, SET_LIST_CENTS, SET_TOTAL_CENTS, SHIP_COUNTRIES, formatMoney, productDisplayName } from '../catalog.js';
 import { POSTS, journalBlurb } from '../../site/src/content/posts.mjs';
 
 export const ENTITY_SUMMARY =
@@ -26,6 +26,7 @@ export const MARKDOWN_BY_PATH = {
   '/sizing': '/sizing.md',
   '/garment-dyed': '/garment-dyed.md',
   '/shipping': '/shipping.md',
+  '/faq': '/faq.md',
   '/product/oversized-hoodie': '/product/oversized-hoodie.md',
   '/product/wide-leg-sweatpant': '/product/wide-leg-sweatpant.md',
   '/product/complete-set': '/product/complete-set.md',
@@ -37,19 +38,62 @@ export const FABRIC = '450 GSM garment-dyed heavyweight cotton fleece';
 
 for (const post of POSTS) MARKDOWN_BY_PATH[`/blog/${post.slug}`] = `/blog/${post.slug}.md`;
 
-const SHIPPING_DETAILS = {
-  '@type': 'OfferShippingDetails',
-  shippingRate: { '@type': 'MonetaryAmount', value: 0, currency: 'USD' },
-  shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'US' },
-};
+/**
+ * Free delivery is published for United States addresses only.
+ * The second node says the shop ships to the other checkout countries and
+ * does not carry a rate, so it cannot be read as free shipping outside the US.
+ * Handling time is the published 3–5 business days to dispatch, not transit.
+ */
+function offerShippingDetails() {
+  return [
+    {
+      '@type': 'OfferShippingDetails',
+      shippingRate: { '@type': 'MonetaryAmount', value: 0, currency: 'USD' },
+      shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'US' },
+      deliveryTime: {
+        '@type': 'ShippingDeliveryTime',
+        handlingTime: {
+          '@type': 'QuantitativeValue',
+          minValue: 3,
+          maxValue: 5,
+          unitCode: 'DAY',
+          unitText: 'business days',
+        },
+      },
+    },
+    {
+      '@type': 'OfferShippingDetails',
+      name: 'Worldwide shipping',
+      description: 'Ships worldwide to the address entered at checkout. Free delivery is for United States addresses only.',
+      shippingDestination: {
+        '@type': 'DefinedRegion',
+        addressCountry: SHIP_COUNTRIES.filter((code) => code !== 'US'),
+      },
+    },
+  ];
+}
 
-const RETURN_POLICY = {
-  '@type': 'MerchantReturnPolicy',
-  applicableCountry: 'US',
-  returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
-  merchantReturnDays: 30,
-  returnMethod: 'https://schema.org/ReturnByMail',
-};
+/** Unworn, tags on, 30 days, by mail. The returns answer says we send a label. */
+function offerReturnPolicy(siteUrl) {
+  return {
+    '@type': 'MerchantReturnPolicy',
+    applicableCountry: SHIP_COUNTRIES,
+    returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+    merchantReturnDays: 30,
+    returnMethod: 'https://schema.org/ReturnByMail',
+    returnFees: 'https://schema.org/FreeReturn',
+    refundType: ['https://schema.org/FullRefund', 'https://schema.org/ExchangeRefund'],
+    itemCondition: 'https://schema.org/NewCondition',
+    merchantReturnLink: `${originOf(siteUrl)}/shipping`,
+  };
+}
+
+function offerPolicy(siteUrl) {
+  return {
+    shippingDetails: offerShippingDetails(),
+    hasMerchantReturnPolicy: offerReturnPolicy(siteUrl),
+  };
+}
 
 export function organizationLd(siteUrl) {
   const origin = originOf(siteUrl);
@@ -184,8 +228,7 @@ export function productLd(product, siteUrl) {
           priceCurrency: 'USD',
           availability: product.preorder ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock',
           itemCondition: 'https://schema.org/NewCondition',
-          shippingDetails: SHIPPING_DETAILS,
-          hasMerchantReturnPolicy: RETURN_POLICY,
+          ...offerPolicy(siteUrl),
         },
       });
     }
@@ -224,8 +267,7 @@ export function setLd(siteUrl) {
       priceCurrency: 'USD',
       availability: 'https://schema.org/InStock',
       itemCondition: 'https://schema.org/NewCondition',
-      shippingDetails: SHIPPING_DETAILS,
-      hasMerchantReturnPolicy: RETURN_POLICY,
+      ...offerPolicy(siteUrl),
     },
   };
 }

@@ -493,3 +493,79 @@ img[src=""], img:not([src]) { display: none !important; }
 
 /* Amazon Pay is not offered and its icon URL 404s. */
 .hdt-payment-item:has(img[src*="amazon_payments"]), img[src*="amazon_payments"] { display: none !important; }
+
+/* Buy box. The four lines are the footer promises, kept short. */
+.otrace-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.85rem;
+  list-style: none;
+  margin: 0.9rem 0 0;
+  padding: 0;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #161513;
+}
+.otrace-trust li { margin: 0; }
+.otrace-trust a { color: inherit; text-underline-offset: 0.18em; }
+
+.otrace-set-card {
+  margin-top: 1rem;
+  padding: 0.95rem 1rem;
+  border: 1px solid #161513;
+  background: #f4f1eb;
+  color: #161513;
+}
+.otrace-set-card p { margin: 0.3rem 0; }
+.otrace-set-card__title { font-weight: 600; letter-spacing: 0.02em; }
+.otrace-set-card a { color: inherit; }
+
+/* Complete-set page only. Product pages keep the theme sticky bar. */
+.otrace-sticky-atc {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  background: #000;
+}
+.otrace-sticky-atc[hidden] { display: none !important; }
+.otrace-sticky-atc button {
+  width: min(28rem, 100%);
+  margin: 0;
+  padding: 0.85rem 1.1rem;
+  border: 0;
+  background: #f4f1eb;
+  color: #000;
+  font: inherit;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hdt-not-found {
+  background: #000;
+  color: #f4f1eb;
+  text-align: center;
+  padding: 4.5rem 1.25rem;
+}
+.hdt-not-found p {
+  color: #f4f1eb;
+  margin: 0 0 1.25rem;
+  font-size: 1.05rem;
+}
+.hdt-not-found a {
+  display: inline-block;
+  margin: 0.35rem;
+  padding: 0.8rem 1.2rem;
+  background: #f4f1eb;
+  color: #000;
+  text-decoration: none;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+}

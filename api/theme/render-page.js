@@ -27,7 +27,7 @@ import {
 import { resolveThemeProductSettings, selectShopifyVariant, toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
 import { PRODUCTS } from '../catalog.js';
 import { POSTS } from '../../site/src/content/posts.mjs';
-import { chatEmbed, clarityTag, faqHtml, faqsForSlug, googleTag, homeFactHtml, klaviyoOnsite, productFactHtml, questionFaqs } from './pages.js';
+import { chatEmbed, clarityTag, deliveryReturnHtml, faqHtml, faqsForSlug, googleTag, homeFactHtml, klaviyoOnsite, productFactHtml, questionFaqs, setCrossSellHtml, trustStripHtml } from './pages.js';
 import {
   breadcrumbLd,
   collectionLd,
@@ -41,6 +41,32 @@ import {
   websiteLd,
 } from './seo.js';
 import { swatchFor } from './shopify-color.js';
+
+/** Trust line and set card sit on the main buy form, not the sticky bar's form. */
+function insertBuyBox(html, product) {
+  const extra = trustStripHtml() + setCrossSellHtml(product);
+  const next = fillDeliveryModal(html);
+  const marker = 'class="hdt-main-product-form';
+  const idx = next.indexOf(marker);
+  if (idx < 0) return next + extra;
+  const formEnd = next.indexOf('</form>', idx);
+  if (formEnd < 0) return next + extra;
+  const at = formEnd + '</form>'.length;
+  return next.slice(0, at) + extra + next.slice(at);
+}
+
+/** The theme delivery control opens a modal. Its page handle does not resolve here, so the body was empty. */
+function fillDeliveryModal(html) {
+  const start = html.indexOf('hdt-modal__delivery');
+  if (start < 0) return html;
+  const rte = html.indexOf('class="hdt-rte"', start);
+  if (rte < 0) return html;
+  const open = html.indexOf('>', rte);
+  const close = html.indexOf('</div>', open);
+  if (open < 0 || close < 0) return html;
+  if (html.slice(open + 1, close).trim()) return html;
+  return html.slice(0, open + 1) + deliveryReturnHtml() + html.slice(close);
+}
 
 export function createThemeRenderer({
   themeRoot,
@@ -134,7 +160,9 @@ export function createThemeRenderer({
       links: [
         link('Shipping', '/shipping'),
         link('Sizing', '/sizing'),
+        link('FAQ', '/faq'),
         link('Contact', '/contact'),
+        link('Lookbook', '/lookbook'),
         link('Privacy', '/privacy'),
         link('Terms', '/terms'),
       ],
@@ -156,7 +184,10 @@ export function createThemeRenderer({
         link('Blog', '/blog'),
         link('Garment dyed', '/garment-dyed'),
         link('Sizing', '/sizing'),
+        link('Shipping', '/shipping'),
+        link('FAQ', '/faq'),
         link('Contact', '/contact'),
+        link('Lookbook', '/lookbook'),
         link('Complete set', '/product/complete-set'),
       ],
     },
@@ -381,13 +412,13 @@ export function createThemeRenderer({
       template: { name: 'product', suffix: null },
     });
     const faqs = faqsForSlug(shaped.handle);
-    const content = `${await renderTemplate('product', {
+    const content = `${insertBuyBox(await renderTemplate('product', {
       product: shaped,
       request: globals.request,
       template: globals.template,
       collection: null,
       canonical_url: url,
-    }, globals)}${productFactHtml(product)}${faqHtml(faqs)}`;
+    }, globals), product)}${productFactHtml(product)}${faqHtml(faqs)}`;
     const path = `/product/${shaped.handle}`;
     return wrap(content, {
       product: shaped,
