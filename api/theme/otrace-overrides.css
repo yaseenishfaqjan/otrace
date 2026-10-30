@@ -571,10 +571,15 @@ img[src=""], img:not([src]) { display: none !important; }
 }
 
 /*
- * Size guide and delivery dialogs. The theme dialog is width:100% and the
- * size-guide title is clipped to 1px, so an empty page handle opened as a
- * full-width bar with only the close control. Keep the title, and let a long
- * chart scroll inside the dialog instead of being clipped.
+ * Size guide and delivery dialogs.
+ *
+ * The theme title was clipped to 1px. An author `display: flex` on the
+ * dialog also beat the user-agent `display: none`, so a closed dialog stayed
+ * in the buy column. On iPhone that fixed box is trapped by the gallery
+ * (transform / display: contents), the −20% badge paints over it, and the
+ * page keeps scrolling. While open, the host is a viewport overlay. Closed
+ * dialogs stay display:none. 100vw is avoided: on iOS it is wider than the
+ * layout viewport and the close transform then flashes a black rectangle.
  */
 .hdt-modal__size-chart.hdt-product__modal .hdt-product__modal-title,
 .hdt-modal__delivery .hdt-product__modal-title {
@@ -583,25 +588,81 @@ img[src=""], img:not([src]) { display: none !important; }
   overflow: visible;
   font-size: 1.6rem;
 }
-.hdt-modal__size-chart dialog.hdt-dialog.hdt-dialog-modal,
-.hdt-modal__delivery dialog.hdt-dialog.hdt-dialog-modal {
+.hdt-modal__size-chart dialog.hdt-dialog.hdt-dialog-modal:not([open]),
+.hdt-modal__delivery dialog.hdt-dialog.hdt-dialog-modal:not([open]) {
+  display: none !important;
+}
+html.otrace-modal-lock,
+html.otrace-modal-lock body {
+  overflow: hidden !important;
+  overscroll-behavior: none;
+}
+html.otrace-modal-lock .hdt-media-badges,
+html.otrace-modal-lock .hdt-badge__wrapp {
+  z-index: 0 !important;
+}
+hdt-modal.hdt-modal__size-chart:has(dialog[open]),
+hdt-modal.hdt-modal__delivery:has(dialog[open]) {
+  display: flex !important;
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 1.2rem;
+  background: rgb(0 0 0 / 0.45);
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+.hdt-modal__size-chart dialog.hdt-dialog.hdt-dialog-modal[open],
+.hdt-modal__delivery dialog.hdt-dialog.hdt-dialog-modal[open] {
   display: flex;
   flex-direction: column;
-  width: min(76rem, calc(100vw - 2.4rem));
-  max-width: min(76rem, calc(100vw - 2.4rem));
-  height: auto;
-  max-height: min(85vh, 48rem);
-  overflow: hidden;
+  position: relative !important;
+  inset: auto !important;
+  z-index: 1;
+  width: min(76rem, 100%) !important;
+  max-width: min(76rem, 100%) !important;
+  height: auto !important;
+  max-height: min(85vh, 85dvh, 48rem) !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  transform: none !important;
+  opacity: 1 !important;
+  background: #fff !important;
+  animation: none !important;
+  color-scheme: light;
+}
+hdt-modal.hdt-modal__size-chart dialog[open]::backdrop,
+hdt-modal.hdt-modal__delivery dialog[open]::backdrop {
+  background: transparent;
+}
+hdt-modal.hdt-modal__size-chart .hdt-dialog-btn__close,
+hdt-modal.hdt-modal__delivery .hdt-dialog-btn__close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 3rem;
+  height: 3rem;
+  margin: 0;
+  transform: none !important;
+  transition: none;
 }
 .hdt-modal__size-chart .hdt-dialog-modal__header,
 .hdt-modal__delivery .hdt-dialog-modal__header {
   flex: 0 0 auto;
+  padding-inline-end: 4.2rem;
 }
 .hdt-modal__size-chart .hdt-dialog-modal__inner,
 .hdt-modal__delivery .hdt-dialog-modal__inner {
   flex: 1 1 auto;
   min-height: 0;
   overflow: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
 }
 .hdt-modal__size-chart .hdt-size-page h2,
 .hdt-modal__delivery .hdt-rte h2 {

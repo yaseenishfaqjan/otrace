@@ -583,7 +583,7 @@ const completeSet = () => {
     figures,
     `</div>`,
     `<form id="otrace-set" class="hdt-contact-form">`,
-    `<label>Colour<select name="colour" required>${options}</select></label>`,
+    `<label>Color<select name="colour" required>${options}</select></label>`,
     `<label>Size<select name="size" required>${sizes}</select></label>`,
     `<button type="submit">Add the set — ${formatMoney(SET_TOTAL_CENTS)}</button>`,
     `<p id="otrace-set-note" class="hdt-contact-note" role="status"></p>`,
