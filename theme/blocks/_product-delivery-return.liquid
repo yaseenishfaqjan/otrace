@@ -2,10 +2,10 @@
   <button class="hdt-pr-popup__delivery hdt-s-text hdt-text-base hdt-font-semibold" aria-controls="modal-delivery-{{ block.id }}">{{ 'products.product.delivery_return' | t }}</button>
   <hdt-modal class="hdt-modal hdt-modal__delivery hdt-product__modal hdt-contents" color-scheme="{{ settings.color_scheme_dialog }}">
     <dialog id="modal-delivery-{{ block.id }}" class="hdt-dialog hdt-dialog-modal" scroll-lock>
-      <button ref="closeButton" class="hdt-s-text hdt-dialog-btn__close" aria-controls="modal-delivery-{{ block.id }}" aria-label="{{ 'accessibility.close' | t | escape }}">{%- render 'icon' with 'close' -%}</button>
-      {% comment %} <div class="hdt-dialog-modal__header">
+      <div class="hdt-dialog-modal__header">
         <h3 class="hdt-product__modal-title">{{ block.settings.page_delivery.title }}</h3>
-      </div> {% endcomment %}
+        <button ref="closeButton" class="hdt-s-text hdt-dialog-btn__close" aria-controls="modal-delivery-{{ block.id }}" aria-label="{{ 'accessibility.close' | t | escape }}">{%- render 'icon' with 'close' -%}</button>
+      </div>
       <div class="hdt-dialog-modal__inner hdt-current-scrollbar">
         <div class="hdt-rte">{{ block.settings.page_delivery.content }}</div>
       </div>

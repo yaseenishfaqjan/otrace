@@ -230,6 +230,32 @@ test('settings fall back to the schema, and a select with no default takes its f
   assert.deepEqual(out.menu, { title: 'Main menu' });
 });
 
+test('a page handle becomes a page, and an unknown handle becomes null', () => {
+  const out = resolveLinkListSettings(
+    { settings: [{ id: 'size_chart_page', type: 'page' }] },
+    { size_chart_page: 'size-chart' },
+    {},
+    undefined,
+    {},
+    {},
+    { 'size-chart': { title: 'Size guide', content: '<p>Chest</p>' } },
+  );
+  assert.equal(out.size_chart_page.title, 'Size guide');
+  assert.match(out.size_chart_page.content, /Chest/);
+
+  // A string handle is not blank, which is what opened an empty dialog.
+  const missing = resolveLinkListSettings(
+    { settings: [{ id: 'page_delivery', type: 'page' }] },
+    { page_delivery: 'no-such-page' },
+    {},
+    undefined,
+    {},
+    {},
+    {},
+  );
+  assert.equal(missing.page_delivery, null);
+});
+
 test('an unknown menu handle resolves to null, not to the handle string', () => {
   const out = resolveLinkListSettings(
     { settings: [{ id: 'menu', type: 'link_list' }] },

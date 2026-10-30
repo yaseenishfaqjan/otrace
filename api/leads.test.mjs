@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { toE164, syncSubscriber } from './klaviyo.js';
-import { handleContact, handleSubscribe, normalizeSubscribe } from './leads.js';
+import { contactOutcome, handleContact, handleSubscribe, normalizeContact, normalizeSubscribe } from './leads.js';
 
 const savedKey = process.env.KLAVIYO_PRIVATE_API_KEY;
 const savedList = process.env.KLAVIYO_LIST_ID;
@@ -163,6 +163,36 @@ test('configured Klaviyo sync posts a profile and a list subscribe', async () =>
 test('toE164 does not invent a country code', () => {
   assert.equal(toE164('5551230000'), null);
   assert.equal(toE164('+44 7700 900123'), '+447700900123');
+});
+
+test('a Shopify ask-a-question body is a real enquiry', () => {
+  const lead = normalizeContact({
+    contact: {
+      name: 'Ada',
+      email: 'ada@example.com',
+      body: 'Does the oversized hoodie run large?',
+      product: 'Oversized Hoodie - https://otrace.co/product/oversized-hoodie',
+      phone: '',
+    },
+  });
+  assert.equal(lead.name, 'Ada');
+  assert.equal(lead.email, 'ada@example.com');
+  assert.match(lead.message, /run large/);
+  assert.match(lead.message, /oversized-hoodie/);
+  assert.equal(lead.subject, 'Oversized Hoodie - https://otrace.co/product/oversized-hoodie');
+  assert.equal(lead.error, undefined);
+});
+
+test('contact success is only reported when mail was accepted', () => {
+  assert.equal(contactOutcome({ emailed: true, shopEmail: 'shop@otrace.co' }).json.emailed, true);
+  const missing = contactOutcome({ emailed: false, shopEmail: '' });
+  assert.equal(missing.status, 503);
+  assert.equal(missing.json.ok, false);
+  assert.equal(missing.json.emailed, false);
+  assert.match(missing.json.error, /info@otrace\.co/);
+  const failed = contactOutcome({ emailed: false, shopEmail: 'shop@otrace.co' });
+  assert.equal(failed.json.emailed, false);
+  assert.match(failed.json.error, /could not email/i);
 });
 
 test('contact stores the wholesale inquiry type', async () => {

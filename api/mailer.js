@@ -92,6 +92,7 @@ export function createMailer({ resendApiKey, from, smtpTransport, fetchImpl, cid
           from: message.from ?? from,
           to: [message.to],
           subject: message.subject,
+          ...(message.replyTo ? { reply_to: message.replyTo } : {}),
           ...(message.html ? { html: inlineToUrls(message.html) } : {}),
           ...(message.text ? { text: message.text } : {}),
         }),
@@ -121,6 +122,7 @@ export function createMailer({ resendApiKey, from, smtpTransport, fetchImpl, cid
         subject: message.subject,
         text: message.text,
         html: message.html,
+        ...(message.replyTo ? { replyTo: message.replyTo } : {}),
         ...(message.attachments ? { attachments: message.attachments } : {}),
       });
       return { status: 'sent', provider: 'smtp' };

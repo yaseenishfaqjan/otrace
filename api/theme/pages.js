@@ -228,7 +228,7 @@ function sizeCell(cell) {
   return `<td${cls}><span class="hdt-size-cm">${cell.cm}</span><span class="hdt-size-in">${inches(cell.cm)} in</span>${est}</td>`;
 }
 
-function sizeTable(labels) {
+function sizeTable(labels, withNote = true) {
   const rows = SIZE_CHART.rows.filter((row) => labels.includes(row.label));
   const head = SIZE_CHART.sizes.map((s) => `<th scope="col">${esc(s)}</th>`).join('');
   const body = rows.map((row) => {
@@ -236,10 +236,53 @@ function sizeTable(labels) {
     return `<tr><th scope="row">${esc(row.label)}</th>${cells}</tr>`;
   }).join('');
   const estimated = rows.some((row) => row.values.some((_, i) => estimateCell(row.values, i).estimated));
-  const note = estimated
+  const note = withNote && estimated
     ? '<p class="hdt-size-note">Cells marked est. are estimated from the neighboring sizes. They are not factory measurements.</p>'
     : '';
   return `<div class="hdt-size-scroll"><table class="hdt-size-chart"><thead><tr><th scope="col">Measurement</th>${head}</tr></thead><tbody>${body}</tbody></table></div>${note}`;
+}
+
+/**
+ * Product-page size guide. Same garment-flat centimetres as /sizing.
+ * The spec sheet is centimetres, not millimetres. Onyx Black and Warm Cream
+ * share one chart. A missing cell is estimated only inside sizeTable.
+ */
+export function sizeGuideHtml() {
+  const fit = faq('SIZING_FAQS', 'How should an oversized hoodie fit?');
+  const pant = faq('SIZING_FAQS', 'Wide leg sweatpants size chart');
+  return [
+    `<div class="hdt-size-page">`,
+    `<p>Laid flat, in centimetres. Inches are those centimetres divided by 2.54. Onyx Black and Warm Cream are the same size.</p>`,
+    `<h2>Oversized hoodie</h2>`,
+    `<p>${esc(fit.answer)}</p>`,
+    sizeTable(['Chest', 'Body length', 'Shoulder', 'Sleeve / waist'], false),
+    `<h2>Wide-leg sweatpant</h2>`,
+    `<p>${esc(pant.answer)}</p>`,
+    sizeTable(['Outseam', 'Inseam', 'Leg opening'], false),
+    `<p class="hdt-size-note">Cells marked est. are estimated from the neighboring sizes. They are not factory measurements. The sleeve/waist row is labeled the way the spec sheet labels it. The sheet does not say whether that row is a sleeve or a waist.</p>`,
+    `<p><a href="/sizing">Full size guide</a></p>`,
+    `</div>`,
+  ].join('');
+}
+
+/** Page drops the product modals read. Handles match the theme JSON. */
+export function themePages() {
+  return {
+    'size-chart': {
+      id: 'size-chart',
+      handle: 'size-chart',
+      title: 'Size guide',
+      content: sizeGuideHtml(),
+      url: '/sizing',
+    },
+    'delivery-return': {
+      id: 'delivery-return',
+      handle: 'delivery-return',
+      title: 'Delivery and returns',
+      content: deliveryReturnHtml(),
+      url: '/shipping',
+    },
+  };
 }
 
 const HOODIE_SVG = `<svg class="hdt-fit-drawing" viewBox="0 0 160 180" aria-hidden="true"><path d="M48 28c8-10 56-10 64 0l18 22-16 10-6-8v88H52V52l-6 8-16-10z"/><path d="M70 26c4 10 16 10 20 0"/></svg>`;
