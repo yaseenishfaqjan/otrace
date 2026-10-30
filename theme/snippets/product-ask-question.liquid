@@ -21,32 +21,77 @@
           echo status_ask
           -%}
         <p>
-          <label for="{{ form_id }}-name" class="hdt-s-text2 hdt-block">{{ 'templates.contact.form.name' | t }}</label>
-          <input type="text" id="{{ form_id }}-name" name="contact[name]" required="required" value="{% if form[name] %}{{ form[name] }}{% elsif customer %}{{ customer.name }}{% endif %}">
+          <label for="{{ form_id }}-name" class="hdt-ask-label">Name</label>
+          <input type="text" id="{{ form_id }}-name" name="contact[name]" autocomplete="name" placeholder="Name" required="required" value="{% if form[name] %}{{ form[name] }}{% elsif customer %}{{ customer.name }}{% endif %}">
         </p>
         <p>
-          <label for="{{ form_id }}-email" class="hdt-s-text2 hdt-block">{{ 'templates.contact.form.email' | t }}</label>
-          <input type="email" id="{{ form_id }}-email" name="contact[email]" autocorrect="off" autocapitalize="off" value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}" aria-required="true" required="required"
+          <label for="{{ form_id }}-email" class="hdt-ask-label">Email</label>
+          <input type="email" id="{{ form_id }}-email" name="contact[email]" autocomplete="email" placeholder="Email" autocorrect="off" autocapitalize="off" value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}" aria-required="true" required="required"
           {%- if form.errors contains 'email' %} class="input--error" aria-invalid="true" aria-describedby="{{ form_id }}-email-error"{%- endif -%}>
         </p>
         {%- if settings.show_phone_ask_question -%}
           <p>
-            <label for="{{ form_id }}-phone" class="hdt-s-text2 hdt-block">{{ 'templates.contact.form.phone' | t }}</label>
-            <input type="tel" id="{{ form_id }}-phone" name="contact[phone]" pattern="[0-9\-]*" value="{% if form[phone] %}{{ form[phone] }}{% elsif customer %}{{ customer.phone }}{% endif %}">
+            <label for="{{ form_id }}-phone" class="hdt-ask-label">Phone <span class="hdt-ask-optional">(optional)</span></label>
+            <input type="tel" id="{{ form_id }}-phone" name="contact[phone]" autocomplete="tel" placeholder="Phone" value="{% if form[phone] %}{{ form[phone] }}{% elsif customer %}{{ customer.phone }}{% endif %}">
           </p>
         {%- endif -%}
         <p class="hdt-hidden">
           <label for="{{ form_id }}-product">{{ 'products.product.label' | t }}</label>
-          <textarea rows="20" id="{{ form_id }}-product" name="contact[product]" required="required"></textarea>
+          <textarea rows="5" id="{{ form_id }}-product" name="contact[product]"></textarea>
         </p>
         <p>
-          <label for="{{ form_id }}-message" class="hdt-s-text2 hdt-block">{{ 'templates.contact.form.message' | t }}</label>
-          <textarea rows="8" id="{{ form_id }}-message" name="contact[body]" required="required">{% if form.body %}{{ form.body }}{% endif %}</textarea>
+          <label for="{{ form_id }}-message" class="hdt-ask-label">{{ 'templates.contact.form.message' | t }}</label>
+          <textarea rows="8" id="{{ form_id }}-message" name="contact[body]" required="required" placeholder="Message">{% if form.body %}{{ form.body }}{% endif %}</textarea>
         </p>
         <button type="submit" class="hdt-inline-flex hdt-align-center hdt-justify-center hdt-relative hdt-btn hdt-oh hdt-btn-accent hdt-font-semibold"><span class="hdt-truncate">{{ 'templates.contact.form.send' | t }}</span></button>
+        <p class="hdt-ask-fallback">Or email <a href="mailto:info@otrace.co">info@otrace.co</a>.</p>
+        <p id="otrace-ask-note" class="hdt-ask-note" role="status"></p>
       {%- endform -%}
       {{ status_ask_mirror }}
     </div>
   </dialog>
 </hdt-modal>
+<script>
+(function () {
+  var form = document.getElementById('ContactFormAsk');
+  if (!form || form.dataset.otraceAsk) return;
+  form.dataset.otraceAsk = '1';
+  var note = document.getElementById('otrace-ask-note');
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    var dialog = document.getElementById('modal-contactFormAsk');
+    var productField = form.querySelector('[name="contact[product]"]');
+    if (productField && !productField.value && dialog && dialog.btnOpening) {
+      productField.value = dialog.btnOpening.getAttribute('data-product') || '';
+    }
+    var phoneField = form.querySelector('[name="contact[phone]"]');
+    var payload = {
+      name: form.querySelector('[name="contact[name]"]').value,
+      email: form.querySelector('[name="contact[email]"]').value,
+      message: form.querySelector('[name="contact[body]"]').value,
+      product: productField ? productField.value : '',
+      subject: productField && productField.value ? productField.value : 'Product question'
+    };
+    if (phoneField && phoneField.value.trim()) payload.phone = phoneField.value.trim();
+    if (note) note.textContent = 'Sending…';
+    fetch('/api/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(function (res) {
+      return res.json().then(function (body) { return { ok: res.ok, body: body }; }).catch(function () { return { ok: false, body: {} }; });
+    }).then(function (result) {
+      if (result.ok && result.body && result.body.emailed) {
+        form.reset();
+        if (note) note.textContent = 'Sent. A person will reply at the email you gave.';
+        return;
+      }
+      var err = (result.body && result.body.error) || 'Could not send that. Email info@otrace.co instead.';
+      if (note) note.textContent = err;
+    }).catch(function () {
+      if (note) note.textContent = 'Could not send that. Email info@otrace.co instead.';
+    });
+  });
+})();
+</script>
 

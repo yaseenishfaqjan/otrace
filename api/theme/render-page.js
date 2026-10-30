@@ -27,7 +27,7 @@ import {
 import { resolveThemeProductSettings, selectShopifyVariant, toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
 import { PRODUCTS } from '../catalog.js';
 import { POSTS } from '../../site/src/content/posts.mjs';
-import { chatEmbed, clarityTag, deliveryReturnHtml, faqHtml, faqsForSlug, googleTag, homeFactHtml, klaviyoOnsite, productFactHtml, questionFaqs, setCrossSellHtml, trustStripHtml } from './pages.js';
+import { chatEmbed, clarityTag, deliveryReturnHtml, faqHtml, faqsForSlug, googleTag, homeFactHtml, klaviyoOnsite, productFactHtml, questionFaqs, setCrossSellHtml, themePages, trustStripHtml } from './pages.js';
 import {
   breadcrumbLd,
   collectionLd,
@@ -293,6 +293,8 @@ export function createThemeRenderer({
     PRODUCTS_BY_HANDLE,
   );
 
+  const PAGES = themePages();
+
   const GLOBALS = {
     settings,
     shop: SHOP,
@@ -302,6 +304,7 @@ export function createThemeRenderer({
     linklists: LINKLISTS,
     blogs: BLOGS,
     collections: COLLECTIONS,
+    pages: PAGES,
     productsByHandle: PRODUCTS_BY_HANDLE,
     localization: { available_countries: [], available_languages: [] },
     powered_by_link: '',
@@ -326,6 +329,7 @@ export function createThemeRenderer({
     linklists: LINKLISTS,
     blogs: BLOGS,
     collections: COLLECTIONS,
+    pages: PAGES,
     productsByHandle: PRODUCTS_BY_HANDLE,
     localization: { available_countries: [], available_languages: [] },
     canonical_url: siteUrl,
@@ -349,7 +353,7 @@ export function createThemeRenderer({
         section: {
           id: key,
           settings: resolveLinkListSettings(
-            schema, sec.settings ?? {}, LINKLISTS, themeRoot, BLOGS, PRODUCTS_BY_HANDLE,
+            schema, sec.settings ?? {}, LINKLISTS, themeRoot, BLOGS, PRODUCTS_BY_HANDLE, PAGES,
           ),
           blocks: blockList(sec.blocks, sec.block_order),
         },
@@ -683,7 +687,7 @@ export function createThemeRenderer({
         section: {
           id,
           settings: resolveLinkListSettings(
-            schema, sec.settings ?? {}, LINKLISTS, themeRoot, BLOGS, PRODUCTS_BY_HANDLE,
+            schema, sec.settings ?? {}, LINKLISTS, themeRoot, BLOGS, PRODUCTS_BY_HANDLE, PAGES,
           ),
           blocks: blockList(sec.blocks, sec.block_order),
         },

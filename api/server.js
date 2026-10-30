@@ -34,7 +34,7 @@ import {
   formatMoney,
 } from './catalog.js';
 import { submitIndexNow } from './indexnow.js';
-import { ensureLeadColumns, handleContact, handleSubscribe, inquiryLabel } from './leads.js';
+import { contactOutcome, ensureLeadColumns, handleContact, handleSubscribe, inquiryLabel } from './leads.js';
 import { klaviyoConfig } from './klaviyo.js';
 import { createThemeRenderer } from './theme/render-page.js';
 import { toShopifyProduct } from './theme/shopify-shape.js';
@@ -180,9 +180,9 @@ const LOGO_ATTACHMENT = {
   cid: LOGO_CID,
 };
 
-async function send({ to, subject, html, text }) {
+async function send({ to, subject, html, text, replyTo }) {
   // attachments are the SMTP path only; Resend rewrites cid: to a public URL.
-  return mail.deliver({ to, subject, html, text, attachments: [LOGO_ATTACHMENT] });
+  return mail.deliver({ to, subject, html, text, replyTo, attachments: [LOGO_ATTACHMENT] });
 }
 
 async function sendWelcome(email) {
@@ -542,26 +542,62 @@ app.post('/api/waitlist', (req, res) => respondSubscribe(req, res, {
   formId: 'waitlist',
 }));
 
+function escapeHtml(value) {
+  return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function respondContact(req, res, status, json) {
+  const type = String(req.headers['content-type'] || '');
+  const accept = String(req.headers.accept || '');
+  const formPost = type.includes('application/x-www-form-urlencoded') || type.includes('multipart/form-data');
+  const wantsJson = accept.includes('application/json') || type.includes('application/json');
+  if (formPost && !wantsJson) {
+    const emailed = json.emailed === true;
+    const message = emailed
+      ? 'Sent. A person will reply at the email you gave.'
+      : (json.error || 'Could not send that. Email info@otrace.co instead.');
+    res.status(emailed ? 200 : status).type('html').send(
+      `<!doctype html><html><head><meta charset="utf-8"><title>${emailed ? 'Sent' : 'Not sent'}</title></head><body><p>${escapeHtml(message)}</p><p><a href="mailto:info@otrace.co">info@otrace.co</a></p><p><a href="/">Back to OTRACE</a></p></body></html>`,
+    );
+    return;
+  }
+  res.status(status).json(json);
+}
+
 app.post('/api/contact', async (req, res) => {
   try {
     // Written to the database BEFORE any attempt to email, so a mail outage
-    // cannot lose an enquiry.
+    // cannot lose an enquiry. ok/emailed is true only when a provider accepted
+    // the message for SHOP_EMAIL. A missing key is a failure, not a success.
     const result = await handleContact(pool, req.body);
-    if (result.status !== 200) return res.status(result.status).json(result.json);
-
-    const { lead } = result;
-    if (SHOP_EMAIL) {
-      const type = inquiryLabel(lead.inquiryType);
-      await send({
-        to: SHOP_EMAIL,
-        subject: `Enquiry${type ? ` (${type})` : ''}: ${lead.subject || 'no subject'} — ${lead.name}`,
-        text: `${type ? `Type: ${type}\n` : ''}${lead.name} <${lead.email}>\n\n${lead.message}`,
+    if (result.status !== 200) {
+      return respondContact(req, res, result.status, {
+        ok: false,
+        emailed: false,
+        error: result.json?.error || 'Could not send that.',
       });
     }
-    res.json({ ok: true });
+
+    const { lead } = result;
+    let emailed = false;
+    if (SHOP_EMAIL) {
+      const type = inquiryLabel(lead.inquiryType);
+      emailed = Boolean(await send({
+        to: SHOP_EMAIL,
+        replyTo: lead.email,
+        subject: `Enquiry${type ? ` (${type})` : ''}: ${lead.subject || 'no subject'} — ${lead.name}`,
+        text: `${type ? `Type: ${type}\n` : ''}${lead.name} <${lead.email}>\n\n${lead.message}`,
+      }));
+    }
+    const outcome = contactOutcome({ emailed, shopEmail: SHOP_EMAIL });
+    return respondContact(req, res, outcome.status, outcome.json);
   } catch (err) {
     console.error('[contact] failed:', err.message);
-    res.status(500).json({ error: 'Could not send that just now. Please try again.' });
+    return respondContact(req, res, 500, {
+      ok: false,
+      emailed: false,
+      error: 'Could not send that just now. Email info@otrace.co instead.',
+    });
   }
 });
 

@@ -93,11 +93,22 @@ export function normalizeSubscribe(body = {}) {
 }
 
 export function normalizeContact(body = {}) {
-  const name = text(body.name, 255);
-  const email = String(body.email ?? '').trim().slice(0, 255);
-  const subject = text(body.subject, 255);
-  const message = text(body.message, 5000);
-  const rawType = text(body.inquiryType ?? body.inquiry_type ?? body.type, 64);
+  // The Kalles ask-a-question form posts Shopify names (contact[name],
+  // contact[email], contact[body]). express.urlencoded nests those under
+  // contact. The /contact page posts flat name/email/message as JSON.
+  const contact = body.contact && typeof body.contact === 'object' ? body.contact : {};
+  const name = text(body.name ?? contact.name, 255);
+  const email = String(body.email ?? contact.email ?? '').trim().slice(0, 255);
+  const productLine = text(body.product ?? contact.product, 500);
+  const phone = text(body.phone ?? contact.phone, 64);
+  const subject = text(body.subject ?? contact.subject, 255)
+    || (productLine ? productLine.slice(0, 255) : null);
+  let message = text(body.message ?? contact.message ?? contact.body, 5000);
+  if (message && productLine && !message.includes(productLine)) {
+    message = `${message}\n\nAbout: ${productLine}`.slice(0, 5000);
+  }
+  if (message && phone) message = `${message}\nPhone: ${phone}`.slice(0, 5000);
+  const rawType = text(body.inquiryType ?? body.inquiry_type ?? body.type ?? contact.inquiryType, 64);
   let inquiryType = null;
   if (rawType) {
     inquiryType = INQUIRY_TYPES.get(rawType.toLowerCase()) ?? null;
@@ -111,6 +122,19 @@ export function normalizeContact(body = {}) {
 
 export function inquiryLabel(type) {
   return INQUIRY_LABELS[type] ?? null;
+}
+
+/**
+ * What /api/contact tells the browser after the enquiry row is stored.
+ * `emailed` is true only when a provider accepted mail to SHOP_EMAIL.
+ * Anything else is a failure with the public address, not a fake success.
+ */
+export function contactOutcome({ emailed, shopEmail } = {}) {
+  if (emailed) return { status: 200, json: { ok: true, emailed: true } };
+  const error = shopEmail
+    ? 'We could not email that. Write to info@otrace.co and it will reach us.'
+    : 'Email is not set up on this shop yet. Write to info@otrace.co and it will reach us.';
+  return { status: 503, json: { ok: false, emailed: false, error } };
 }
 
 const SUBSCRIBER_COLUMNS = [

@@ -212,7 +212,7 @@ export function imageSetting(themeRoot, src, alt = '') {
   };
 }
 
-export function resolveLinkListSettings(schema, settings, linklists, themeRoot, blogs, productsByHandle) {
+export function resolveLinkListSettings(schema, settings, linklists, themeRoot, blogs, productsByHandle, pages) {
   if (!schema) return settings ?? {};
 
   // Template JSON stores only the settings that were CHANGED, so everything
@@ -264,6 +264,13 @@ export function resolveLinkListSettings(schema, settings, linklists, themeRoot, 
     // placeholder card.
     if (setting.type === 'product' && typeof out[setting.id] === 'string') {
       out[setting.id] = productsByHandle?.[out[setting.id]] ?? null;
+    }
+    // A page setting is stored as a handle. A non-empty string is not blank,
+    // so the theme still opens the modal, but .title and .content do not
+    // exist on a string and the dialog renders as an empty bar.
+    if (setting.type === 'page' && typeof out[setting.id] === 'string') {
+      const handle = out[setting.id].trim();
+      out[setting.id] = handle ? (pages?.[handle] ?? null) : null;
     }
   }
   return out;
@@ -574,6 +581,7 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
       const linklists = ctx.get(['linklists']) || (ctx.globals && ctx.globals.linklists) || {};
       const blogs = ctx.get(['blogs']) || (ctx.globals && ctx.globals.blogs) || {};
       const productsByHandle = (ctx.globals && ctx.globals.productsByHandle) || {};
+      const pages = ctx.get(['pages']) || (ctx.globals && ctx.globals.pages) || {};
       /**
        * Theme presets store `"article": "{{ closest.article }}"`. Shopify
        * fills that from the content_for argument. Left as text, the card
@@ -589,7 +597,7 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
         placed.add(keyOf(rawBlock));
         const blockSchema = readSchema(themeRoot, 'blocks', type);
         let blockSettings = resolveLinkListSettings(
-          blockSchema, rawBlock.settings, linklists, themeRoot, blogs, productsByHandle,
+          blockSchema, rawBlock.settings, linklists, themeRoot, blogs, productsByHandle, pages,
         );
         for (const [key, value] of Object.entries(blockSettings)) {
           if (typeof value !== 'string') continue;
@@ -769,12 +777,13 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
         const linklists = all.linklists || (ctx.globals && ctx.globals.linklists) || {};
         const blogs = all.blogs || (ctx.globals && ctx.globals.blogs) || {};
         const productsByHandle = (ctx.globals && ctx.globals.productsByHandle) || {};
+        const pages = all.pages || (ctx.globals && ctx.globals.pages) || {};
         const schema = readSchema(themeRoot, 'sections', sec.type);
         const scope = {
           ...all,
           section: {
             id: key,
-            settings: resolveLinkListSettings(schema, sec.settings || {}, linklists, themeRoot, blogs, productsByHandle),
+            settings: resolveLinkListSettings(schema, sec.settings || {}, linklists, themeRoot, blogs, productsByHandle, pages),
             blocks: blockList(sec.blocks, sec.block_order),
           },
         };

@@ -124,6 +124,41 @@ test('the rendered theme uses scheme colours, Poppins, and a real cart banner', 
   assert.match(cart, /noindex, follow/);
 });
 
+test('product info modals carry the size chart, delivery copy, and a labeled question form', async () => {
+  const theme = await renderer();
+  const html = await theme.renderProduct(PRODUCTS['OT-HOOD']);
+  const sizeAt = html.indexOf('id="modal-product_size_chart_6Y9gBm"');
+  const deliveryAt = html.indexOf('id="modal-delivery-product_delivery_return_CqMf76"');
+  assert.ok(sizeAt > 0 && deliveryAt > sizeAt);
+  const size = html.slice(sizeAt, deliveryAt);
+  assert.match(size, /Size guide/);
+  assert.match(size, /Oversized hoodie/);
+  assert.match(size, /<th scope="row">Chest<\/th>/);
+  assert.match(size, /<span class="hdt-size-cm">40<\/span>/);
+  assert.match(size, /Body length/);
+  assert.match(size, /Sleeve \/ waist/);
+  assert.match(size, /Wide-leg sweatpant/);
+  assert.match(size, /centimetres/);
+  assert.doesNotMatch(size, /\$80/);
+
+  const delivery = html.slice(deliveryAt, html.indexOf('modal-contactFormAsk', deliveryAt));
+  assert.match(delivery, /Delivery and returns/);
+  assert.match(delivery, /free inside the United States/);
+  assert.match(delivery, /30 days of delivery/);
+  assert.match(delivery, /href="\/shipping"/);
+
+  const formAt = html.lastIndexOf('<form', html.indexOf('id="ContactFormAsk"'));
+  const ask = html.slice(formAt, html.indexOf('otrace-ask-note') + 40);
+  assert.match(ask, /action="\/api\/contact"/);
+  assert.match(ask, />Name</);
+  assert.match(ask, />Email</);
+  assert.match(ask, /Phone/);
+  assert.match(ask, /optional/);
+  assert.match(ask, /mailto:info@otrace\.co/);
+  assert.match(ask, /name="contact\[body\]"/);
+  assert.doesNotMatch(ask, /name="contact\[product\]"[^>]*required/);
+});
+
 test('a product page is indexable, swatched, and still $80', async () => {
   const theme = await renderer();
   const html = await theme.renderProduct(PRODUCTS['OT-HOOD']);
