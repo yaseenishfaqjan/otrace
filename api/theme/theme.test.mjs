@@ -553,6 +553,12 @@ test('quick view and the product page can add the chosen variant', async () => {
   assert.match(pdp, /id="product-form-main-productOT-HOOD"/);
   assert.match(pdp, /name="Color" value="Onyx Black"[^>]*checked/);
   assert.match(pdp, /name="Size" value="XS"[^>]*checked/);
+  assert.match(pdp, />Color:/);
+  assert.match(quick, />Color:/);
+  assert.doesNotMatch(pdp, />Colour/);
+  assert.doesNotMatch(quick, />Colour/);
+  assert.match(pdp, /otrace-modal-lock/);
+  assert.match(pdp, /this\.dialog\.show\(\)/);
   assert.doesNotMatch(pdp, /name="Size" value="M"[^>]*checked/);
   assert.match(pdp, /can-has-media-group/);
   assert.match(pdp, /data-mdid="\d+"/);

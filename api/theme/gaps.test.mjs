@@ -191,6 +191,8 @@ test('the complete set is a $140 page and not a third Stripe product', async () 
   assert.match(page.content, /\/products\/hoodie-cream-front\.jpg/);
   assert.match(page.content, /\/products\/pant-cream-front\.jpg/);
   assert.match(page.content, /showColour/);
+  assert.match(page.content, /<label>Color<select name="colour"/);
+  assert.doesNotMatch(page.content, /<label>Colour/);
   assert.doesNotMatch(page.content, /data-set-colour="Onyx Black" hidden/);
 
   const theme = await renderer();

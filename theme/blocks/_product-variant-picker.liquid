@@ -59,6 +59,10 @@
       {%- for option in product.options_with_values -%}
         {%-  liquid
         assign name_downcase = option.name | downcase
+        assign option_label = option.name
+        if name_downcase == 'colour' or name_downcase == 'colours'
+          assign option_label = 'Color'
+        endif
         if color_list contains name_downcase
           assign option_type = 'color'
           assign color_option_index = 'option' | append: forloop.index
@@ -92,7 +96,7 @@
         {%- endcapture -%}
   
         <fieldset class="hdt-product-form__input is-style-{{ option_type }}{% if size_list contains name_downcase and show_dialog_size_chart %} hdt-has-btn-size-chart{% endif %}" type="{% if option_type == 'color' %}{{ block.settings.color_picker_type }}{% else %}{{ block.settings.picker_type }}{% endif %}" data-index="{{ forloop.index0 }}">
-          <legend class="hdt-product-form__label hdt-s-text hdt-font-bold"><span>{{ option.name }}{% unless hide_update_value %}: <span update-value>{{ selected_value | default: choose_an_option }}</span>{% endunless %}</span> {{ btn_size_chart }}</legend>
+          <legend class="hdt-product-form__label hdt-s-text hdt-font-bold"><span>{{ option_label }}{% unless hide_update_value %}: <span update-value>{{ selected_value | default: choose_an_option }}</span>{% endunless %}</span> {{ btn_size_chart }}</legend>
           {%- if no_dropdown -%}
             <div class="hdt-product-form__values">
               {%- render 'product-variant-options', hide_sold_out: hide_sold_out, option_type: option_type, product: product, option: option, block: block, product_form_id: product_form_id, variants_option1_arr: variants_option1_arr, variants_option2_arr: variants_option2_arr, variants_option3_arr: variants_option3_arr, variants_option1_available_arr: variants_option1_available_arr, variants_option2_available_arr: variants_option2_available_arr, variants_option3_available_arr: variants_option3_available_arr, color_option_index: color_option_index, un_no_pick: un_no_pick, selected_value: selected_value -%}
@@ -106,7 +110,7 @@
                 <dialog id="variant-popover{{ section.id }}-{{ forloop.index0 }}" class="hdt-popover hdt-popover-variant" scroll-lock>
                   <div class="hdt-popover__body">
                     <div class="hdt-popover__header md:hdt-hidden">
-                      <p class="hdt-s-text">{{ option.name }}</p>
+                      <p class="hdt-s-text">{{ option_label }}</p>
                       <button ref="closeButton" class="hdt-s-text" aria-controls="variant-popover{{ section.id }}-{{ forloop.index0 }}" aria-label="{{ 'accessibility.close' | t | escape }}">{%- render 'icon' with 'close' -%}</button>
                     </div>
                     <div class="hdt-popover__inner hdt-current-scrollbar">
