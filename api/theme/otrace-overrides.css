@@ -32,9 +32,11 @@
 }
 
 /*
- * The category banners are studio product shots on a light ground.
- * White type (the rule above) disappears on that grey. Both banners
- * use the same dark type and a light shadow.
+ * The category banners are studio product shots.
+ * HOODIES sits on the cream fleece, where the white type above disappears.
+ * Dark type and a light shadow hold on that grey.
+ * BOTTOMS is the onyx sweatpant. The same dark type sinks into the fabric,
+ * so that frame is white type on a short scrim, further down.
  */
 #banner_VyWanM .hdt-heading-block,
 #banner_VyWanM .hdt-subheading-block,
@@ -43,6 +45,29 @@
 #banner_VyWanM .hdt-content p {
   color: #161513;
   text-shadow: 0 1px 18px rgba(255, 255, 255, 0.75), 0 1px 2px rgba(255, 255, 255, 0.9);
+}
+#shopify-section-banner_VyWanM #banner_item_8P4VCT .hdt-media-overlap-content {
+  --media-overlap-content-gap-r: 36px;
+  --media-overlap-content-gap-c: 28px;
+}
+#banner_item_8P4VCT .hdt-item_inner::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 46%;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0.42) 48%, rgba(0, 0, 0, 0) 100%);
+}
+#banner_item_8P4VCT .hdt-heading-block,
+#banner_item_8P4VCT .hdt-subheading-block,
+#banner_item_8P4VCT .hdt-text-warry,
+#banner_item_8P4VCT .hdt-content,
+#banner_item_8P4VCT .hdt-content p {
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 0 10px 28px rgba(0, 0, 0, 0.55);
 }
 
 /*
@@ -92,28 +117,74 @@
 /*
  * The size chart.
  *
- * Seven sizes do not fit the page column, and a table that silently runs off
- * the right edge hides 2XL and 3XL from exactly the customers most likely to
- * need them. Scroll it instead, and keep the first column pinned so a row stays
- * identifiable once you have scrolled away from its label.
+ * Seven sizes do not fit an iPhone modal. Putting overflow on the table
+ * itself (display:block) does not make a scrollport in WebKit, and a
+ * transparent sticky label then paints over the XS numbers. The wrapper
+ * scrolls. The label column stays put, opaque, and as wide as its text.
+ * 1rem is 10px here, so the inch line has to be at least 1.3rem to read.
  */
-.hdt-size-chart {
+.hdt-size-scroll {
   display: block;
-  overflow-x: auto;
-  width: 100%;
-  border-collapse: collapse;
+  min-width: 0;
+  max-width: 100%;
   margin: 1.5rem 0 2rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+}
+/* Kalles wraps every .hdt-rte table in .hdt-scrollable-wrapper. That box is
+   only as wide as the modal, so the chart's min-width never becomes scroll
+   width on the element above it. Let the width through and scroll here. */
+.hdt-size-scroll > .hdt-scrollable-wrapper {
+  overflow: visible;
+  max-width: none;
+  width: max-content;
+  min-width: 100%;
+  padding: 0;
+}
+table.hdt-size-chart {
+  /* 70rem is the label plus seven size columns. A wider column stretches
+     the table; a narrower one scrolls .hdt-size-scroll. */
+  width: 100%;
+  min-width: 70rem;
+  margin: 0;
+  box-shadow: none;
+  border-radius: 0;
+  color: inherit;
+  border-collapse: separate;
+  border-spacing: 0;
   white-space: nowrap;
 }
 .hdt-size-chart th,
 .hdt-size-chart td {
-  padding: 0.6rem 1.1rem;
+  padding: 0.8rem 1.1rem 0.9rem;
   text-align: left;
-  border-bottom: 1px solid currentColor;
-  border-color: color-mix(in srgb, currentColor 14%, transparent);
+  vertical-align: top;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 14%, transparent);
+}
+.hdt-size-chart thead th:not(:first-child),
+.hdt-size-chart td {
+  min-width: 5.2rem;
 }
 .hdt-size-chart thead th { font-weight: 600; }
-.hdt-size-chart tbody th { font-weight: 500; position: sticky; left: 0; background: inherit; }
+.hdt-size-chart thead th:first-child,
+.hdt-size-chart tbody th {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: #fff;
+  font-weight: 500;
+  white-space: nowrap;
+  /* The white slab covers the size column sliding underneath. */
+  box-shadow: 8px 0 0 #fff;
+}
+.hdt-size-chart thead th:first-child {
+  z-index: 3;
+  font-weight: 600;
+}
 
 /* The lookbook: equal 3:4 cells so a short frame cannot open a white void.
    Page copy sits in .hdt-rte, whose img rule is height:auto. The photo is
@@ -161,10 +232,13 @@
  * dye diagram or the card hover.
  */
 .hdt-dye,
-.hdt-size-page,
 .hdt-contact-page {
   max-width: 72rem;
   overflow-x: clip;
+}
+.hdt-size-page {
+  max-width: 72rem;
+  min-width: 0;
 }
 .hdt-dye-lead,
 .hdt-size-lead,
@@ -292,17 +366,21 @@ body:has(.hdt-dye) .shopify-section-main-heading .hdt-heading-liquid {
 .hdt-size-block > p,
 .hdt-size-block .hdt-size-scroll,
 .hdt-size-block .hdt-size-note { grid-column: 2; }
-.hdt-size-page .hdt-size-chart { white-space: normal; }
-.hdt-size-page .hdt-size-chart th,
-.hdt-size-page .hdt-size-chart td { vertical-align: top; }
 .hdt-size-cm,
 .hdt-size-in,
 .hdt-size-est { display: block; }
 .hdt-size-in,
-.hdt-size-est { font-size: 0.75rem; opacity: 0.7; }
+.hdt-size-est {
+  margin-top: 0.25rem;
+  font-size: 1.3rem;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  opacity: 0.92;
+  white-space: nowrap;
+}
 .hdt-size-chart tbody tr:hover th,
 .hdt-size-chart tbody tr:hover td {
-  background: color-mix(in srgb, currentColor 6%, transparent);
+  background: color-mix(in srgb, currentColor 6%, #fff);
 }
 .hdt-size-chart td.is-estimated {
   box-shadow: inset 0 -2px 0 color-mix(in srgb, currentColor 35%, transparent);
@@ -614,7 +692,9 @@ hdt-modal.hdt-modal__delivery:has(dialog[open]) {
   background: rgb(0 0 0 / 0.45);
   overflow: hidden;
   overscroll-behavior: none;
-  touch-action: none;
+  /* none here intersects with the chart scroller and iOS will not pan it.
+     The page is already position:fixed while a modal is open. */
+  touch-action: auto;
 }
 .hdt-modal__size-chart dialog.hdt-dialog.hdt-dialog-modal[open],
 .hdt-modal__delivery dialog.hdt-dialog.hdt-dialog-modal[open] {
@@ -659,10 +739,23 @@ hdt-modal.hdt-modal__delivery .hdt-dialog-btn__close {
 .hdt-modal__delivery .hdt-dialog-modal__inner {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
+  /* height:auto on the dialog does not shrink this flex item, so a max-height
+     is what actually makes the body a scrollport. 11rem is the header,
+     the dialog padding, and a little air so the last row can clear the edge. */
+  max-height: calc(min(85dvh, 85vh, 48rem) - 11rem);
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior: contain;
-  touch-action: pan-y;
+  touch-action: pan-x pan-y;
   -webkit-overflow-scrolling: touch;
+  padding-bottom: 1.6rem;
+}
+@media (max-width: 767px) {
+  .hdt-modal__size-chart .hdt-dialog-modal__inner,
+  .hdt-modal__delivery .hdt-dialog-modal__inner {
+    padding-left: 1.4rem;
+    padding-right: 1.4rem;
+  }
 }
 .hdt-modal__size-chart .hdt-size-page h2,
 .hdt-modal__delivery .hdt-rte h2 {
