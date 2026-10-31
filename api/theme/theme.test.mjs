@@ -502,6 +502,8 @@ test('homepage and shop do not show the flagged stairs or cream-logo frames', as
   assert.ok(home.includes('HOODIES'));
   assert.ok(home.includes('Both colourways'));
   assert.match(home, /#banner_VyWanM \.hdt-heading-block[\s\S]*color:\s*#161513/);
+  assert.match(home, /#banner_item_8P4VCT \.hdt-content p \{\s*color:\s*#ffffff/);
+  assert.match(home, /#banner_item_8P4VCT \.hdt-item_inner::after/);
   assert.ok(home.includes('$80.00'));
   assert.ok(home.includes('$100.00'));
   assert.ok(home.includes('$140'));

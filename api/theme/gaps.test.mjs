@@ -139,7 +139,13 @@ test('product info modals carry the size chart, delivery copy, and a labeled que
   assert.match(size, /Sleeve \/ waist/);
   assert.match(size, /Wide-leg sweatpant/);
   assert.match(size, /centimetres/);
+  assert.equal((size.match(/class="hdt-size-scroll"/g) || []).length, 2);
   assert.doesNotMatch(size, /\$80/);
+  const css = fs.readFileSync(fileURLToPath(new URL('./otrace-overrides.css', import.meta.url)), 'utf8');
+  assert.match(css, /\.hdt-size-scroll\s*\{[^}]*overflow-x:\s*auto/);
+  assert.match(css, /\.hdt-size-chart thead th:first-child,\s*\.hdt-size-chart tbody th\s*\{[^}]*position:\s*sticky/);
+  assert.match(css, /\.hdt-size-in,\s*\.hdt-size-est\s*\{[^}]*font-size:\s*1\.3rem/);
+  assert.doesNotMatch(css, /\.hdt-size-chart\s*\{[^}]*display:\s*block/);
 
   const delivery = html.slice(deliveryAt, html.indexOf('modal-contactFormAsk', deliveryAt));
   assert.match(delivery, /Delivery and returns/);
