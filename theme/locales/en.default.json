@@ -522,7 +522,7 @@
       "taxes_included_and_shipping_policy_html": "Taxes included and <a href=\"{{ link }}\">shipping<\/a> calculated at checkout",
       "taxes_included_but_shipping_at_checkout": "Taxes included and shipping calculated at checkout",
       "taxes_and_shipping_policy_at_checkout_html": "Taxes and <a href=\"{{ link }}\">shipping<\/a> calculated at checkout",
-      "taxes_and_shipping_at_checkout": "Taxes and shipping calculated at checkout",
+      "taxes_and_shipping_at_checkout": "Free delivery in the United States · Tax at checkout",
       "remove_discount": "Remove discount",
       "caption": "Cart items",
       "remove": "Remove",

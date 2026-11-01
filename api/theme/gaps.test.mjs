@@ -121,7 +121,10 @@ test('the rendered theme uses scheme colours, Poppins, and a real cart banner', 
   assert.match(cart, /<script data-otrace-guards>[\s\S]*hdt-sticky-header[\s\S]*hdt-country-province-selector[\s\S]*hdt-slider-thumb[\s\S]*<\/script>/);
   assert.doesNotMatch(cart, /shopify:\/\//);
   assert.doesNotMatch(cart, /src="[^"]*amazon_payments/);
+  assert.doesNotMatch(cart, /ShippingCountry_|Estimate shipping|<select[^>]*name="address\[country\]"/);
   assert.match(cart, /noindex, follow/);
+  const css = fs.readFileSync(fileURLToPath(new URL('./otrace-overrides.css', import.meta.url)), 'utf8');
+  assert.match(css, /\.hdt-shipping-calculator\s*,[\s\S]*display:\s*none\s*!important/);
 });
 
 test('product info modals carry the size chart, delivery copy, and a labeled question form', async () => {

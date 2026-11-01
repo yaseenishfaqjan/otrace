@@ -9,6 +9,7 @@
    {%- render 'shipping-calculator' -%}
 {%- endcomment -%}
 
+{%- if country_option_tags != blank -%}
 <hdt-shipping-calculator class="hdt-shipping-calculator" id="shipping-calculator-{{ form_id }}">
   <hdt-country-province-selector class="hdt-contents" {% if customer and customer.default_address %}country="{{ customer.default_address.country | escape }}"{% endif %}>
     <div class="hdt-field">
@@ -39,3 +40,4 @@
    }
   </template>
 </hdt-shipping-calculator>
+{%- endif -%}

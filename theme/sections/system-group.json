@@ -52,7 +52,7 @@
           "type": "img_trust",
           "settings": {
             "wimg": 350,
-            "svg": "visa,master,american_express,discover,diners_club,jcb",
+            "svg": "visa,master,american_express",
             "height": 25
           }
         }

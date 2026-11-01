@@ -591,6 +591,47 @@ test('quick view and the product page can add the chosen variant', async () => {
   assert.equal(gone.length, 0);
 });
 
+function assertCartTrust(html, label) {
+  assert.match(html, /Free delivery in the United States · Tax at checkout/, label);
+  assert.doesNotMatch(html, /Taxes and shipping calculated at checkout/, label);
+  assert.match(html, /class="otrace-trust otrace-cart-trust"/, label);
+  assert.match(html, /<a href="\/shipping">Free US delivery<\/a>/, label);
+  assert.match(html, /<a href="\/shipping">Ships worldwide<\/a>/, label);
+  assert.match(html, /<a href="\/shipping">30-day returns<\/a>/, label);
+  assert.match(html, /Secure checkout \(Stripe\)/, label);
+  assert.doesNotMatch(html, /ShippingCountry_|Estimate shipping|<select[^>]*name="address\[country\]"/, label);
+  assert.match(html, /payment_icons\/visa\.svg/, label);
+  assert.match(html, /payment_icons\/master\.svg/, label);
+  assert.match(html, /payment_icons\/american_express\.svg/, label);
+  assert.doesNotMatch(html, /payment_icons\/(?:paypal|discover|diners_club|jcb|amazon_payments)\.svg/, label);
+  assert.match(html, /\$80\.00/, label);
+  assert.doesNotMatch(html, /\$148/, label);
+}
+
+test('a filled cart names free US delivery and only the Stripe cards', async () => {
+  const { createThemeRenderer } = await import('./render-page.js');
+  const themeRoot = fileURLToPath(new URL('../../theme', import.meta.url));
+  const renderer = createThemeRenderer({
+    themeRoot,
+    siteUrl: SITE,
+    assetBase: '/api/theme-assets',
+    routesRoot: '/api/theme-preview/',
+  });
+  const lines = addLine([], { sku: 'OT-HOOD', colour: 'Onyx Black', size: 'M', quantity: 1 });
+  const cart = cartJson(lines, { siteUrl: SITE });
+  const html = await renderer.renderPage('cart', {
+    cart,
+    title: 'Your cart',
+    page_title: 'Your cart — OTRACE',
+    noindex: true,
+    canonical_path: '/cart',
+  });
+  assertCartTrust(html, 'cart page');
+
+  const sections = await renderer.renderCartSections(cart, ['cart-drawer']);
+  assertCartTrust(sections['cart-drawer'] || '', 'cart drawer');
+});
+
 function sectionHtml(html, id) {
   const marker = `id="shopify-section-${id}"`;
   const start = html.indexOf(marker);

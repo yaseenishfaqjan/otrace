@@ -588,6 +588,39 @@ img[src=""], img:not([src]) { display: none !important; }
 .otrace-trust li { margin: 0; }
 .otrace-trust a { color: inherit; text-underline-offset: 0.18em; }
 
+/*
+ * Cart and drawer. The estimator's Country menu is Shopify's
+ * country_option_tags, which is empty here, so the control reads as broken.
+ * US delivery is already free. Keep the calculator off the page.
+ */
+.hdt-shipping-calculator,
+button.hdt-mini-cart__tool_btn.is--rates {
+  display: none !important;
+}
+.hdt-page-cart .otrace-cart-trust,
+.hdt-mini-cart .otrace-cart-trust {
+  justify-content: center;
+  column-gap: 0;
+  row-gap: 0.35rem;
+  margin: 0.85rem auto 0.15rem;
+  line-height: 1.5;
+  max-width: 36rem;
+}
+.otrace-cart-trust li:not(:last-child)::after {
+  content: "·";
+  margin-left: 0.55rem;
+}
+.hdt-page-cart .hdt-cart-tax,
+.hdt-mini-cart .hdt-cart-tax {
+  line-height: 1.45;
+}
+@media (min-width: 768px) {
+  .hdt-page-cart .otrace-cart-trust {
+    justify-content: flex-end;
+    margin-right: 0;
+  }
+}
+
 .otrace-set-card {
   margin-top: 1rem;
   padding: 0.95rem 1rem;
