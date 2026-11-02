@@ -7,7 +7,7 @@ import { createCheckoutSession } from '../checkout-session.js';
 import { PRODUCTS, SET_TOTAL_CENTS } from '../catalog.js';
 import { addLine, cartJson, changeLine, decodeVariantId } from './cart.js';
 import { parseFormBody } from './form-body.js';
-import { createEngine, itemCountForVariant, parseThemeJson, resolveLinkListSettings, stripJsonComments } from './liquid-engine.js';
+import { createEngine, itemCountForVariant, parseThemeJson, resolveLinkListSettings, shopifyCart, stripJsonComments } from './liquid-engine.js';
 import { applyThemeColorAndFont } from './shopify-color.js';
 import { resolveThemeProductSettings, selectShopifyVariant, themeSettings, toShopifyProduct } from './shopify-shape.js';
 
@@ -627,9 +627,90 @@ test('a filled cart names free US delivery and only the Stripe cards', async () 
     canonical_path: '/cart',
   });
   assertCartTrust(html, 'cart page');
+  assert.match(html, /hdt-main-cart__button-checkout/);
+  assert.match(html, /class="otrace-tax-short"/);
 
   const sections = await renderer.renderCartSections(cart, ['cart-drawer']);
   assertCartTrust(sections['cart-drawer'] || '', 'cart drawer');
+  assert.match(sections['cart-drawer'] || '', /hdt-mini-cart__btn-checkout/);
+  assert.match(sections['cart-drawer'] || '', /hdt-mini-cart__btn-viewcart/);
+});
+
+test('an empty cart and drawer offer shopping, not checkout', async () => {
+  const { createThemeRenderer } = await import('./render-page.js');
+  const themeRoot = fileURLToPath(new URL('../../theme', import.meta.url));
+  const renderer = createThemeRenderer({
+    themeRoot,
+    siteUrl: SITE,
+    assetBase: '/api/theme-assets',
+    routesRoot: '/api/theme-preview/',
+  });
+  const empty = {
+    items: [],
+    item_count: 0,
+    total_price: 0,
+    items_subtotal_price: 0,
+    original_total_price: 0,
+    total_discount: 0,
+    currency: 'USD',
+    note: null,
+  };
+  const html = await renderer.renderPage('cart', {
+    cart: empty,
+    title: 'Your cart',
+    page_title: 'Your cart — OTRACE',
+    noindex: true,
+    canonical_path: '/cart',
+  });
+  const cartSection = sectionHtml(html, 'main-cart');
+  assert.match(cartSection, /hdt-page-cart__empty/);
+  assert.match(cartSection, /Your cart is empty/);
+  assert.match(cartSection, /<a href="\/shop" class="hdt-mini-cart__emty-button[^"]*">\s*<span>Continue shopping<\/span>/);
+  assert.doesNotMatch(cartSection, /hdt-main-cart__button-checkout/);
+  assert.doesNotMatch(cartSection, /Add Order Note/);
+  assert.doesNotMatch(cartSection, /hdt-page-cart__coupon/);
+  assert.doesNotMatch(cartSection, /hdt-page-cart__totals/);
+  assert.doesNotMatch(cartSection, /payment_icons\/visa\.svg/);
+
+  const sections = await renderer.renderCartSections(empty, ['cart-drawer']);
+  const drawer = sections['cart-drawer'] || '';
+  assert.match(drawer, /hdt-mini-cart__emty/);
+  assert.match(drawer, /Your cart is empty/);
+  assert.match(drawer, /<a href="\/shop" class="hdt-mini-cart__emty-button[^"]*">\s*<span>Continue shopping<\/span>/);
+  assert.doesNotMatch(drawer, /hdt-mini-cart__btn-checkout/);
+  assert.doesNotMatch(drawer, /hdt-mini-cart__btn-viewcart/);
+  assert.doesNotMatch(drawer, /hdt-mini-cart__totals/);
+  assert.doesNotMatch(drawer, /payment_icons\/visa\.svg/);
+  assert.doesNotMatch(drawer, /is--addNote/);
+
+  const css = readFileSync(fileURLToPath(new URL('./otrace-overrides.css', import.meta.url)), 'utf8');
+  assert.match(css, /\.otrace-cart-trust li \{\s*white-space:\s*nowrap;/);
+  assert.match(css, /grid-template-columns:\s*max-content max-content/);
+  assert.match(css, /li:nth-child\(odd\)::after \{[^}]*content:\s*"·";[^}]*margin-left:\s*0\.45em;[^}]*margin-right:\s*0\.5em;/);
+  assert.match(css, /\.hdt-page-cart \.hdt-main-cart__button-checkout,[\s\S]*?width:\s*100%;/);
+  assert.match(css, /\.hdt-page-cart \.hdt-page-cart__empty \{[^}]*margin:\s*2\.4rem 0 3\.2rem;/);
+  assert.match(css, /\.hdt-page-cart \.hdt-cart-checkbox,\s*\.hdt-mini-cart \.hdt-cart-checkbox \{[^}]*min-height:\s*44px;/);
+  assert.match(css, /body\.hdt-page-type-cart \{[^}]*padding-bottom:\s*calc\(5\.5rem \+ 2\.4rem\)/);
+  assert.match(css, /\.hdt-page-cart \.otrace-tax-short \{[^}]*white-space:\s*nowrap;/);
+});
+
+test('cart == empty follows the item count', async () => {
+  const { Liquid } = await import('liquidjs');
+  const engine = new Liquid({ jsTruthy: true });
+  const tpl = '{% if cart == empty %}EMPTY{% else %}FILLED{% endif %}|{% if cart != empty %}NE{% else %}E{% endif %}|{{ cart.item_count }}|{% for item in cart.items %}{{ item.title }}{% endfor %}';
+  const empty = await engine.parseAndRender(tpl, {
+    cart: shopifyCart({ items: [], item_count: 0, total_price: 0, note: null }),
+  });
+  assert.equal(empty, 'EMPTY|E|0|');
+  const filled = await engine.parseAndRender(tpl, {
+    cart: shopifyCart({
+      items: [{ title: 'Hoodie' }],
+      item_count: 1,
+      total_price: 8000,
+      note: null,
+    }),
+  });
+  assert.equal(filled, 'FILLED|NE|1|Hoodie');
 });
 
 function sectionHtml(html, id) {

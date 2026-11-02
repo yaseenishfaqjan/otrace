@@ -597,27 +597,163 @@ img[src=""], img:not([src]) { display: none !important; }
 button.hdt-mini-cart__tool_btn.is--rates {
   display: none !important;
 }
+/*
+ * Trust line on the cart and in the drawer.
+ *
+ * Each promise is one nowrap item. On a phone the four items are a 2×2 grid
+ * and the mid-dot sits in the gutter of each row, with space on both sides.
+ * A trailing dot on the item used to land at the end of the line
+ * ("WORLDWIDE ·") and the next line started flush against it.
+ */
 .hdt-page-cart .otrace-cart-trust,
 .hdt-mini-cart .otrace-cart-trust {
+  display: grid;
+  grid-template-columns: max-content max-content;
   justify-content: center;
+  align-items: center;
   column-gap: 0;
-  row-gap: 0.35rem;
+  row-gap: 0.4rem;
   margin: 0.85rem auto 0.15rem;
-  line-height: 1.5;
-  max-width: 36rem;
+  max-width: 100%;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  text-align: start;
 }
-.otrace-cart-trust li:not(:last-child)::after {
+.otrace-cart-trust li {
+  white-space: nowrap;
+  margin: 0;
+}
+.otrace-cart-trust li::after {
+  content: none;
+}
+.hdt-page-cart .otrace-cart-trust li:nth-child(odd)::after,
+.hdt-mini-cart .otrace-cart-trust li:nth-child(odd)::after {
   content: "·";
-  margin-left: 0.55rem;
+  margin-left: 0.45em;
+  margin-right: 0.5em;
 }
-.hdt-page-cart .hdt-cart-tax,
-.hdt-mini-cart .hdt-cart-tax {
-  line-height: 1.45;
+.hdt-mini-cart .otrace-cart-trust {
+  font-size: 12px;
+  letter-spacing: 0.01em;
 }
 @media (min-width: 768px) {
   .hdt-page-cart .otrace-cart-trust {
-    justify-content: flex-end;
+    justify-content: end;
     margin-right: 0;
+    margin-left: auto;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+  }
+}
+
+/* Tax line. The long sentence orphans "checkout" in a 390px column. */
+.hdt-page-cart .hdt-cart-tax,
+.hdt-mini-cart .hdt-cart-tax {
+  line-height: 1.35;
+  text-wrap: balance;
+}
+.otrace-tax-short { display: none; }
+.hdt-mini-cart .otrace-tax-long { display: none; }
+.hdt-mini-cart .otrace-tax-short {
+  display: inline;
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .hdt-page-cart .otrace-tax-long { display: none; }
+  .hdt-page-cart .otrace-tax-short {
+    display: inline;
+    white-space: nowrap;
+  }
+}
+
+/*
+ * Terms. The theme box is 16px and the label is the secondary grey.
+ * The row is the tap target: the label covers the checkbox as well.
+ */
+.hdt-page-cart .hdt-cart-checkbox,
+.hdt-mini-cart .hdt-cart-checkbox {
+  position: relative;
+  min-height: 44px;
+  color: #161513;
+}
+.hdt-page-cart .hdt-cart-checkbox label,
+.hdt-mini-cart .hdt-cart-checkbox label {
+  color: #161513;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+.hdt-page-cart .hdt-cart-checkbox label::before,
+.hdt-mini-cart .hdt-cart-checkbox label::before {
+  content: "";
+  position: absolute;
+  inset: -4px -8px;
+}
+.hdt-page-cart .hdt-checkbox-wrapp,
+.hdt-mini-cart .hdt-checkbox-wrapp {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+}
+.hdt-page-cart .hdt-checkbox-wrapp input,
+.hdt-mini-cart .hdt-checkbox-wrapp input {
+  width: 22px;
+  height: 22px;
+  border-color: #161513;
+}
+.hdt-page-cart .hdt-cart-checkbox input:focus-visible,
+.hdt-mini-cart .hdt-cart-checkbox input:focus-visible {
+  outline: 2px solid #161513;
+  outline-offset: 3px;
+}
+
+/* Cart page checkout is a small centered pill. Match the drawer width on a phone. */
+@media (max-width: 767px) {
+  .hdt-page-cart .hdt-main-cart__button-checkout,
+  .hdt-page-cart .hdt-mini-cart__emty-button {
+    display: flex;
+    width: 100%;
+    max-width: none;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+  /* The theme's 80px top margin drops Continue shopping under the tab bar. */
+  .hdt-page-cart .hdt-page-cart__empty {
+    margin: 2.4rem 0 3.2rem;
+  }
+}
+
+/*
+ * The fixed Shop / Wishlist / Cart / Account / Search bar is 5.5rem and sits
+ * on top of the cart page (z-index 24). The drawer is a dialog at z-index 999,
+ * so it already covers the bar. The page needs room to scroll the terms,
+ * checkout, and payment icons clear of it.
+ */
+@media (max-width: 1149px) {
+  body.hdt-page-type-cart {
+    padding-bottom: calc(5.5rem + 2.4rem);
+  }
+}
+
+/* Line items. A slightly larger remove control, and less padding between the rows. */
+@media (max-width: 767px) {
+  .hdt-page-cart .hdt-table-page-cart td {
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+  }
+  .hdt-page-cart .hdt-page-cart__info .hdt-mini-cart__remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .hdt-page-cart .hdt-page-cart__info .hdt-mini-cart__remove svg,
+  .hdt-page-cart .hdt-quantity-cart-item .hdt-mini-cart__remove svg {
+    width: 22px;
+    height: 22px;
   }
 }
 

@@ -13,7 +13,7 @@
  */
 import fs from 'node:fs';
 import path from 'node:path';
-import { Liquid } from 'liquidjs';
+import { Drop, Liquid } from 'liquidjs';
 import { colorBrightness, colorDarken, colorLighten, colorMix, fontFaceCss } from './shopify-color.js';
 
 /** Shopify ships its template JSON with /* *\/ comments. */
@@ -336,6 +336,59 @@ function attributeText(value) {
  * `variant.id`. An empty or missing cart is 0, which is what the quantity
  * label and `data-cart-quantity` print.
  */
+/**
+ * Shopify's `cart == empty` is true when the cart has no lines.
+ *
+ * LiquidJS answers that comparison from EmptyDrop, which only treats a string,
+ * an array, or an object with no keys as empty. A cart object always has keys
+ * (`items`, `item_count`, …), so an empty cart took the filled branch: order
+ * note, discount, a $0 subtotal, and a live checkout button.
+ *
+ * This drop is comparable, so `==` / `!=` call it before EmptyDrop. Property
+ * reads still come off the plain cart the JSON API returns.
+ */
+const EMPTY_DROP_NAMES = new Set(['EmptyDrop', 'BlankDrop', 'NullDrop']);
+
+function isLiquidEmpty(value) {
+  if (value == null) return true;
+  if (typeof value === 'string' || Array.isArray(value)) return value.length === 0;
+  const name = value.constructor?.name;
+  return EMPTY_DROP_NAMES.has(name);
+}
+
+export function cartIsEmpty(cart) {
+  if (!cart || typeof cart !== 'object') return true;
+  const count = Number(cart.item_count);
+  if (Number.isFinite(count)) return count <= 0;
+  return !Array.isArray(cart.items) || cart.items.length === 0;
+}
+
+class ShopifyCartDrop extends Drop {
+  constructor(cart) {
+    super();
+    Object.defineProperty(this, 'cart', { value: cart });
+  }
+
+  liquidMethodMissing(key) {
+    return this.cart[key];
+  }
+
+  equals(value) {
+    return cartIsEmpty(this.cart) && isLiquidEmpty(value);
+  }
+
+  gt() { return false; }
+  geq() { return false; }
+  lt() { return false; }
+  leq() { return false; }
+}
+
+export function shopifyCart(cart) {
+  if (cart instanceof ShopifyCartDrop) return cart;
+  const source = cart && typeof cart === 'object' ? cart : { items: [], item_count: 0, total_price: 0 };
+  return new ShopifyCartDrop(source);
+}
+
 export function itemCountForVariant(cart, variantId) {
   const wanted = variantId == null || typeof variantId === 'object' ? '' : String(variantId);
   if (!wanted) return 0;
