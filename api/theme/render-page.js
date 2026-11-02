@@ -22,6 +22,7 @@ import {
   blockList,
   imageSetting,
   resolveLinkListSettings,
+  shopifyCart,
   wrapSection,
 } from './liquid-engine.js';
 import { resolveThemeProductSettings, selectShopifyVariant, toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
@@ -126,7 +127,18 @@ export function createThemeRenderer({
     all_products_collection_url: '/shop', account_url: '/account',
   };
   const REQUEST = { locale: { iso_code: 'en' }, origin: siteUrl, design_mode: false, page_type: 'index' };
-  const CART = { items: [], item_count: 0, total_price: 0, original_total_price: 0, currency: { iso_code: 'USD' } };
+  const CART = shopifyCart({
+    items: [],
+    item_count: 0,
+    total_price: 0,
+    original_total_price: 0,
+    items_subtotal_price: 0,
+    total_discount: 0,
+    currency: { iso_code: 'USD' },
+    note: null,
+    attributes: {},
+    requires_shipping: false,
+  });
 
   /**
    * Navigation.
@@ -318,7 +330,15 @@ export function createThemeRenderer({
    * `shop` and the rest - and the only symptom is empty values in an inline
    * script hundreds of lines away. Always build the override from GLOBALS.
    */
-  const withGlobals = (overrides) => ({ ...GLOBALS, ...overrides });
+  const withGlobals = (overrides = {}) => {
+    const merged = { ...GLOBALS, ...overrides };
+    // A caller that passes its own cart replaces the default. Wrap that one
+    // too, or `cart == empty` is false for a zero-item object again.
+    if (overrides && Object.prototype.hasOwnProperty.call(overrides, 'cart')) {
+      merged.cart = shopifyCart(overrides.cart);
+    }
+    return merged;
+  };
 
   const baseScope = () => ({
     settings,
@@ -675,6 +695,7 @@ export function createThemeRenderer({
     } catch { /* no cart template */ }
     const found = Object.assign({}, ...maps);
     const request = { ...REQUEST, page_type: 'product' };
+    const shapedCart = shopifyCart(cart);
     const sections = {};
     for (const id of ids) {
       const sec = found[id];
@@ -682,7 +703,7 @@ export function createThemeRenderer({
       const schema = readSchema(themeRoot, 'sections', sec.type);
       const scope = {
         ...baseScope(),
-        cart,
+        cart: shapedCart,
         request,
         section: {
           id,
@@ -697,7 +718,7 @@ export function createThemeRenderer({
           id,
           sec.type,
           await renderThemeFile(engine, themeRoot, 'sections', sec.type, scope, withGlobals({
-            cart,
+            cart: shapedCart,
             request,
             section: scope.section,
           })),
