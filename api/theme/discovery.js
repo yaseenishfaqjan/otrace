@@ -109,6 +109,11 @@ const colorHandle = (name) => name.toLowerCase().replace(/\s+/g, '-');
 /**
  * Merchant feed lists the two pieces at their single prices.
  * The $140 set is a basket rule, not a third SKU, so it is not a feed item.
+ *
+ * The same document is the Meta and TikTok catalog feed: one row per
+ * colour and size, XS–2XL only, with the fields those catalogs require.
+ * `g:id` is the variant. `g:item_group_id` is the SKU the pixel sends.
+ * Each variant link selects that colour and size on the product page.
  */
 export function merchantFeedXml(siteUrl) {
   const origin = String(siteUrl).replace(/\/$/, '');
@@ -117,11 +122,15 @@ export function merchantFeedXml(siteUrl) {
     const price = `${(product.priceCents / 100).toFixed(2)} USD`;
     const material = '450 GSM garment-dyed heavyweight cotton fleece';
     const productType = product.sku === 'OT-HOOD' ? 'Hoodies' : 'Bottoms';
+    const category = product.sku === 'OT-HOOD'
+      ? 'Apparel & Accessories > Clothing > Activewear'
+      : 'Apparel & Accessories > Clothing > Pants';
     for (const colorway of product.colorways ?? []) {
       const images = (colorway.images ?? []).map((image) => `${origin}${image.src}`);
       const [main, ...extra] = images.length ? images : [`${origin}${product.image}`];
-      for (const size of product.sizes ?? SIZES) {
-        const id = `${product.sku}-${colorHandle(colorway.name)}-${size}`.toUpperCase();
+      for (const size of (product.sizes ?? SIZES).filter((size) => SIZES.includes(size))) {
+        const variantId = `${product.sku}-${colorHandle(colorway.name)}-${String(size).toLowerCase()}`;
+        const id = variantId.toUpperCase();
         const extraXml = extra
           .map((src) => `\n      <g:additional_image_link>${escapeXml(src)}</g:additional_image_link>`)
           .join('');
@@ -130,12 +139,14 @@ export function merchantFeedXml(siteUrl) {
       <g:item_group_id>${escapeXml(product.sku)}</g:item_group_id>
       <title>${escapeXml(`${productDisplayName(product)} — ${colorway.name} — ${size}`)}</title>
       <description>${escapeXml(product.description)}</description>
-      <link>${escapeXml(`${origin}/product/${product.slug}`)}</link>
+      <link>${escapeXml(`${origin}/product/${product.slug}?variant=${variantId}`)}</link>
       <g:image_link>${escapeXml(main)}</g:image_link>${extraXml}
       <g:availability>in_stock</g:availability>
       <g:price>${escapeXml(price)}</g:price>
       <g:brand>OTRACE</g:brand>
       <g:condition>new</g:condition>
+      <g:google_product_category>${escapeXml(category)}</g:google_product_category>
+      <g:identifier_exists>no</g:identifier_exists>
       <g:color>${escapeXml(colorway.name)}</g:color>
       <g:size>${escapeXml(size)}</g:size>
       <g:gender>unisex</g:gender>

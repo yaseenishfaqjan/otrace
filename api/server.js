@@ -42,6 +42,7 @@ import { PAGES, pageContent } from './theme/pages.js';
 import { mountStorefront, sendNotFound } from './theme/mount-storefront.js';
 import { getThemeCartStore } from './theme/cart.js';
 import { mountCartRoutes } from './theme/cart-routes.js';
+import { purchaseFromStripeSession, sendMetaPurchase } from './theme/ads.js';
 import { createCheckoutSession } from './checkout-session.js';
 
 const {
@@ -269,6 +270,18 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
     );
     console.log(`[order] ${reference} recorded (${session.customer_details?.email})`);
 
+    try {
+      const purchase = purchaseFromStripeSession(session);
+      if (purchase) {
+        await sendMetaPurchase(purchase, {
+          eventSourceUrl: `${SITE_URL.replace(/\/$/, '')}/order/success?session_id=${encodeURIComponent(session.id)}`,
+          email: session.customer_details?.email,
+        });
+      }
+    } catch (err) {
+      console.warn('[ads] capi failed:', err.message);
+    }
+
     const order = {
       reference,
       items,
@@ -469,6 +482,7 @@ mountStorefront(app, {
   themeRenderer,
   sendThemeHtml,
   siteUrl: SITE_URL.replace(/\/$/, ''),
+  stripe,
 });
 
 app.get('/api/theme-preview/product/:slug', async (req, res) => {

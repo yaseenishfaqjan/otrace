@@ -262,6 +262,7 @@ test('chat, Klaviyo and WhatsApp stay off until a real env value is set', () => 
     'KLAVIYO_COMPANY_ID', 'CRISP_WEBSITE_ID', 'TAWK_PROPERTY_ID', 'TAWK_WIDGET_ID',
     'GA_MEASUREMENT_ID', 'OTRACE_GA_MEASUREMENT_ID',
     'CLARITY_PROJECT_ID', 'OTRACE_CLARITY_PROJECT_ID',
+    'META_PIXEL_ID', 'TIKTOK_PIXEL_ID', 'META_CAPI_TOKEN',
   ]) delete process.env[key];
   try {
     assert.equal(whatsappHref(), '');
@@ -361,6 +362,9 @@ test('GA4 and Clarity tags share the head slot, one each, and stay off when blan
   delete process.env.OTRACE_GA_MEASUREMENT_ID;
   delete process.env.CLARITY_PROJECT_ID;
   delete process.env.OTRACE_CLARITY_PROJECT_ID;
+  delete process.env.META_PIXEL_ID;
+  delete process.env.TIKTOK_PIXEL_ID;
+  delete process.env.META_CAPI_TOKEN;
   const theme = await renderer();
   const pages = async () => {
     const home = await theme.renderPage('index', { title: 'OTRACE', page_title: 'OTRACE — AW2026' }, 'index');

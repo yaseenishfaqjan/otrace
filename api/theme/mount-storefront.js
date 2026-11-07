@@ -2,6 +2,7 @@
  * Public routes that used to live only on the React storefront.
  * Nginx sends the same paths here. The theme renderer draws the HTML.
  */
+import { loadVerifiedPurchase, readCookie, sendMetaPurchase } from './ads.js';
 import { clearThemeCart } from './cart.js';
 import { publicBody } from './discovery.js';
 import { findPost, journalBlurb, journalIndexHtml, journalPostHtml } from './journal.js';
@@ -21,9 +22,9 @@ export async function sendNotFound(res, { themeRenderer, sendThemeHtml }) {
   }
 }
 
-export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl }) {
+export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl, stripe = null }) {
   const missing = (res) => sendNotFound(res, { themeRenderer, sendThemeHtml });
-  const renderStandalone = async (res, kind) => {
+  const renderStandalone = async (res, kind, ads) => {
     if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
     const page = standalonePage(kind);
     if (!page) return res.status(404).send('No such page.');
@@ -35,7 +36,11 @@ export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl }) 
       ])]
       : null;
     try {
-      const html = await themeRenderer.renderPage('page', { ...page, json_ld }, 'page');
+      const html = await themeRenderer.renderPage('page', {
+        ...page,
+        json_ld,
+        ...(ads ? { ads } : {}),
+      }, 'page');
       sendThemeHtml(res, html, { noindex: page.noindex });
     } catch (err) {
       console.error(`[theme] ${kind} render failed:`, err.message);
@@ -103,7 +108,24 @@ export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl }) 
 
   app.get(['/api/theme-preview/order/success', '/order/success'], async (req, res) => {
     clearThemeCart(req, res);
-    await renderStandalone(res, 'order-success');
+    const loaded = await loadVerifiedPurchase(stripe, req.query.session_id);
+    const purchase = loaded.purchase;
+    if (purchase) {
+      const origin = String(siteUrl || '').replace(/\/$/, '');
+      try {
+        await sendMetaPurchase(purchase, {
+          eventSourceUrl: `${origin}/order/success?session_id=${encodeURIComponent(purchase.transaction_id)}`,
+          email: loaded.email,
+          clientIp: req.get('x-forwarded-for') || req.ip,
+          userAgent: req.get('user-agent'),
+          fbp: readCookie(req.headers.cookie, '_fbp'),
+          fbc: readCookie(req.headers.cookie, '_fbc'),
+        });
+      } catch (err) {
+        console.warn('[ads] capi failed:', err.message);
+      }
+    }
+    await renderStandalone(res, 'order-success', purchase ? { purchase } : null);
   });
 
   app.get([
