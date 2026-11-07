@@ -69,6 +69,12 @@ services:
       # Public Clarity project id. Blank omits the script. Production: z3xvl8jv8y
       CLARITY_PROJECT_ID: ${CLARITY_PROJECT_ID:-}
       OTRACE_CLARITY_PROJECT_ID: ${OTRACE_CLARITY_PROJECT_ID:-}
+      # Public Meta pixel id. Blank omits the pixel. Digits only.
+      META_PIXEL_ID: ${META_PIXEL_ID:-}
+      # Secret. Blank skips the server-side Purchase. Needs META_PIXEL_ID too.
+      META_CAPI_TOKEN: ${META_CAPI_TOKEN:-}
+      # Public TikTok pixel id. Blank omits the pixel.
+      TIKTOK_PIXEL_ID: ${TIKTOK_PIXEL_ID:-}
       # Theme contact page. Blank hides the button and the chat embed.
       WHATSAPP_NUMBER: ${WHATSAPP_NUMBER:-}
       PUBLIC_WHATSAPP_NUMBER: ${PUBLIC_WHATSAPP_NUMBER:-}

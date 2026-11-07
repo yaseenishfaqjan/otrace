@@ -28,6 +28,7 @@ import {
 import { resolveThemeProductSettings, selectShopifyVariant, toShopifyCollection, toShopifyProduct, themeSettings } from './shopify-shape.js';
 import { PRODUCTS } from '../catalog.js';
 import { POSTS } from '../../site/src/content/posts.mjs';
+import { adsEventsTag, metaPixelTag, tiktokPixelTag } from './ads.js';
 import { chatEmbed, clarityTag, deliveryReturnHtml, faqHtml, faqsForSlug, googleTag, homeFactHtml, klaviyoOnsite, productFactHtml, questionFaqs, setCrossSellHtml, themePages, trustStripHtml } from './pages.js';
 import {
   breadcrumbLd,
@@ -642,15 +643,15 @@ export function createThemeRenderer({
     ';<\/script>';
 
   /**
-   * Optional GA4 and Clarity tags, in that order, as the first children of
-   * <head>.
+   * Optional analytics tags, in order, as the first children of <head>:
+   * GA4, Clarity, Meta Pixel, TikTok Pixel, then the commerce events.
    *
-   * Every full page is this layout (`layout/theme.liquid`). Neither snippet
-   * is copied into templates. `content_for_header` stays the hook for CSS,
-   * SEO, and the other optional embeds. A blank id omits that tag, and a
-   * page that already has one is not given a second.
+   * Every full page is this layout (`layout/theme.liquid`). None of these
+   * snippets are copied into templates. `content_for_header` stays the hook
+   * for CSS, SEO, and the other optional embeds. A blank id omits that tag,
+   * and a page that already has one is not given a second.
    */
-  function withHeadTags(html) {
+  function withHeadTags(html, extra) {
     const open = html.indexOf('<head>');
     if (open === -1) return html;
     const headEnd = html.indexOf('</head>', open);
@@ -658,8 +659,14 @@ export function createThemeRenderer({
     const parts = [];
     const ga = googleTag();
     const clarity = clarityTag();
+    const meta = metaPixelTag();
+    const tiktok = tiktokPixelTag();
+    const events = adsEventsTag(extra);
     if (ga && !head.includes('googletagmanager.com/gtag/js?id=')) parts.push(ga);
     if (clarity && !head.includes('https://www.clarity.ms/tag/')) parts.push(clarity);
+    if (meta && !head.includes('connect.facebook.net/en_US/fbevents.js')) parts.push(meta);
+    if (tiktok && !head.includes('analytics.tiktok.com/i18n/pixel/events.js')) parts.push(tiktok);
+    if (events && !head.includes('id="otrace-ads"')) parts.push(events);
     if (!parts.length) return html;
     const at = open + '<head>'.length;
     return `${html.slice(0, at)}\n${parts.join('\n')}${html.slice(at)}`;
@@ -668,7 +675,7 @@ export function createThemeRenderer({
   async function wrap(contentForLayout, extra, globals) {
     const scope = { ...baseScope(), ...extra, content_for_layout: contentForLayout,
       content_for_header: contentForHeader(extra), content_for_index: '' };
-    return withHeadTags(await renderThemeFile(engine, themeRoot, 'layout', 'theme', scope, globals));
+    return withHeadTags(await renderThemeFile(engine, themeRoot, 'layout', 'theme', scope, globals), extra);
   }
 
   /**

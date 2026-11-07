@@ -69,4 +69,11 @@ SEO / AEO / GEO notes, the query research, and the change log live in `seo/`.
    Microsoft Clarity script in that same slot, after the gtag when both are
    set. Blank emits nothing. Production for https://otrace.co is
    `GA_MEASUREMENT_ID=G-KZZXSSF3L1` and `CLARITY_PROJECT_ID=z3xvl8jv8y`.
-   After changing either, rebuild the api container only.
+   `META_PIXEL_ID` loads one Meta Pixel in that same head slot (PageView on
+   every page). `TIKTOK_PIXEL_ID` loads one TikTok Pixel after it. Blank emits
+   nothing. `META_CAPI_TOKEN` is a secret; together with `META_PIXEL_ID` it
+   sends a server-side Purchase for a paid Stripe session. The browser
+   Purchase and that server event share one event id. The thank-you page
+   stores that id in sessionStorage so a refresh does not fire Purchase
+   again. The charged total is the Stripe session total, not a query
+   parameter. After changing any of these, rebuild the api container only.
