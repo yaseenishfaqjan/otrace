@@ -47,7 +47,8 @@ export function decodeVariantId(variantId) {
   if (!sku) return null;
   const rest = id.slice(sku.length + 1);
   const product = PRODUCTS[sku];
-  // Size handles are unambiguous (xs, s, m, ... 3xl) and always last.
+  // Size handles are unambiguous (xs, s, m, ... 2xl) and always last.
+  // A retired size such as 3xl does not match, so an old line cannot be added.
   const size = product.sizes.find((s) => rest.toLowerCase().endsWith('-' + s.toLowerCase()));
   if (!size) return null;
   const colourHandle = rest.slice(0, rest.length - size.length - 1).toLowerCase();

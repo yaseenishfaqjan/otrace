@@ -162,6 +162,31 @@ test('a 1-based line index changes only that row', () => {
   assert.equal(lines.length, 0);
 });
 
+test('a saved cart drops a retired 3XL line and keeps the rest', () => {
+  const file = path.join(os.tmpdir(), `otrace-cart-3xl-${process.pid}-${Date.now()}.json`);
+  const id = mintCartId();
+  fs.writeFileSync(file, JSON.stringify({
+    [id]: {
+      lines: [
+        { sku: 'OT-HOOD', colour: 'Onyx Black', size: '3XL', quantity: 1 },
+        { sku: 'OT-PANT', colour: 'Warm Cream', size: '2XL', quantity: 1 },
+      ],
+      seen: Date.now(),
+    },
+  }));
+  try {
+    const store = createCartStore({ file });
+    const lines = store.get(id);
+    assert.equal(lines.length, 1);
+    assert.equal(lines[0].size, '2XL');
+    const cart = cartJson(lines, { siteUrl: 'https://otrace.co' });
+    assert.equal(cart.item_count, 1);
+    assert.equal(cart.items[0].variant_title, 'Warm Cream / 2XL');
+  } finally {
+    fs.rmSync(file, { force: true });
+  }
+});
+
 test('the shared token is not a cart, on disk or in memory', () => {
   const file = path.join(os.tmpdir(), `otrace-cart-${process.pid}-${Date.now()}.json`);
   const kept = mintCartId();

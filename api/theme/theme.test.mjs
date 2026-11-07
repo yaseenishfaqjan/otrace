@@ -114,9 +114,49 @@ test('a variant id decodes back to a real product, and rubbish does not', () => 
     colour: 'Onyx Black',
     size: '2XL',
   });
-  for (const bad of ['OT-HOOD-no-such-colour-xl', 'OT-HOOD-onyx-black-xxxl', 'nonsense', '', null]) {
+  for (const bad of [
+    'OT-HOOD-no-such-colour-xl',
+    'OT-HOOD-onyx-black-xxxl',
+    'OT-HOOD-onyx-black-3xl',
+    'OT-PANT-warm-cream-3xl',
+    'nonsense',
+    '',
+    null,
+  ]) {
     assert.equal(decodeVariantId(bad), null, `${bad} must not decode`);
   }
+});
+
+test('a retired 3XL line is dropped from the cart and cannot open a checkout', async () => {
+  const mixed = cartJson(
+    [
+      { sku: 'OT-HOOD', colour: 'Onyx Black', size: '3XL', quantity: 1 },
+      { sku: 'OT-PANT', colour: 'Warm Cream', size: 'M', quantity: 1 },
+    ],
+    { siteUrl: SITE },
+  );
+  assert.equal(mixed.items.length, 1);
+  assert.equal(mixed.items[0].sku, 'OT-PANT');
+  assert.equal(mixed.items.some((item) => /3XL/i.test(item.variant_title)), false);
+
+  const onlyRetired = cartJson(
+    [{ sku: 'OT-HOOD', colour: 'Warm Cream', size: '3XL', quantity: 2 }],
+    { siteUrl: SITE },
+  );
+  assert.equal(onlyRetired.item_count, 0);
+
+  const stripe = fakeStripe();
+  const refused = await createCheckoutSession(
+    stripe,
+    [
+      { sku: 'OT-HOOD', colour: 'Onyx Black', size: '3XL', quantity: 1 },
+      { sku: 'OT-PANT', colour: 'Warm Cream', size: 'M', quantity: 1 },
+    ],
+    { siteUrl: SITE },
+  );
+  assert.ok(refused.error);
+  assert.equal(refused.session, undefined);
+  assert.equal(stripe.calls.length, 0);
 });
 
 test('the cart groups the price bands back into the lines the customer added', () => {
@@ -467,10 +507,15 @@ test('product cards hide the size overlay and paint the sale badge black', async
   assert.match(shop, /\$100\.00/);
   assert.match(home, /\$140/);
 
-  // Size is chosen on the product page, not on the card.
+  // Size is chosen on the product page, not on the card. 3XL is retired.
   assert.equal(hoodie.includes('class="hdt-size-list'), false);
-  for (const size of ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL']) {
-    assert.match(hoodie, new RegExp(`name="Size" value="${size}"`));
+  const pant = await renderer.renderProduct(PRODUCTS['OT-PANT']);
+  for (const html of [hoodie, pant]) {
+    for (const size of ['XS', 'S', 'M', 'L', 'XL', '2XL']) {
+      assert.match(html, new RegExp(`name="Size" value="${size}"`));
+    }
+    assert.doesNotMatch(html, /3XL/);
+    assert.doesNotMatch(html, /"size":"3XL"/);
   }
   assert.match(hoodie, /\$80\.00/);
   assert.match(hoodie, /\$100\.00/);

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { getProductBySku } from '@/lib/products';
+import { getProductBySku, SIZES } from '@/lib/products';
 
 export type CartItem = {
   /** sku + colorway + size — see the note in addItem. */
@@ -43,11 +43,12 @@ function readSavedCart(): CartItem[] {
       // A cart lives in the browser for weeks, so a saved line outlives the
       // price it was added at — the customer would see one total and be charged
       // another, because the server prices from its own catalogue. Re-resolve
-      // every line, and drop anything we no longer sell so a stale cart cannot
-      // block checkout with "unknown product".
+      // every line, and drop a product or size we no longer sell (3XL included)
+      // so a stale cart cannot block checkout.
       return parsed.flatMap((item) => {
         const product = getProductBySku(item.sku);
         if (!product) return [];
+        if (!(SIZES as readonly string[]).includes(item.size)) return [];
         // Re-resolve the pre-order window too — a piece can come into stock
         // while it is still sitting in someone's cart.
         return [{

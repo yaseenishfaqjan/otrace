@@ -2,14 +2,14 @@
   "_comment": "Garment-flat measurements in centimetres, from the AW2026 spec sheet. site/src/lib/products.ts and the Kalles theme's sizing page BOTH read this file; neither restates the confirmed cells. A null stays null here: four rows in the spec sheet run backwards at L (chest 48->42, body length 68->66, inseam 77->73), which would make L smaller than M. The sizing page may estimate a single missing cell from the confirmed sizes on either side and must mark that cell estimated. It must not write the estimate back into this file, and it must leave the cell blank when a neighbor is also missing.",
   "units": "cm",
   "method": "garment-flat",
-  "sizes": ["XS", "S", "M", "L", "XL", "2XL", "3XL"],
+  "sizes": ["XS", "S", "M", "L", "XL", "2XL"],
   "rows": [
-    { "label": "Chest", "values": [40, 44, 48, null, 50, 53, 54] },
-    { "label": "Body length", "values": [62, 64, 68, null, 70, 72, 74] },
-    { "label": "Shoulder", "values": [15, 16, 17, 18, 19, 20, 21] },
-    { "label": "Sleeve / waist", "values": [26, 27, 28, 29, 30, 34, 35] },
-    { "label": "Outseam", "values": [76, 78, 80, 80, 82, 84, 86] },
-    { "label": "Inseam", "values": [76, 77, null, 75, 77, 78, 79] },
-    { "label": "Leg opening", "values": [10, 11, 12, 13, 14, 15, 16] }
+    { "label": "Chest", "values": [40, 44, 48, null, 50, 53] },
+    { "label": "Body length", "values": [62, 64, 68, null, 70, 72] },
+    { "label": "Shoulder", "values": [15, 16, 17, 18, 19, 20] },
+    { "label": "Sleeve / waist", "values": [26, 27, 28, 29, 30, 34] },
+    { "label": "Outseam", "values": [76, 78, 80, 80, 82, 84] },
+    { "label": "Inseam", "values": [76, 77, null, 75, 77, 78] },
+    { "label": "Leg opening", "values": [10, 11, 12, 13, 14, 15] }
   ]
 }

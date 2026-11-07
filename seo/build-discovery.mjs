@@ -41,14 +41,20 @@ function parseFaqs(src) {
 }
 
 function parseChart(src) {
+  const sizeMatch = src.match(/export const SIZES = \[([^\]]+)\]/);
+  if (!sizeMatch) throw new Error('SIZES missing');
+  const sizes = [...sizeMatch[1].matchAll(/'([^']+)'/g)].map((match) => match[1]);
+  if (!sizes.length) throw new Error('SIZES empty');
   const block = src.slice(src.indexOf('export const SIZE_CHART'));
-  const sizes = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
   const rows = [];
   for (const match of block.matchAll(/label: '([^']+)', values: \[([^\]]+)\]/g)) {
     const values = match[2].split(',').map((cell) => {
       const token = cell.trim();
       return token === 'null' ? null : Number(token);
     });
+    if (values.length !== sizes.length) {
+      throw new Error(`${match[1]} has ${values.length} cells for ${sizes.length} sizes`);
+    }
     rows.push({ label: match[1], values });
   }
   if (rows.length < 7) throw new Error(`SIZE_CHART parsed ${rows.length} rows`);
@@ -109,6 +115,8 @@ export function buildDiscovery() {
   const products = parseProducts(productsSrc);
   const hoodie = products.find((p) => p.slug === 'oversized-hoodie');
   const pant = products.find((p) => p.slug === 'wide-leg-sweatpant');
+  const sizeList = chart.sizes.join(', ');
+  const sizeSpan = `${chart.sizes[0]} to ${chart.sizes[chart.sizes.length - 1]}`;
   const summary = read('site/src/lib/entity.ts').match(/ENTITY_SUMMARY =\n\s*'([^']+)'/)?.[1];
   if (!summary) throw new Error('ENTITY_SUMMARY missing');
 
@@ -155,7 +163,7 @@ export function buildDiscovery() {
         `- Fit: ${product.fit}`,
         `- Care: ${product.care}`,
         `- Colorways: Onyx Black, Warm Cream`,
-        `- Sizes: XS, S, M, L, XL, 2XL, 3XL`,
+        `- Sizes: ${sizeList}`,
         `- Availability: in stock. The catalogue has no per-variant quantity, so this is not a count of units.`,
         `- ${product.tagline}`,
         ...product.details.map((line) => `- ${line}`),
@@ -237,7 +245,7 @@ The about page says the label would rather sell out than discount. That is not a
       'Sizing',
       `HTML: ${ORIGIN}/sizing
 
-Measurements are garment-flat centimetres. Inches are centimetres divided by 2.54, rounded to one decimal. Sizes run XS, S, M, L, XL, 2XL, 3XL. The chart is unisex.
+Measurements are garment-flat centimetres. Inches are centimetres divided by 2.54, rounded to one decimal. Sizes run ${sizeList}. The chart is unisex.
 
 ${faqBlock(faqs.SIZING_FAQS)}
 
@@ -282,7 +290,7 @@ Catalogue price on ${UPDATED}: ${hoodie.price} USD. Confirm on the HTML page bef
 - Fit: ${hoodie.fit}
 - Care: ${hoodie.care}
 - Colorways: Onyx Black, Warm Cream
-- Sizes: XS to 3XL
+- Sizes: ${sizeSpan}
 - ${hoodie.tagline}
 ${hoodie.details.map((line) => `- ${line}`).join('\n')}
 
@@ -298,7 +306,7 @@ Catalogue price on ${UPDATED}: ${pant.price} USD. Confirm on the HTML page befor
 - Fit: ${pant.fit}
 - Care: ${pant.care}
 - Colorways: Onyx Black, Warm Cream
-- Sizes: XS to 3XL
+- Sizes: ${sizeSpan}
 - ${pant.tagline}
 ${pant.details.map((line) => `- ${line}`).join('\n')}
 
@@ -321,7 +329,7 @@ The Complete set is one Oversized Hoodie and one Wide-Leg Sweatpant, the same si
 
 - Fabric: 450 GSM garment-dyed heavyweight cotton fleece
 - Colorways: Onyx Black, Warm Cream
-- Sizes: XS to 3XL, unisex
+- Sizes: ${sizeSpan}, unisex
 - [Oversized Hoodie](${ORIGIN}/product/oversized-hoodie)
 - [Wide-Leg Sweatpant](${ORIGIN}/product/wide-leg-sweatpant)
 - [Size chart](${ORIGIN}/sizing)

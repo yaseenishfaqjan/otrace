@@ -16,7 +16,7 @@ Google Search has said it does not use llms.txt. This file is for other agents, 
 
 ## Fit & fabric
 
-- [Sizing](https://otrace.co/sizing.md): Garment-flat centimetres for both pieces, XS to 3XL, with inches converted from those centimetres. A one-size gap the factory sheet left blank is estimated from the neighboring sizes and marked as estimated.
+- [Sizing](https://otrace.co/sizing.md): Garment-flat centimetres for both pieces, XS to 2XL, with inches converted from those centimetres. A one-size gap the factory sheet left blank is estimated from the neighboring sizes and marked as estimated.
 - [What does garment dyed mean?](https://otrace.co/garment-dyed.md): Sewn first and dyed after, how that differs from piece dyeing, and how the colour wears.
 
 ## Policies

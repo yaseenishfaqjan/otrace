@@ -52,7 +52,7 @@ export type Product = {
 /** Normal despatch window for anything held in stock. */
 export const IN_STOCK_SHIPS_IN = '3–5 business days';
 
-export const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'] as const;
+export const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL'] as const;
 export type Size = (typeof SIZES)[number];
 
 /**
@@ -204,11 +204,11 @@ export const productsIn = (categorySlug: string) =>
  * on either side and marks it estimated. A missing neighbor stays blank.
  */
 export const SIZE_CHART: { label: string; values: (number | null)[] }[] = [
-  { label: 'Chest', values: [40, 44, 48, null, 50, 53, 54] },
-  { label: 'Body length', values: [62, 64, 68, null, 70, 72, 74] },
-  { label: 'Shoulder', values: [15, 16, 17, 18, 19, 20, 21] },
-  { label: 'Sleeve / waist', values: [26, 27, 28, 29, 30, 34, 35] },
-  { label: 'Outseam', values: [76, 78, 80, 80, 82, 84, 86] },
-  { label: 'Inseam', values: [76, 77, null, 75, 77, 78, 79] },
-  { label: 'Leg opening', values: [10, 11, 12, 13, 14, 15, 16] },
+  { label: 'Chest', values: [40, 44, 48, null, 50, 53] },
+  { label: 'Body length', values: [62, 64, 68, null, 70, 72] },
+  { label: 'Shoulder', values: [15, 16, 17, 18, 19, 20] },
+  { label: 'Sleeve / waist', values: [26, 27, 28, 29, 30, 34] },
+  { label: 'Outseam', values: [76, 78, 80, 80, 82, 84] },
+  { label: 'Inseam', values: [76, 77, null, 75, 77, 78] },
+  { label: 'Leg opening', values: [10, 11, 12, 13, 14, 15] },
 ];
