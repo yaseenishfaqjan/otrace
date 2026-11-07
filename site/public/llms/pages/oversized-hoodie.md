@@ -2,13 +2,13 @@
 
 HTML: https://otrace.co/product/oversized-hoodie
 
-Catalogue price on 2026-10-26: 80 USD. Confirm on the HTML page before quoting it. Availability: in stock. There is no per-variant unit count.
+Catalogue price on 2026-10-28: 80 USD. Confirm on the HTML page before quoting it. Availability: in stock. There is no per-variant unit count.
 
 - Fabric: 450 GSM heavyweight fleece. 100% cotton, pre-shrunk, garment dyed.
 - Fit: Oversized. Take your usual size for the intended fit, or size down for a cleaner line.
 - Care: Machine wash cold, inside out. Tumble dry low. Do not iron the embroidery.
 - Colorways: Onyx Black, Warm Cream
-- Sizes: XS to 3XL
+- Sizes: XS to 2XL
 - The anchor of the collection. Cut boxy, dropped at the shoulder, and dyed after it is sewn so no two land exactly the same.
 - Boxy oversized body with a dropped shoulder seam
 - Self-lined double-layer hood
@@ -27,7 +27,7 @@ A 450 GSM hoodie is cotton fleece weighing 450 grams per square metre. The OTRAC
 
 ## Are hoodies unisex?
 
-Yes. OTRACE hoodies are unisex, sized XS to 3XL. Take your usual size for the oversized fit, or size down for a cleaner line.
+Yes. OTRACE hoodies are unisex, sized XS to 2XL. Take your usual size for the oversized fit, or size down for a cleaner line.
 
 ## Boxy hoodie meaning
 

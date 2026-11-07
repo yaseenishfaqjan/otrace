@@ -6,7 +6,7 @@ The Complete set is one Oversized Hoodie and one Wide-Leg Sweatpant, the same si
 
 - Fabric: 450 GSM garment-dyed heavyweight cotton fleece
 - Colorways: Onyx Black, Warm Cream
-- Sizes: XS to 3XL, unisex
+- Sizes: XS to 2XL, unisex
 - [Oversized Hoodie](https://otrace.co/product/oversized-hoodie)
 - [Wide-Leg Sweatpant](https://otrace.co/product/wide-leg-sweatpant)
 - [Size chart](https://otrace.co/sizing)

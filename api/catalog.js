@@ -46,7 +46,7 @@ export const SHIP_COUNTRIES = [
   'IL', 'BR', 'AR', 'CL', 'CO', 'ZA', 'IN', 'MY', 'TH', 'PH',
 ];
 
-export const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL', '3XL'];
+export const SIZES = ['XS', 'S', 'M', 'L', 'XL', '2XL'];
 const COLORWAYS = ['Onyx Black', 'Warm Cream'];
 
 export const PRODUCTS = {

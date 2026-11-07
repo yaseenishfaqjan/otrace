@@ -8,7 +8,7 @@ Catalogue price on 2026-10-28: 80 USD. Confirm on the HTML page before quoting i
 - Fit: Relaxed and wide. True to size at the waist.
 - Care: Machine wash cold, inside out. Tumble dry low.
 - Colorways: Onyx Black, Warm Cream
-- Sizes: XS to 3XL
+- Sizes: XS to 2XL
 - Cut wide from the hip and left to break at the ankle. The other half of the set, in the same dye lot.
 - Relaxed wide leg with a high rise
 - Drawcord waist with white moulded plastic tips

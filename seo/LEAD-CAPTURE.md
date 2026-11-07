@@ -75,7 +75,7 @@ You asked for the fit note.
 
 The Oversized Hoodie is 450 GSM cotton fleece: heavyweight loopback, brushed on the inside, sewn first and dyed after. The colour sits in the seams. It comes in Onyx Black and Warm Cream. The Wide-Leg Sweatpant is the same fleece.
 
-The cut is a full size large on purpose. It should sit roomy through the body, with a dropped shoulder, longer than a standard fit. Take your usual size for that look, or size down for a cleaner line. XS through 3XL, unisex. The flat measurements are on the size guide.
+The cut is a full size large on purpose. It should sit roomy through the body, with a dropped shoulder, longer than a standard fit. Take your usual size for that look, or size down for a cleaner line. XS through 2XL, unisex. The flat measurements are on the size guide.
 
 Button: Read the size guide
 URL: https://otrace.co/sizing

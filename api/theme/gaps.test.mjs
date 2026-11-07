@@ -7,7 +7,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import express from 'express';
 
-import { PRODUCTS, SET_TOTAL_CENTS } from '../catalog.js';
+import { PRODUCTS, SET_TOTAL_CENTS, SIZES } from '../catalog.js';
 import { INDEXNOW_KEY } from '../indexnow.js';
 import { publicBody, robotsTxt, sitemapXml, merchantFeedXml, INDEXABLE_PATHS } from './discovery.js';
 import { pageContent, standalonePage, chatEmbed, clarityProjectId, clarityTag, gaMeasurementId, googleTag, klaviyoOnsite, whatsappHref, instagramHref } from './pages.js';
@@ -69,7 +69,9 @@ test('discovery files name the AI crawlers, the pages, and the $80 singles', () 
   assert.match(feed, /<g:price>80\.00 USD<\/g:price>/);
   assert.doesNotMatch(feed, /<g:price>140\.00 USD<\/g:price>/);
   assert.doesNotMatch(feed, /OT-SET/);
-  assert.equal(feed.match(/<g:id>/g).length, 2 * 2 * 7);
+  assert.equal(feed.match(/<g:id>/g).length, Object.keys(PRODUCTS).length * 2 * SIZES.length);
+  assert.equal(SIZES.at(-1), '2XL');
+  assert.doesNotMatch(feed, /3XL/);
 
   const llms = publicBody('/llms.txt', SITE);
   assert.ok(llms?.body?.length, 'llms.txt is missing from seo/');
@@ -142,6 +144,8 @@ test('product info modals carry the size chart, delivery copy, and a labeled que
   assert.match(size, /Sleeve \/ waist/);
   assert.match(size, /Wide-leg sweatpant/);
   assert.match(size, /centimetres/);
+  assert.match(size, />2XL</);
+  assert.doesNotMatch(size, /3XL/);
   assert.equal((size.match(/class="hdt-size-scroll"/g) || []).length, 2);
   assert.doesNotMatch(size, /\$80/);
   const css = fs.readFileSync(fileURLToPath(new URL('./otrace-overrides.css', import.meta.url)), 'utf8');
@@ -201,6 +205,8 @@ test('the complete set is a $140 page and not a third Stripe product', async () 
   assert.match(page.content, /\/products\/pant-cream-front\.jpg/);
   assert.match(page.content, /showColour/);
   assert.match(page.content, /<label>Color<select name="colour"/);
+  assert.match(page.content, /<option value="2XL">2XL<\/option>/);
+  assert.doesNotMatch(page.content, /3XL/);
   assert.doesNotMatch(page.content, /<label>Colour/);
   assert.doesNotMatch(page.content, /data-set-colour="Onyx Black" hidden/);
 

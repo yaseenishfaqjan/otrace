@@ -321,7 +321,7 @@ const sizing = () => {
   const unisex = faq('SIZING_FAQS', 'Unisex hoodies size chart');
   return [
     `<div class="hdt-size-page">`,
-    `<p class="otrace-fact hdt-size-lead">OTRACE sizes the Oversized Hoodie and the Wide-Leg Sweatpant from XS to 3XL. Measurements are the garment laid flat, in centimetres. Inches are those centimetres divided by 2.54.</p>`,
+    `<p class="otrace-fact hdt-size-lead">OTRACE sizes the Oversized Hoodie and the Wide-Leg Sweatpant from ${esc(SIZE_CHART.sizes[0])} to ${esc(SIZE_CHART.sizes[SIZE_CHART.sizes.length - 1])}. Measurements are the garment laid flat, in centimetres. Inches are those centimetres divided by 2.54.</p>`,
     `<section class="hdt-size-block">`,
     HOODIE_SVG,
     `<h2>${esc(hoodieChart.question)}</h2>`,

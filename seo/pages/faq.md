@@ -15,7 +15,7 @@ A 450 GSM hoodie is cotton fleece weighing 450 grams per square metre. The OTRAC
 
 ## Are hoodies unisex?
 
-Yes. OTRACE hoodies are unisex, sized XS to 3XL. Take your usual size for the oversized fit, or size down for a cleaner line.
+Yes. OTRACE hoodies are unisex, sized XS to 2XL. Take your usual size for the oversized fit, or size down for a cleaner line.
 
 ## Boxy hoodie meaning
 
@@ -55,7 +55,7 @@ An oversized hoodie should sit roomy through the body, with a dropped shoulder, 
 
 ## Unisex hoodies size chart
 
-OTRACE hoodies are unisex, XS to 3XL. This size chart is the same garment-flat measurement for every body. Take your usual size for the oversized fit.
+OTRACE hoodies are unisex, XS to 2XL. This size chart is the same garment-flat measurement for every body. Take your usual size for the oversized fit.
 
 ## What is your return policy?
 

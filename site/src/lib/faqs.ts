@@ -23,7 +23,7 @@ export const HOODIE_FAQS: Faq[] = [
   {
     question: 'Are hoodies unisex?',
     answer:
-      'Yes. OTRACE hoodies are unisex, sized XS to 3XL. Take your usual size for the oversized fit, or size down for a cleaner line.',
+      'Yes. OTRACE hoodies are unisex, sized XS to 2XL. Take your usual size for the oversized fit, or size down for a cleaner line.',
   },
   {
     question: 'Boxy hoodie meaning',
@@ -82,7 +82,7 @@ export const SIZING_FAQS: Faq[] = [
   {
     question: 'Unisex hoodies size chart',
     answer:
-      'OTRACE hoodies are unisex, XS to 3XL. This size chart is the same garment-flat measurement for every body. Take your usual size for the oversized fit.',
+      'OTRACE hoodies are unisex, XS to 2XL. This size chart is the same garment-flat measurement for every body. Take your usual size for the oversized fit.',
   },
 ];
 

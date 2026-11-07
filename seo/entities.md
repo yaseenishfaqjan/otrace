@@ -15,7 +15,7 @@ These are the names and numbers the pages, the FAQ answers, and `llms.txt` are s
 | Set | 140 USD for one hoodie and one sweatpant (14000 cents), list 200 USD |
 | Fabric | 450 GSM heavyweight cotton fleece, pre-shrunk, garment dyed |
 | Colours | Onyx Black, Warm Cream |
-| Sizes | XS, S, M, L, XL, 2XL, 3XL, unisex |
+| Sizes | XS, S, M, L, XL, 2XL, unisex |
 | Availability | in stock. The catalogue flag `preorder` is false on both products. The API has no per-variant quantity, so every colour×size offer is `InStock` together. Nothing was marked `OutOfStock` |
 | In-stock dispatch | 3–5 business days. Ships worldwide. Free delivery is for United States addresses. No international carrier tariff is published. |
 | Returns | unworn, tags attached, 30 days from delivery. Refunds 5–10 business days after the parcel arrives. Faulty items: the store covers return shipping |

@@ -73,7 +73,7 @@ export default function Sizing() {
   const fit = faq('How should an oversized hoodie fit?');
   usePageMeta(
     'Oversized Hoodie Size Chart',
-    'Oversized hoodie size chart and wide leg sweatpants measurements for OTRACE. Garment-flat centimetres and inches, XS to 3XL, unisex. Take your usual size for the oversized fit.',
+    'Oversized hoodie size chart and wide leg sweatpants measurements for OTRACE. Garment-flat centimetres and inches, XS to 2XL, unisex. Take your usual size for the oversized fit.',
     { jsonLd: faqLd(SIZING_FAQS) },
   );
 
@@ -111,7 +111,7 @@ export default function Sizing() {
           <h2 className="text-cream text-xl font-medium">Fit</h2>
           <p className="text-cream-dim leading-relaxed mt-4 max-w-xl">{fit.answer}</p>
           <p className="text-cream-dim leading-relaxed mt-4 max-w-xl">
-            Both pieces are unisex, XS to 3XL. The chart is the same garment-flat
+            Both pieces are unisex, XS to 2XL. The chart is the same garment-flat
             measurement for every body.
           </p>
         </section>
