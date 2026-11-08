@@ -4,7 +4,7 @@ The storefront collects an email (and, optionally, a phone) and the API writes a
 
 `[klaviyo] ESP sync skipped — KLAVIYO_PRIVATE_API_KEY or KLAVIYO_LIST_ID unset. Lead stored in MySQL only.`
 
-The site does not send the three-email sequence below. Those emails are a Klaviyo Flow. Paste them in Klaviyo. The only message this app sends on signup is the existing one-note SMTP welcome in `api/emails.js` (`welcomeEmail`), and only when `SMTP_HOST`, `SMTP_USER` and `SMTP_PASSWORD` are set. If SMTP is unset, that note is skipped too.
+The site does not send the three-email sequence below. Those emails are a Klaviyo Flow. Paste them in Klaviyo. Footer and waitlist signups still send the one-note welcome in `api/emails.js` (`welcomeEmail`) through the mailer (Resend first, then SMTP). The theme’s first-order popup sends `discountEmail` instead, and only when `SIGNUP_DISCOUNT_CODE` is set.
 
 ## Env vars
 
@@ -14,6 +14,8 @@ Set these on the API (see `deploy/.env.example` and `deploy/docker-compose.yml`)
 | --- | --- | --- |
 | `KLAVIYO_PRIVATE_API_KEY` | Klaviyo sync | Private key, `pk_...`. Not the public site id. |
 | `KLAVIYO_LIST_ID` | Klaviyo sync | The list people join. |
+| `SIGNUP_DISCOUNT_CODE` | First-order popup | `WELCOME15`. Blank hides the popup. Create that promotion code in the Stripe dashboard. This app does not create it. |
+| `SIGNUP_DISCOUNT_PERCENT` | Popup headline and email | `15`. Blank or anything outside 1–90 uses 15. |
 
 Set these when **building** the storefront. Vite inlines them. Changing them on the server later does nothing until the next `npm run build`. Leave them blank to hide the control.
 
@@ -54,7 +56,7 @@ Klaviyo profile properties, for segments: `page`, `product_slug`, `size`, `colou
 4. Put the key and the list id in the API environment and restart the API.
 5. In the list settings, turn on double opt-in if you want the EU/UK-safe confirm step. Klaviyo sends that confirm. This repo does not.
 6. Flows → Create flow → trigger “Added to list” → choose this list.
-7. Add three emails with a delay between them (a day or two is enough). Paste the copy below. Do not add a discount code. There isn’t one.
+7. Add three emails with a delay between them (a day or two is enough). Paste the copy below. Do not add a second code in this flow. The first-order code, when `SIGNUP_DISCOUNT_CODE` is set, is already in the signup email from the site.
 8. Submit a test address on the site. `/api/health` reports `klaviyo: configured` when both vars are set. The profile should show `form_id` and `page`.
 
 Segment ideas once properties exist: `form_id` equals `waitlist`; `product_slug` equals `oversized-hoodie`; `size` equals a size you are about to cut.
@@ -92,7 +94,7 @@ Body:
 
 The hoodie and the sweatpant are cut from the same 450 GSM fleece and dyed in the same lot, so the black matches and the cream matches.
 
-That is the set. There is no extra code and no sitewide discount. If you want both, they are on the shop page, in stock, with free delivery in the United States.
+That is the set. There is no sitewide discount. The only code is the first-order one from the signup note, and only when the shop has set one. If you want both pieces, they are on the shop page, in stock, with free delivery in the United States.
 
 Button: Shop the set
 URL: https://otrace.co/shop
@@ -117,7 +119,8 @@ Footer line for every send: Unsubscribe. Privacy: https://otrace.co/privacy
 ## Where the forms are
 
 - Footer on every page, including home: email, consent line, link to `/privacy`.
-- Popup about 8 seconds after load on home and content pages. Step 1 is email and the consent line. Step 2 is an optional phone, with separate unticked SMS and WhatsApp boxes. Offer is the fit guide and first access to the next drop, not a discount.
+- Theme popup (the live shop): when `SIGNUP_DISCOUNT_CODE` is set, a dialog offers that percent off the first order. It opens after about 8 seconds, at 50% scroll, or on desktop exit intent. It is not rendered on `/cart`, `/order/success`, or `/checkout`. Closing it hides it for 14 days (`localStorage` key `otrace-signup` and cookie `otrace_signup`). A completed signup hides it from then on. The code is not in the page HTML. `POST /api/signup` stores the address in MySQL `subscribers` and emails the code.
+- React storefront popup (the old build, not what nginx serves now): about 8 seconds after load on home and content pages. Step 1 is email and the consent line. Step 2 is an optional phone, with separate unticked SMS and WhatsApp boxes. Offer is the fit guide and first access to the next drop, not a discount.
 - The timed popup does not open on `/cart`, while the cart drawer is open, or on `/order/success`. Checkout payment is Stripe-hosted, so there is no payment step on this site.
 - Exit intent (pointer leaving the top of the window) on `/product/...` and `/cart`, same offer, same cooldown.
 - Dismiss writes `localStorage` key `otrace-lead-capture` and a `otrace_capture` cookie. Cooldown is 14 days. A “Fit guide” tab reopens it. A completed email hides it for a year.
@@ -128,6 +131,7 @@ Footer line for every send: Unsubscribe. Privacy: https://otrace.co/privacy
 ## Blocked on the owner
 
 - `KLAVIYO_PRIVATE_API_KEY` and `KLAVIYO_LIST_ID`, then a restart of the API.
+- `SIGNUP_DISCOUNT_CODE` and `SIGNUP_DISCOUNT_PERCENT` on the API, then a restart. While the code is blank, the popup is not rendered. Create the same promotion code in the Stripe dashboard. This repo does not create the coupon.
 - Creating the Flow and pasting the three emails. Until that exists, Klaviyo will not send them, and this app will not either.
 - Double opt-in toggle in Klaviyo, if you want it.
 - `VITE_WHATSAPP_NUMBER` or `PUBLIC_WHATSAPP_NUMBER` at storefront build time, then a rebuild. Until then the WhatsApp button stays hidden.

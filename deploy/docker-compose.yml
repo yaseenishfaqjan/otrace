@@ -61,6 +61,10 @@ services:
       SHOP_EMAIL: ${SHOP_EMAIL:-}
       KLAVIYO_PRIVATE_API_KEY: ${KLAVIYO_PRIVATE_API_KEY:-}
       KLAVIYO_LIST_ID: ${KLAVIYO_LIST_ID:-}
+      # .env.example sets WELCOME15 and 15. Blank code omits the popup.
+      # The promotion code is created in Stripe, not here.
+      SIGNUP_DISCOUNT_CODE: ${SIGNUP_DISCOUNT_CODE:-}
+      SIGNUP_DISCOUNT_PERCENT: ${SIGNUP_DISCOUNT_PERCENT:-}
       # Public onsite id only. Blank means the theme does not load Klaviyo.js.
       KLAVIYO_COMPANY_ID: ${KLAVIYO_COMPANY_ID:-}
       # Public GA4 measurement ID. Blank omits the tag. Production: G-KZZXSSF3L1

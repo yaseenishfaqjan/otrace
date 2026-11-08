@@ -239,3 +239,70 @@ See AW2026: ${siteUrl}/shop
 
   return { subject: 'You’re on the list | OTRACE', html, text };
 }
+
+function esc(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/**
+ * The first-order code. Sent once, from SHOP_EMAIL, through the same mailer
+ * as order mail. The owner creates the matching promotion code in Stripe.
+ */
+export function discountEmail({ siteUrl, code, percent }) {
+  const safeCode = esc(code);
+  const off = Number(percent);
+  const shop = `${siteUrl}/shop`;
+  const html = `${shellOpen(`Your ${off}% code is ${safeCode}.`)}
+      <tr>
+        <td style="padding:0 32px;">
+          <p style="margin:0 0 10px;font-family:${FONT};font-size:11px;letter-spacing:3px;text-transform:uppercase;color:${MUTED};">First order</p>
+          <h1 style="margin:0;font-family:${FONT};font-size:38px;line-height:0.95;font-weight:bold;letter-spacing:-1px;text-transform:uppercase;color:${CREAM};">${off}% off</h1>
+          <p style="margin:20px 0 0;font-family:${FONT};font-size:14px;line-height:22px;color:${DIM};">
+            Use this code at checkout. It applies to your first order.
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td align="center" style="padding:28px 32px 8px;">
+          <p style="margin:0;font-family:${FONT};font-size:28px;line-height:34px;font-weight:bold;letter-spacing:4px;color:${CREAM};">${safeCode}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:28px 32px 12px;">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td bgcolor="${CREAM}">
+                <a href="${shop}" style="display:inline-block;padding:16px 36px;font-family:${FONT};font-size:12px;font-weight:bold;letter-spacing:3px;text-transform:uppercase;color:${ONYX};text-decoration:none;">Shop now</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px 32px 36px;">
+          <p style="margin:0;font-family:${FONT};font-size:12px;line-height:18px;color:${MUTED};">
+            No spam. Reply to this email to unsubscribe.
+          </p>
+        </td>
+      </tr>
+${shellClose(siteUrl)}`;
+
+  const text = `OTRACE
+
+${off}% OFF YOUR FIRST ORDER
+
+Use this code at checkout:
+
+${code}
+
+Shop now: ${shop}
+
+No spam. Reply to this email to unsubscribe.
+`;
+
+  return { subject: `${off}% off your first OTRACE order`, html, text };
+}
