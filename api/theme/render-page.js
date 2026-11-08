@@ -29,6 +29,7 @@ import { resolveThemeProductSettings, selectShopifyVariant, toShopifyCollection,
 import { PRODUCTS } from '../catalog.js';
 import { POSTS } from '../../site/src/content/posts.mjs';
 import { adsEventsTag, metaPixelTag, tiktokPixelTag } from './ads.js';
+import { signupPopupHtml } from './signup-popup.js';
 import { chatEmbed, clarityTag, deliveryReturnHtml, faqHtml, faqsForSlug, googleTag, homeFactHtml, klaviyoOnsite, productFactHtml, questionFaqs, setCrossSellHtml, themePages, trustStripHtml } from './pages.js';
 import {
   breadcrumbLd,
@@ -672,10 +673,21 @@ export function createThemeRenderer({
     return `${html.slice(0, at)}\n${parts.join('\n')}${html.slice(at)}`;
   }
 
+  function withSignupPopup(html, extra) {
+    const block = signupPopupHtml(extra.canonical_path || '/');
+    if (!block) return html;
+    const at = html.lastIndexOf('</body>');
+    if (at < 0) return html + block;
+    return html.slice(0, at) + block + html.slice(at);
+  }
+
   async function wrap(contentForLayout, extra, globals) {
     const scope = { ...baseScope(), ...extra, content_for_layout: contentForLayout,
       content_for_header: contentForHeader(extra), content_for_index: '' };
-    return withHeadTags(await renderThemeFile(engine, themeRoot, 'layout', 'theme', scope, globals), extra);
+    return withSignupPopup(
+      withHeadTags(await renderThemeFile(engine, themeRoot, 'layout', 'theme', scope, globals), extra),
+      extra,
+    );
   }
 
   /**

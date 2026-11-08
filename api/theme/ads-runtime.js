@@ -459,4 +459,18 @@
       fireCheckout(cartContents(cart));
     });
   }, true);
+
+  function trackLead() {
+    var id = eventId('lead');
+    meta('Lead', { content_name: 'Email signup', currency: currency }, id);
+    if (cfg.tiktok && window.ttq && typeof window.ttq.track === 'function') {
+      window.ttq.track('SubmitForm', {
+        content_name: 'Email signup',
+        currency: currency,
+      }, { event_id: id });
+    }
+    ga('generate_lead', { currency: currency });
+  }
+
+  document.addEventListener('otrace:lead', trackLead);
 })();

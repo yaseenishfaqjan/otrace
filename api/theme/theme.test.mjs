@@ -81,6 +81,8 @@ test('both storefronts produce the same session for the same basket', async () =
   const [args] = stripe.calls;
 
   assert.equal(args.mode, 'payment');
+  assert.equal(args.allow_promotion_codes, true);
+  assert.equal(args.discounts, undefined);
   assert.match(args.success_url, /^https:\/\/otrace\.co\/order\/success/);
   assert.equal(args.billing_address_collection, 'required');
   const countries = args.shipping_address_collection.allowed_countries;

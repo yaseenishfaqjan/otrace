@@ -40,6 +40,9 @@ export async function createCheckoutSession(stripe, items, { siteUrl }) {
     billing_address_collection: 'required',
     shipping_address_collection: { allowed_countries: SHIP_COUNTRIES },
     phone_number_collection: { enabled: true },
+    // The owner creates the promotion code in the Stripe dashboard.
+    // This flag only shows Stripe's code field. No coupon is created here.
+    allow_promotion_codes: true,
     custom_text: {
       shipping_address: { message: SHIPPING.note },
     },

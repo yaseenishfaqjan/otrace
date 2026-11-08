@@ -34,7 +34,7 @@
   function blockModalTouch(event) {
     var node = event.target;
     if (node && node.closest) {
-      var inner = node.closest('.hdt-dialog-modal__inner');
+      var inner = node.closest('.hdt-dialog-modal__inner, .otrace-signup__sheet');
       if (inner) return;
     }
     event.preventDefault();
@@ -68,6 +68,11 @@
     document.removeEventListener('touchmove', blockModalTouch);
     window.scrollTo(0, modalScrollY);
   }
+
+  // The first-order popup uses this same lock, including the shared count,
+  // so it does not release the page while a size guide is still open.
+  window.otraceLockPage = lockModalPage;
+  window.otraceUnlockPage = unlockModalPage;
 
   function isInfoModal(host) {
     return !!(host && host.classList && (

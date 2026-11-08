@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import { LOGO_CID, orderEmail, welcomeEmail } from './emails.js';
+import { LOGO_CID, discountEmail, orderEmail, welcomeEmail } from './emails.js';
 import {
   findBySlug,
   PRODUCTS,
@@ -35,6 +35,7 @@ import {
 } from './catalog.js';
 import { submitIndexNow } from './indexnow.js';
 import { contactOutcome, ensureLeadColumns, handleContact, handleSubscribe, inquiryLabel } from './leads.js';
+import { handleSignup, signupOffer } from './signup.js';
 import { klaviyoConfig } from './klaviyo.js';
 import { createThemeRenderer } from './theme/render-page.js';
 import { toShopifyProduct } from './theme/shopify-shape.js';
@@ -191,6 +192,29 @@ async function sendWelcome(email) {
   // sequence is a Klaviyo Flow, not this function. See seo/LEAD-CAPTURE.md.
   const built = welcomeEmail({ siteUrl: SITE_URL.replace(/\/$/, '') });
   await send({ to: email, subject: built.subject, html: built.html, text: built.text });
+}
+
+function shopFrom() {
+  const email = String(SHOP_EMAIL || '').trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return undefined;
+  return `"OTRACE" <${email}>`;
+}
+
+/** The first-order code, from SHOP_EMAIL, through the same Resend mailer. */
+async function sendDiscount(email, offer) {
+  const built = discountEmail({
+    siteUrl: SITE_URL.replace(/\/$/, ''),
+    code: offer.code,
+    percent: offer.percent,
+  });
+  return mail.deliver({
+    to: email,
+    from: shopFrom(),
+    subject: built.subject,
+    html: built.html,
+    text: built.text,
+    attachments: [LOGO_ATTACHMENT],
+  });
 }
 
 /* -------------------------------------------- webhook (raw body must be first) */
@@ -548,6 +572,20 @@ async function respondSubscribe(req, res, defaults = {}) {
 }
 
 app.post('/api/subscribe', (req, res) => respondSubscribe(req, res));
+
+app.post('/api/signup', async (req, res) => {
+  try {
+    const offer = signupOffer();
+    const result = await handleSignup(pool, req.body ?? {}, {
+      sendDiscount: (email) => sendDiscount(email, offer),
+      ip: req.ip,
+    });
+    res.status(result.status).json(result.json);
+  } catch (err) {
+    console.error('[signup] failed:', err.message);
+    res.status(500).json({ error: 'Could not add you just now. Please try again.' });
+  }
+});
 
 // Same store and the same Klaviyo profile as /api/subscribe. The default
 // form id is waitlist when the client does not send one.
