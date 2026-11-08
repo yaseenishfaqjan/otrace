@@ -1,34 +1,42 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+Disallow: /admin
 
 User-agent: GPTBot
 Allow: /
 Disallow: /api/
+Disallow: /admin
 
 User-agent: OAI-SearchBot
 Allow: /
 Disallow: /api/
+Disallow: /admin
 
 User-agent: ClaudeBot
 Allow: /
 Disallow: /api/
+Disallow: /admin
 
 User-agent: PerplexityBot
 Allow: /
 Disallow: /api/
+Disallow: /admin
 
 User-agent: Google-Extended
 Allow: /
 Disallow: /api/
+Disallow: /admin
 
 User-agent: Applebot-Extended
 Allow: /
 Disallow: /api/
+Disallow: /admin
 
 User-agent: Bingbot
 Allow: /
 Disallow: /api/
+Disallow: /admin
 
 LLMs: https://otrace.co/llms.txt
 Discovery: https://otrace.co/identity.json

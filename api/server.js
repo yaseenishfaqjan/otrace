@@ -45,6 +45,8 @@ import { getThemeCartStore } from './theme/cart.js';
 import { mountCartRoutes } from './theme/cart-routes.js';
 import { purchaseFromStripeSession, sendMetaPurchase } from './theme/ads.js';
 import { createCheckoutSession } from './checkout-session.js';
+import { mountAdmin } from './admin-routes.js';
+import { createMysqlOrderStore, ensureAdminTables, recordCheckoutSession } from './admin-store.js';
 
 const {
   PORT = 3000,
@@ -80,6 +82,7 @@ if (!stripe) console.warn('[boot] STRIPE_SECRET_KEY not set — /api/checkout wi
 /* ------------------------------------------------------------------ database */
 
 let pool;
+let orderStore = null;
 
 async function initDatabase() {
   pool = mysql.createPool({
@@ -144,6 +147,8 @@ async function initDatabase() {
   // CREATE TABLE IF NOT EXISTS does not add columns to a table that already
   // exists. Older databases get the lead columns here.
   await ensureLeadColumns(pool);
+  await ensureAdminTables(pool);
+  orderStore = createMysqlOrderStore(pool);
 
   console.log('[boot] database ready');
 }
@@ -245,8 +250,9 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
      * measured 26 Oct 2026, this container intermittently fails DNS with
      * EAI_AGAIN, and the failure landed inside this very handler.
      *
-     * Stripe sends the whole session in the event, and the only reason to
-     * re-fetch is freshness - `line_items` is expanded here and never read.
+     * Stripe sends the whole session in the event. The re-fetch is only for
+     * a fresher copy, including line items for the order snapshot. The
+     * customer email is built from metadata, which the event already has.
      * So: try the fetch a few times, and if DNS is still broken, fall back to
      * what the event already carried rather than losing the order.
      */
@@ -274,24 +280,8 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
     const reference = `OT-${String(session.id).slice(-8).toUpperCase()}`;
 
     // INSERT IGNORE + a UNIQUE session id makes redelivered webhooks safe.
-    await pool.query(
-      `INSERT IGNORE INTO orders
-         (stripe_session_id, payment_intent, email, customer_name, phone,
-          amount_total_cents, currency, payment_status, items_json, shipping_json)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        session.id,
-        typeof session.payment_intent === 'string' ? session.payment_intent : null,
-        session.customer_details?.email ?? null,
-        session.customer_details?.name ?? shipping?.name ?? null,
-        session.customer_details?.phone ?? null,
-        session.amount_total ?? 0,
-        session.currency ?? CURRENCY,
-        session.payment_status ?? null,
-        JSON.stringify(items),
-        JSON.stringify(shipping),
-      ],
-    );
+    // The cache write is extra; a failure there must not skip the email.
+    await recordCheckoutSession(pool, session);
     console.log(`[order] ${reference} recorded (${session.customer_details?.email})`);
 
     try {
@@ -343,6 +333,12 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async
 
 app.use(express.json({ limit: '32kb' }));
 app.use(express.urlencoded({ extended: true, limit: '32kb' }));
+
+mountAdmin(app, {
+  store: () => orderStore,
+  stripe: () => stripe,
+  siteUrl: SITE_URL,
+});
 
 /* -------------------------------------------------------------------- routes */
 
@@ -507,6 +503,7 @@ mountStorefront(app, {
   sendThemeHtml,
   siteUrl: SITE_URL.replace(/\/$/, ''),
   stripe,
+  onVerifiedSession: (session) => recordCheckoutSession(pool, session),
 });
 
 app.get('/api/theme-preview/product/:slug', async (req, res) => {

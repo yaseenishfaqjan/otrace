@@ -47,6 +47,9 @@ services:
       SITE_URL: ${SITE_URL}
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      # Blank ADMIN_PASSWORD makes /admin a 404. Session secret is optional.
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      ADMIN_SESSION_SECRET: ${ADMIN_SESSION_SECRET:-}
       # Email over HTTPS: the cPanel SMTP host is unreachable from this VPS.
       RESEND_API_KEY: ${RESEND_API_KEY:-}
       RESEND_FROM: ${RESEND_FROM:-}

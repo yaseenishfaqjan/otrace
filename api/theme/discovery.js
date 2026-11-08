@@ -27,9 +27,11 @@ export const AI_CRAWLERS = [
 
 export function robotsTxt(siteUrl) {
   const origin = String(siteUrl).replace(/\/$/, '');
-  const lines = ['User-agent: *', 'Allow: /', 'Disallow: /api/', ''];
+  // /admin is the private orders desk. Named bots do not inherit the * group.
+  const hidden = ['Disallow: /api/', 'Disallow: /admin'];
+  const lines = ['User-agent: *', 'Allow: /', ...hidden, ''];
   for (const bot of AI_CRAWLERS) {
-    lines.push(`User-agent: ${bot}`, 'Allow: /', 'Disallow: /api/', '');
+    lines.push(`User-agent: ${bot}`, 'Allow: /', ...hidden, '');
   }
   lines.push(
     `LLMs: ${origin}/llms.txt`,
