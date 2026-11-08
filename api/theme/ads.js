@@ -278,6 +278,7 @@ export async function loadVerifiedPurchase(stripe, sessionId) {
     return {
       purchase: purchaseFromStripeSession(session),
       email: String(session?.customer_details?.email || ''),
+      session,
     };
   } catch (err) {
     console.warn('[ads] stripe session retrieve failed:', err.message);

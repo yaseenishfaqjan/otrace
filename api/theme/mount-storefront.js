@@ -22,7 +22,13 @@ export async function sendNotFound(res, { themeRenderer, sendThemeHtml }) {
   }
 }
 
-export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl, stripe = null }) {
+export function mountStorefront(app, {
+  themeRenderer,
+  sendThemeHtml,
+  siteUrl,
+  stripe = null,
+  onVerifiedSession = null,
+}) {
   const missing = (res) => sendNotFound(res, { themeRenderer, sendThemeHtml });
   const renderStandalone = async (res, kind, ads) => {
     if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
@@ -123,6 +129,13 @@ export function mountStorefront(app, { themeRenderer, sendThemeHtml, siteUrl, st
         });
       } catch (err) {
         console.warn('[ads] capi failed:', err.message);
+      }
+    }
+    if (loaded.purchase && loaded.session && typeof onVerifiedSession === 'function') {
+      try {
+        await onVerifiedSession(loaded.session);
+      } catch (err) {
+        console.warn('[order] could not save the paid session:', err.message);
       }
     }
     await renderStandalone(res, 'order-success', purchase ? { purchase } : null);
