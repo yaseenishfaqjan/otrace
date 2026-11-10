@@ -10,6 +10,7 @@ import { addLine, cartJson } from './theme/cart.js';
 import { standalonePage } from './theme/pages.js';
 import { createThemeRenderer } from './theme/render-page.js';
 import { signupPopupHtml } from './theme/signup-popup.js';
+import { signFormTime } from './spam.js';
 import { handleSignup, resetSignupLimiter, signupOffer, signupSuppressedPath } from './signup.js';
 
 const SITE = 'https://otrace.co';
@@ -61,6 +62,10 @@ function memoryPool() {
   };
 }
 
+function withTs(body = {}, ageMs = 10_000) {
+  return { otrace_ts: signFormTime(Date.now() - ageMs), ...body };
+}
+
 function fakeStripe() {
   const calls = [];
   return {
@@ -110,7 +115,7 @@ test('signup rejects a bad email, ignores a honeypot, dedupes, and emails once',
   const sync = async () => ({ status: 'skipped' });
   const sendDiscount = async (email, offer) => { sent.push({ email, offer }); return true; };
 
-  const bad = await handleSignup(pool, { email: 'not-an-email' }, { sendDiscount, sync, ip: '203.0.113.10' });
+  const bad = await handleSignup(pool, withTs({ email: 'not-an-email' }), { sendDiscount, sync, ip: '203.0.113.10' });
   assert.equal(bad.status, 400);
   assert.equal(pool.calls.length, 0);
   assert.equal(sent.length, 0);
@@ -118,16 +123,31 @@ test('signup rejects a bad email, ignores a honeypot, dedupes, and emails once',
   const bot = await handleSignup(pool, {
     email: 'bot@example.com',
     otrace_hp: 'https://spam.example',
-  }, { sendDiscount, sync, ip: '203.0.113.10' });
+  }, { sendDiscount, sync, ip: '203.0.113.11' });
   assert.equal(bot.status, 200);
   assert.equal(bot.json.code, undefined);
   assert.equal(pool.calls.length, 0);
   assert.equal(sent.length, 0);
 
-  const first = await handleSignup(pool, {
+  const fastNow = Date.now();
+  const fast = await handleSignup(pool, {
+    email: 'ada@example.com',
+    otrace_ts: signFormTime(fastNow),
+  }, { sendDiscount, sync, ip: '203.0.113.12', now: fastNow });
+  assert.equal(fast.status, 200);
+  assert.equal(fast.json.code, undefined);
+  assert.equal(pool.calls.length, 0);
+  assert.equal(sent.length, 0);
+
+  const missingStamp = await handleSignup(pool, { email: 'ada@example.com' }, { sendDiscount, sync, ip: '203.0.113.13' });
+  assert.equal(missingStamp.status, 200);
+  assert.equal(missingStamp.json.code, undefined);
+  assert.equal(sent.length, 0);
+
+  const first = await handleSignup(pool, withTs({
     email: 'Ada@Example.com ',
     path: '/shop?utm=1',
-  }, { sendDiscount, sync, ip: '203.0.113.10' });
+  }), { sendDiscount, sync, ip: '203.0.113.14' });
   assert.equal(first.status, 200);
   assert.equal(first.json.code, 'WELCOME15');
   assert.equal(first.json.percent, 15);
@@ -139,7 +159,7 @@ test('signup rejects a bad email, ignores a honeypot, dedupes, and emails once',
   assert.equal(insert.params[0], 'ada@example.com');
   assert.equal(insert.params[7], 'signup-popup');
 
-  const again = await handleSignup(pool, { email: 'ada@example.com' }, { sendDiscount, sync, ip: '203.0.113.10' });
+  const again = await handleSignup(pool, withTs({ email: 'ada@example.com' }), { sendDiscount, sync, ip: '203.0.113.15' });
   assert.equal(again.status, 200);
   assert.equal(again.json.alreadySubscribed, true);
   assert.equal(again.json.code, 'WELCOME15');
@@ -148,11 +168,11 @@ test('signup rejects a bad email, ignores a honeypot, dedupes, and emails once',
   assert.equal(pool.rows.size, 1);
 
   resetSignupLimiter();
-  for (let i = 0; i < 8; i += 1) {
-    const attempt = await handleSignup(pool, { email: 'nope' }, { sendDiscount, sync, ip: '203.0.113.99' });
+  for (let i = 0; i < 3; i += 1) {
+    const attempt = await handleSignup(pool, withTs({ email: 'nope' }), { sendDiscount, sync, ip: '203.0.113.99' });
     assert.equal(attempt.status, 400);
   }
-  const limited = await handleSignup(pool, { email: 'ada@example.com' }, { sendDiscount, sync, ip: '203.0.113.99' });
+  const limited = await handleSignup(pool, withTs({ email: 'ada@example.com' }), { sendDiscount, sync, ip: '203.0.113.99' });
   assert.equal(limited.status, 429);
   assert.equal(sent.length, 1);
 
@@ -172,7 +192,7 @@ test('a configured Klaviyo list still receives the signup', async () => {
     return { ok: true, status: 202, text: async () => '' };
   };
   try {
-    const result = await handleSignup(memoryPool(), { email: 'ada@example.com', path: '/' }, {
+    const result = await handleSignup(memoryPool(), withTs({ email: 'ada@example.com', path: '/' }), {
       sendDiscount: async () => true,
       sync: syncSubscriber,
       ip: '203.0.113.20',
@@ -241,6 +261,8 @@ test('the popup is omitted when the code is blank, and omitted on cart and succe
     assert.match(home, /aria-modal="true"/);
     assert.match(home, /aria-label="Close"/);
     assert.match(home, /name="otrace_hp"/);
+    assert.match(home, /name="otrace_ts"/);
+    assert.match(home, /otrace_ts: ts \? ts\.value : ''/);
     assert.doesNotMatch(home, /WELCOME15/);
     assert.match(home, /otraceLockPage/);
     assert.match(home, /8000/);

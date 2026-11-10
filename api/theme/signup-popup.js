@@ -5,6 +5,7 @@
  */
 import fs from 'node:fs';
 
+import { timestampInputHtml, turnstileWidgetHtml } from '../spam.js';
 import { signupOffer, signupSuppressedPath } from '../signup.js';
 
 const RUNTIME = fs.readFileSync(new URL('./signup-runtime.js', import.meta.url), 'utf8');
@@ -24,6 +25,8 @@ export function signupPopupHtml(path) {
         <label class="otrace-signup__label" for="otrace-signup-email">Email</label>
         <input id="otrace-signup-email" class="otrace-signup__field" type="email" name="email" autocomplete="email" inputmode="email" enterkeyhint="done" required maxlength="255">
         <input class="otrace-signup__hp" type="text" name="otrace_hp" tabindex="-1" autocomplete="off" aria-hidden="true" value="">
+        ${timestampInputHtml()}
+        ${turnstileWidgetHtml()}
         <button type="submit" class="otrace-signup__submit">Unlock my code</button>
         <p class="otrace-signup__fine">No spam. Unsubscribe anytime.</p>
         <p class="otrace-signup__error" data-signup-error role="alert" hidden></p>

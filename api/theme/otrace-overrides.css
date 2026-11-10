@@ -1073,17 +1073,20 @@ hdt-modal.hdt-modal__delivery .hdt-dialog-btn__close {
   outline: 2px solid #F2EDE4;
   outline-offset: 2px;
 }
-.otrace-signup__hp {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  clip-path: inset(50%);
-  white-space: nowrap;
-  border: 0;
+.otrace-signup__hp,
+input.otrace-hp {
+  position: absolute !important;
+  left: -10000px !important;
+  top: auto !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 .otrace-signup__submit,
 .otrace-signup__shop {

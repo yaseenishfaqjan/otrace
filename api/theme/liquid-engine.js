@@ -14,6 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { Drop, Liquid } from 'liquidjs';
+import { spamFieldsHtml } from '../spam.js';
 import { colorBrightness, colorDarken, colorLighten, colorMix, fontFaceCss } from './shopify-color.js';
 
 /** Shopify ships its template JSON with /* *\/ comments. */
@@ -763,6 +764,7 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
         emitter.write('<input type="hidden" name="source" value="newsletter"><input type="hidden" name="formId" value="newsletter">');
       }
       yield this.liquid.renderer.renderTemplates(this.tpls, ctx, emitter);
+      if (kind === 'contact' || kind === 'new_comment') emitter.write(spamFieldsHtml());
       emitter.write('</form>');
     },
   });
