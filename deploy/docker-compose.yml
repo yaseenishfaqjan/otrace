@@ -62,6 +62,10 @@ services:
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
       SHOP_EMAIL: ${SHOP_EMAIL:-}
+      # Turnstile is off when either key is blank. FORM_TS_SECRET is optional.
+      TURNSTILE_SITE_KEY: ${TURNSTILE_SITE_KEY:-}
+      TURNSTILE_SECRET_KEY: ${TURNSTILE_SECRET_KEY:-}
+      FORM_TS_SECRET: ${FORM_TS_SECRET:-}
       KLAVIYO_PRIVATE_API_KEY: ${KLAVIYO_PRIVATE_API_KEY:-}
       KLAVIYO_LIST_ID: ${KLAVIYO_LIST_ID:-}
       # .env.example sets WELCOME15 and 15. Blank code omits the popup.

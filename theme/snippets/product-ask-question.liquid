@@ -73,6 +73,12 @@
       subject: productField && productField.value ? productField.value : 'Product question'
     };
     if (phoneField && phoneField.value.trim()) payload.phone = phoneField.value.trim();
+    var hp = form.querySelector('[name="otrace_hp"]');
+    var ts = form.querySelector('[name="otrace_ts"]');
+    var turnstile = form.querySelector('[name="cf-turnstile-response"]');
+    payload.otrace_hp = hp ? hp.value : '';
+    payload.otrace_ts = ts ? ts.value : '';
+    if (turnstile && turnstile.value) payload['cf-turnstile-response'] = turnstile.value;
     if (note) note.textContent = 'Sending…';
     fetch('/api/contact', {
       method: 'POST',

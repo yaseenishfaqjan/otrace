@@ -8,14 +8,20 @@
  */
 
 import { handleSubscribe } from './leads.js';
+import {
+  consumeRateLimit,
+  formTimeStatus,
+  honeypotFilled,
+  logDropped,
+  resetRateLimits,
+  turnstileConfig,
+  verifyTurnstile,
+} from './spam.js';
 
 const CODE = /^[A-Za-z0-9][A-Za-z0-9_-]{1,39}$/;
-const WINDOW_MS = 10 * 60 * 1000;
-const MAX_HITS = 8;
-const hits = new Map();
 
 export function resetSignupLimiter() {
-  hits.clear();
+  resetRateLimits('signup');
 }
 
 /** Blank or unsafe codes disable the offer. Percent falls back to 15. */
@@ -37,41 +43,41 @@ export function signupSuppressedPath(path) {
   return false;
 }
 
-function honeypotFilled(body) {
-  const value = body?.otrace_hp ?? body?.website ?? body?.company ?? '';
-  if (Array.isArray(value)) return value.some((item) => String(item ?? '').trim());
-  return String(value ?? '').trim() !== '';
-}
-
-function limited(ip, now) {
-  const key = String(ip || 'unknown').slice(0, 80);
-  const recent = (hits.get(key) || []).filter((at) => now - at < WINDOW_MS);
-  if (hits.size > 500) {
-    for (const [other, times] of hits) {
-      if (times.every((at) => now - at >= WINDOW_MS)) hits.delete(other);
-    }
-  }
-  if (recent.length >= MAX_HITS) {
-    hits.set(key, recent);
-    return true;
-  }
-  recent.push(now);
-  hits.set(key, recent);
-  return false;
-}
-
 /**
  * Validate, dedupe into `subscribers`, and email the code on the first insert.
- * A filled honeypot looks like success and stores nothing. The code is
- * returned to the browser only after a real signup.
+ * A filled honeypot or a bad render timestamp looks like success and stores
+ * nothing. The code is returned to the browser only after a real signup.
+ * The same 3-per-10-minutes and 10-per-day IP cap as contact applies here.
  */
-export async function handleSignup(pool, body = {}, { sendDiscount, sync, ip, now = Date.now() } = {}) {
+export async function handleSignup(pool, body = {}, {
+  sendDiscount,
+  sync,
+  ip,
+  now = Date.now(),
+  env = process.env,
+  fetchImpl,
+} = {}) {
   const offer = signupOffer();
   if (!offer.enabled) return { status: 404, json: { error: 'Signup is not available.' } };
-  if (limited(ip, now)) {
+  if (consumeRateLimit('signup', ip, now).limited) {
     return { status: 429, json: { error: 'Too many attempts. Try again shortly.' } };
   }
-  if (honeypotFilled(body)) return { status: 200, json: { ok: true } };
+  if (honeypotFilled(body)) {
+    logDropped('signup', 'honeypot', { ip, email: body.email });
+    return { status: 200, json: { ok: true } };
+  }
+  const time = formTimeStatus(body.otrace_ts, now, env);
+  if (time) {
+    logDropped('signup', `timestamp-${time}`, { ip, email: body.email });
+    return { status: 200, json: { ok: true } };
+  }
+  if (turnstileConfig(env).enabled) {
+    const token = body['cf-turnstile-response'] || body.turnstileToken;
+    const verdict = await verifyTurnstile(token, ip, env, fetchImpl);
+    if (!verdict.ok) {
+      return { status: 400, json: { error: 'Please confirm you are a person, then try again.' } };
+    }
+  }
 
   const result = await handleSubscribe(pool, {
     email: body.email,

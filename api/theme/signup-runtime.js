@@ -197,6 +197,8 @@
       event.preventDefault();
       var email = emailInput ? emailInput.value : '';
       var hp = form.querySelector('[name="otrace_hp"]');
+      var ts = form.querySelector('[name="otrace_ts"]');
+      var turnstile = form.querySelector('[name="cf-turnstile-response"]');
       var button = form.querySelector('[type="submit"]');
       showError('');
       if (button) button.disabled = true;
@@ -207,6 +209,8 @@
           email: email,
           path: window.location.pathname,
           otrace_hp: hp ? hp.value : '',
+          otrace_ts: ts ? ts.value : '',
+          'cf-turnstile-response': turnstile ? turnstile.value : '',
           source: 'signup-popup',
           formId: 'signup-popup',
         }),

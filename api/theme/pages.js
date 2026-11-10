@@ -11,6 +11,7 @@ import fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { PRODUCTS, SET_LIST_CENTS, SET_TOTAL_CENTS, formatMoney, productDisplayName } from '../catalog.js';
+import { spamFieldsHtml } from '../spam.js';
 
 const shared = (name) =>
   JSON.parse(fs.readFileSync(fileURLToPath(new URL(`../../shared/${name}`, import.meta.url)), 'utf8'));
@@ -441,6 +442,7 @@ const contact = () => {
     `<option value="other">Something else</option>`,
     `</select></label>`,
     `<label>Message<textarea name="message" required maxlength="5000" rows="6"></textarea></label>`,
+    spamFieldsHtml(),
     `<button type="submit">Send</button>`,
     `<p id="otrace-contact-note" class="hdt-contact-note" role="status"></p>`,
     `</form>`,
@@ -456,7 +458,7 @@ const contact = () => {
     wa ? `<a href="${esc(wa)}">WhatsApp</a>` : '',
     `<a href="/sizing">Sizing</a><a href="/shipping">Shipping</a><a href="/garment-dyed">Garment dyed</a>`,
     `</details></aside>`,
-    `<script>(function(){var help=document.querySelector('.hdt-help');if(help&&help.parentNode!==document.body)document.body.appendChild(help);var form=document.getElementById('otrace-contact');if(!form)return;form.addEventListener('submit',function(event){event.preventDefault();var note=document.getElementById('otrace-contact-note');note.textContent='Sending…';var data={name:form.name.value,email:form.email.value,subject:form.subject.value,inquiryType:form.inquiryType.value,message:form.message.value};fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(res){return res.json().then(function(body){return{ok:res.ok,body:body};});}).then(function(result){if(!result.ok){note.textContent=(result.body&&result.body.error)||'Could not send that.';return;}form.reset();note.textContent='Sent. A person will reply at the email you gave.';}).catch(function(){note.textContent='Could not send that. Email info@otrace.co instead.';});});})();</script>`,
+    `<script>(function(){var help=document.querySelector('.hdt-help');if(help&&help.parentNode!==document.body)document.body.appendChild(help);var form=document.getElementById('otrace-contact');if(!form)return;form.addEventListener('submit',function(event){event.preventDefault();var note=document.getElementById('otrace-contact-note');note.textContent='Sending…';var hp=form.querySelector('[name="otrace_hp"]');var ts=form.querySelector('[name="otrace_ts"]');var turnstile=form.querySelector('[name="cf-turnstile-response"]');var data={name:form.name.value,email:form.email.value,subject:form.subject.value,inquiryType:form.inquiryType.value,message:form.message.value,otrace_hp:hp?hp.value:'',otrace_ts:ts?ts.value:''};if(turnstile&&turnstile.value)data['cf-turnstile-response']=turnstile.value;fetch('/api/contact',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(res){return res.json().then(function(body){return{ok:res.ok,body:body};});}).then(function(result){if(!result.ok){note.textContent=(result.body&&result.body.error)||'Could not send that.';return;}form.reset();note.textContent='Sent. A person will reply at the email you gave.';}).catch(function(){note.textContent='Could not send that. Email info@otrace.co instead.';});});})();</script>`,
     `</div>`,
   ].join('');
 };

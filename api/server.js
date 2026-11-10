@@ -34,7 +34,8 @@ import {
   formatMoney,
 } from './catalog.js';
 import { submitIndexNow } from './indexnow.js';
-import { contactOutcome, ensureLeadColumns, handleContact, handleSubscribe, inquiryLabel } from './leads.js';
+import { ensureLeadColumns, handleSubscribe } from './leads.js';
+import { clientIp, receiveContact } from './spam.js';
 import { handleSignup, signupOffer } from './signup.js';
 import { klaviyoConfig } from './klaviyo.js';
 import { createThemeRenderer } from './theme/render-page.js';
@@ -575,7 +576,7 @@ app.post('/api/signup', async (req, res) => {
     const offer = signupOffer();
     const result = await handleSignup(pool, req.body ?? {}, {
       sendDiscount: (email) => sendDiscount(email, offer),
-      ip: req.ip,
+      ip: clientIp(req),
     });
     res.status(result.status).json(result.json);
   } catch (err) {
@@ -618,28 +619,13 @@ app.post('/api/contact', async (req, res) => {
     // Written to the database BEFORE any attempt to email, so a mail outage
     // cannot lose an enquiry. ok/emailed is true only when a provider accepted
     // the message for SHOP_EMAIL. A missing key is a failure, not a success.
-    const result = await handleContact(pool, req.body);
-    if (result.status !== 200) {
-      return respondContact(req, res, result.status, {
-        ok: false,
-        emailed: false,
-        error: result.json?.error || 'Could not send that.',
-      });
-    }
-
-    const { lead } = result;
-    let emailed = false;
-    if (SHOP_EMAIL) {
-      const type = inquiryLabel(lead.inquiryType);
-      emailed = Boolean(await send({
-        to: SHOP_EMAIL,
-        replyTo: lead.email,
-        subject: `Enquiry${type ? ` (${type})` : ''}: ${lead.subject || 'no subject'} — ${lead.name}`,
-        text: `${type ? `Type: ${type}\n` : ''}${lead.name} <${lead.email}>\n\n${lead.message}`,
-      }));
-    }
-    const outcome = contactOutcome({ emailed, shopEmail: SHOP_EMAIL });
-    return respondContact(req, res, outcome.status, outcome.json);
+    // Spam drops return that same success shape and never call send.
+    const result = await receiveContact(pool, req.body, {
+      ip: clientIp(req),
+      send,
+      shopEmail: SHOP_EMAIL,
+    });
+    return respondContact(req, res, result.status, result.json);
   } catch (err) {
     console.error('[contact] failed:', err.message);
     return respondContact(req, res, 500, {
