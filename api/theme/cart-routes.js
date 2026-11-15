@@ -18,6 +18,17 @@ import {
 
 const ROOT = '/api/theme-preview';
 
+/**
+ * Every cart path is served at BOTH the legacy preview prefix and the clean
+ * path the storefront links to.
+ *
+ * Bing reported /api/theme-preview/cart as "blocked by robots.txt" because
+ * the cart icon on every page pointed at it and robots.txt disallows /api/.
+ * The links are clean now; the old prefix stays registered so a cached page,
+ * an open tab or a bookmarked URL keeps working rather than 404ing.
+ */
+const paths = (p) => [`${ROOT}${p}`, p];
+
 const privateCart = (res) => {
   res.set('Cache-Control', 'private, no-store');
   res.set('Vary', 'Cookie');
@@ -71,13 +82,13 @@ export function mountCartRoutes(app, {
     res.json({ ...cart, sections });
   };
 
-  app.get(`${ROOT}/cart.js`, (req, res) => {
+  app.get(paths('/cart.js'), (req, res) => {
     const { id, lines } = attachCart(req, res, store);
     privateCart(res);
     res.json(cartJson(lines, { siteUrl, token: id }));
   });
 
-  app.post(`${ROOT}/cart/add.js`, rawBodyFor(), async (req, res) => {
+  app.post(paths('/cart/add.js'), rawBodyFor(), async (req, res) => {
     const { id, lines: start } = attachCart(req, res, store);
     const body = req.body || {};
     // Shopify accepts one item or an items[] array; the theme sends both shapes.
@@ -95,7 +106,7 @@ export function mountCartRoutes(app, {
     await sendCart(req, res, id, lines);
   });
 
-  app.post(`${ROOT}/cart/change.js`, rawBodyFor(), async (req, res) => {
+  app.post(paths('/cart/change.js'), rawBodyFor(), async (req, res) => {
     const { id, lines } = attachCart(req, res, store);
     const body = req.body || {};
     const quantity = Math.min(10, Math.max(0, Number.parseInt(body.quantity, 10) || 0));
@@ -103,7 +114,7 @@ export function mountCartRoutes(app, {
   });
 
   // The remove link is a plain GET: /cart/change?line=1&quantity=0.
-  app.get(`${ROOT}/cart/change`, (req, res) => {
+  app.get(paths('/cart/change'), (req, res) => {
     const { id, lines } = attachCart(req, res, store);
     const quantity = Math.min(10, Math.max(0, Number.parseInt(req.query.quantity, 10) || 0));
     store.set(id, changeLine(lines, req.query.id ?? req.query.line, quantity));
@@ -111,14 +122,14 @@ export function mountCartRoutes(app, {
     res.redirect(303, '/cart');
   });
 
-  app.post(`${ROOT}/cart/update.js`, rawBodyFor(), async (req, res) => {
+  app.post(paths('/cart/update.js'), rawBodyFor(), async (req, res) => {
     const { id, lines } = attachCart(req, res, store);
     const updates = (req.body || {}).updates;
     const next = updates == null ? lines : applyUpdates(lines, updates);
     await sendCart(req, res, id, next);
   });
 
-  app.get(`${ROOT}/cart`, async (req, res) => {
+  app.get(paths('/cart'), async (req, res) => {
     if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
     const { id, lines } = attachCart(req, res, store);
     privateCart(res);
@@ -147,7 +158,7 @@ export function mountCartRoutes(app, {
    * Quantities in the form (`updates[]`) are applied first, including when the
    * button is checkout, so Stripe is charged for the lines this visitor sees.
    */
-  app.post(`${ROOT}/cart`, rawBodyFor(), async (req, res) => {
+  app.post(paths('/cart'), rawBodyFor(), async (req, res) => {
     const { id, lines: start } = attachCart(req, res, store);
     const body = req.body || {};
     const lines = body.updates == null ? start : applyUpdates(start, body.updates);

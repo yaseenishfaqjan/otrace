@@ -367,9 +367,19 @@ app.get('/api/health', (_req, res) => {
  */
 const THEME_ROOT = fileURLToPath(new URL('../theme', import.meta.url));
 const THEME_ASSET_BASE = '/api/theme-assets';
-// Everything the theme fetches hangs off this prefix, so the preview needs no
-// nginx change and cannot collide with the live React storefront at '/'.
-const THEME_ROUTES_ROOT = '/api/theme-preview/';
+// The root every link and AJAX URL in the theme is built from.
+//
+// This was '/api/theme-preview/' while the theme was a preview sitting behind
+// the React storefront. It is the storefront now, and that prefix put
+// href="/api/theme-preview/cart" on every page while robots.txt disallows
+// /api/ - so Bing Webmaster Tools reported the cart as "Blocked by robots.txt"
+// on every page that links to it. Unblocking /api/ would have exposed the
+// orders desk; the links are clean instead.
+//
+// The old prefix is still SERVED (see the dual-path arrays in cart-routes.js
+// and mount-storefront.js) so cached pages and open tabs keep working. It is
+// just no longer what we print.
+const THEME_ROUTES_ROOT = '/';
 
 let themeRenderer = null;
 if (fs.existsSync(THEME_ROOT)) {
@@ -392,7 +402,7 @@ if (fs.existsSync(THEME_ROOT)) {
 
 /* ---- Shopify AJAX endpoints the theme's own JS calls ---- */
 
-app.get('/api/theme-preview/products/:handle.js', (req, res) => {
+app.get(['/api/theme-preview/products/:handle.js', '/products/:handle.js'], (req, res) => {
   const product = findBySlug(req.params.handle);
   if (!product) return res.status(404).json({ error: 'not found' });
   // Same shot order as the product page, so the picker's featured_image
@@ -401,11 +411,15 @@ app.get('/api/theme-preview/products/:handle.js', (req, res) => {
 });
 
 // Quick view / quick add modal markup (Shopify's ?view=only_config).
-app.get('/api/theme-preview/products/:handle', async (req, res, next) => {
+// Quick view. /products/ is ALSO the product photo directory, so this must
+// hand anything that is not a known slug back to the static handler below -
+// every photo there carries an extension and no slug does, but a 404 from
+// here would shadow the real files rather than let them answer.
+app.get(['/api/theme-preview/products/:handle', '/products/:handle'], async (req, res, next) => {
   if (req.params.handle.endsWith('.js')) return next();
-  if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
   const product = findBySlug(req.params.handle);
-  if (!product) return res.status(404).send('No such product.');
+  if (!product) return next();
+  if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
   try {
     const html = await themeRenderer.renderProductConfig(product, { variantId: req.query.variant });
     res.set('Content-Type', 'text/html; charset=utf-8');
