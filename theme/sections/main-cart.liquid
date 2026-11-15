@@ -240,9 +240,17 @@
                             {%- assign arr = block.settings.svg | remove: ' ' | split: "," -%}
                             <div class="hdt-page-cart__imgtrust-svgs hdt-block lg:hdt-inline-block" style="--height-img:{{ block.settings.height }}px;">
                               {%- for img in arr -%}
-                                {%- if img == 'visa' or img == 'master' or img == 'american_express' -%}
-                                  <div class="hdt-payment-item hdt-inline-block"><img src="/brand/payment/{{ img }}.svg" height="{{ block.settings.height }}" class="hdt-icon-payment hdt-inline-block" alt="{{ img | replace: '_', ' ' | escape }}"></div>
-                                {%- endif -%}
+                                {%- comment -%}
+                                  No brand filter here. This used to read
+                                  `if img == 'visa' or ... 'american_express'`,
+                                  which meant the configured list could not
+                                  change what the cart showed, and the cart
+                                  disagreed with the product page. The list in
+                                  templates/cart.json is the only switch now;
+                                  every name in it must have a file in
+                                  site/public/brand/payment.
+                                {%- endcomment -%}
+                                <div class="hdt-payment-item hdt-inline-block"><img src="/brand/payment/{{ img }}.svg" height="{{ block.settings.height }}" class="hdt-icon-payment hdt-inline-block" alt="{{ img | replace: '_', ' ' | escape }}"></div>
                               {%- endfor -%}
                             </div>
                           {%- endif -%}
@@ -848,7 +856,7 @@
           "type": "textarea",
           "id": "svg",
           "label": "t:sections.main-cart.blocks.img_trust.settings.svg.label",
-          "default": "visa,master,american_express",
+          "default": "visa,master,american_express,discover,diners_club,jcb",
           "info": "visa,master,american_express,discover,diners_club,jcb"
         },
         {

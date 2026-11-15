@@ -647,10 +647,16 @@ function assertCartTrust(html, label) {
   assert.match(html, /<a href="\/shipping">30-day returns<\/a>/, label);
   assert.match(html, /Secure checkout \(Stripe\)/, label);
   assert.doesNotMatch(html, /ShippingCountry_|Estimate shipping|<select[^>]*name="address\[country\]"/, label);
-  assert.match(html, /\/brand\/payment\/visa\.svg/, label);
-  assert.match(html, /\/brand\/payment\/master\.svg/, label);
-  assert.match(html, /\/brand\/payment\/american_express\.svg/, label);
-  assert.doesNotMatch(html, /\/brand\/payment\/(?:paypal|discover|diners_club|jcb|amazon_payments)\.svg/, label);
+  // All six cards Stripe settles for us, same set as the product page.
+  // The cart showed three until 15 Nov 2026, because main-cart.liquid and
+  // cart-drawer.liquid each hard-coded `if img == 'visa' or ...` - so the
+  // configured list was inert and the two pages disagreed.
+  for (const card of ['visa', 'master', 'american_express', 'discover', 'diners_club', 'jcb']) {
+    assert.match(html, new RegExp(`/brand/payment/${card}\.svg`), `${label}: ${card}`);
+  }
+  // Brands we do not accept. Showing one is a false claim at the point of
+  // payment, and there is no file for it either.
+  assert.doesNotMatch(html, /\/brand\/payment\/(?:paypal|amazon_payments|bitcoin|klarna)\.svg/, label);
   assert.match(html, /\$80\.00/, label);
   assert.doesNotMatch(html, /\$148/, label);
 }
