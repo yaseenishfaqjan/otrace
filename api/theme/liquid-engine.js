@@ -506,9 +506,24 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
    * rather than a visible error - so drop it and let the alt text show. Theme
    * config should carry real paths; this only catches what was missed.
    */
+  /**
+   * `image_url` hands `image_tag` a bare string, so the alt text on the image
+   * object is gone by the time the tag is built. Shopify's own image_tag reads
+   * the alt off the image; ours remembers it by URL on the way past.
+   *
+   * One alt per file is true of this catalogue (shared/product-media.json
+   * gives each photo its own line), so the URL is a safe key. If two images
+   * ever shared a URL with different alt text, the last one rendered wins.
+   */
+  const altByUrl = new Map();
+
   const resolveImage = (src) => {
     const url = typeof src === 'string' ? src : (src && (src.src || src.url)) || '';
-    return String(url).startsWith('shopify://') ? '' : url;
+    const clean = String(url).startsWith('shopify://') ? '' : String(url);
+    if (clean && src && typeof src === 'object' && typeof src.alt === 'string' && src.alt) {
+      altByUrl.set(clean, src.alt);
+    }
+    return clean;
   };
 
   // image_url takes named args (width:, height:) in Shopify; ours are already sized.
@@ -517,13 +532,29 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
   // Named args arrive as [name, value] pairs. Joining them made
   // `class,hdt-object-pos-mb`, so the hero image had a src and no class.
   engine.registerFilter('image_tag', (src, ...rest) => {
-    const attrs = [`src="${resolveImage(src)}"`];
+    const url = resolveImage(src);
+    // Shopify renders NOTHING for a nil image. Ours rendered <img src="">,
+    // which makes the browser re-request the current page as an image, and
+    // showed up in Bing's "missing alt attribute" report on all 20 pages -
+    // the mega menu carries two collection blocks that have no image set.
+    if (!url) return '';
+
+    const attrs = [`src="${url}"`];
+    let hasAlt = false;
     for (const item of rest) {
       if (!Array.isArray(item) || item.length !== 2 || typeof item[0] !== 'string') continue;
       const [name, value] = item;
       const text = attributeText(value);
       if (text == null) continue;
+      if (name === 'alt') hasAlt = true;
       attrs.push(`${name}="${text.replace(/"/g, '&quot;')}"`);
+    }
+    // Every <img> leaves here with an alt. A decorative image gets alt="",
+    // which is the correct value for one and not the same thing as the
+    // attribute being absent.
+    if (!hasAlt) {
+      const alt = (src && typeof src === 'object' && src.alt) || altByUrl.get(url) || '';
+      attrs.push(`alt="${String(alt).replace(/"/g, '&quot;')}"`);
     }
     return `<img ${attrs.join(' ')}>`;
   });
