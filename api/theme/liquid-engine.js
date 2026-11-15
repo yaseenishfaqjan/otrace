@@ -12,6 +12,7 @@
  * which is a far better failure than a silently empty page.
  */
 import fs from 'node:fs';
+import { altForUrl } from './image-alt.js';
 import path from 'node:path';
 import { Drop, Liquid } from 'liquidjs';
 import { spamFieldsHtml } from '../spam.js';
@@ -553,7 +554,11 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
     // which is the correct value for one and not the same thing as the
     // attribute being absent.
     if (!hasAlt) {
-      const alt = (src && typeof src === 'object' && src.alt) || altByUrl.get(url) || '';
+      // Written alt last, because an image object that carries its own is
+      // more specific. altForUrl covers the places the theme passes a bare
+      // path - section settings, the footer logo - where there is no object
+      // to read and the lazy map has never seen the URL attached to one.
+      const alt = (src && typeof src === 'object' && src.alt) || altByUrl.get(url) || altForUrl(url) || '';
       attrs.push(`alt="${String(alt).replace(/"/g, '&quot;')}"`);
     }
     return `<img ${attrs.join(' ')}>`;

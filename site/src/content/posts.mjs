@@ -112,7 +112,7 @@ export const POSTS = [
     slug: 'how-an-oversized-hoodie-should-fit',
     h1: 'Oversized hoodie fit',
     description:
-      'An oversized hoodie should sit roomy, with a dropped shoulder. The OTRACE hoodie is cut a full size large. Take your usual size, or size down for a cleaner line.',
+      'An oversized hoodie sits roomy, with a dropped shoulder. The OTRACE hoodie is cut a full size large. Take your usual size, or size down for a cleaner line.',
     date: '2026-10-26',
     eyebrow: 'Fit',
     answer:

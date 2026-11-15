@@ -218,6 +218,11 @@ export function mountStorefront(app, {
     res.set('X-Otrace-Public', 'theme');
     if (String(hit.type).includes('markdown')) {
       res.set('Link', '</llms.txt>; rel="describedby"');
+      // These are the HTML pages restated for AI crawlers, so indexing one is
+      // duplicate content against the page it describes. Bing had about.md in
+      // the index as a page in its own right - measured in Site Explorer,
+      // 15 Nov 2026, where it sat beside /about among only six indexed URLs.
+      res.set('X-Robots-Tag', 'noindex');
     }
     res.status(200).type(hit.type).send(hit.body);
   });

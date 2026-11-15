@@ -8,6 +8,7 @@
  * that restates a number always ends up lying about it.
  */
 import fs from 'node:fs';
+import { altForUrl } from './image-alt.js';
 import { fileURLToPath } from 'node:url';
 
 import { PRODUCTS, SET_LIST_CENTS, SET_TOTAL_CENTS, formatMoney, productDisplayName } from '../catalog.js';
@@ -397,15 +398,19 @@ const garmentDyed = () => {
  * the second cream-seated frame (look-07) are left out — one is mostly the
  * architecture, the other repeats look-02. Width and height are the files.
  */
+// Order and file dimensions. The alt text lives in image-alt.js, because
+// the homepage renders two of these frames through a theme setting that
+// never reaches this file - and a second copy of the sentence is how the
+// two drift apart.
 const LOOKBOOK = [
-  ['/lookbook/look-10-tall.jpg', 1005, 1800, 'A model at the end of a concrete tunnel in the Onyx Black hoodie and Warm Cream sweatpant'],
-  ['/lookbook/look-06.jpg', 1344, 1800, 'A model leans on a concrete wall in the Warm Cream hoodie and Onyx Black sweatpant'],
-  ['/lookbook/look-01-tall.jpg', 1005, 1800, 'A model walks down a long concrete corridor in the Onyx Black hoodie and sweatpant'],
-  ['/lookbook/look-02.jpg', 1344, 1800, 'A model sits on concrete steps in the Warm Cream hoodie and sweatpant'],
-  ['/lookbook/look-04-tall.jpg', 1005, 1800, 'Two models in a vast concrete hall, one in Onyx Black and one in Warm Cream'],
-  ['/lookbook/look-03.jpg', 1344, 1800, 'A model stands in window light, hood up, in the Onyx Black set'],
-  ['/lookbook/look-09.jpg', 1344, 1800, 'Detail of the Onyx Black hoodie, logo and white moulded drawcord tips'],
-  ['/lookbook/look-05.jpg', 1344, 1800, 'Close crop of the Warm Cream hoodie, logo and white moulded drawcord tips'],
+  ['/lookbook/look-10-tall.jpg', 1005, 1800],
+  ['/lookbook/look-06.jpg', 1344, 1800],
+  ['/lookbook/look-01-tall.jpg', 1005, 1800],
+  ['/lookbook/look-02.jpg', 1344, 1800],
+  ['/lookbook/look-04-tall.jpg', 1005, 1800],
+  ['/lookbook/look-03.jpg', 1344, 1800],
+  ['/lookbook/look-09.jpg', 1344, 1800],
+  ['/lookbook/look-05.jpg', 1344, 1800],
 ];
 
 const lookbook = () =>
@@ -414,8 +419,8 @@ const lookbook = () =>
     `<a href="/shop">Shop AW2026</a>.</p>`,
     `<div class="hdt-lookbook-grid">`,
     ...LOOKBOOK.map(
-      ([src, width, height, alt]) =>
-        `<figure><img src="${esc(src)}" alt="${esc(alt)}" loading="lazy" width="${width}" height="${height}"></figure>`,
+      ([src, width, height]) =>
+        `<figure><img src="${esc(src)}" alt="${esc(altForUrl(src))}" loading="lazy" width="${width}" height="${height}"></figure>`,
     ),
     `</div>`,
   ].join('');
@@ -705,7 +710,7 @@ export const PAGES = {
     title: 'Shipping & returns',
     page_title: 'Shipping & returns — OTRACE',
     description:
-      'OTRACE ships worldwide. Delivery is free in the United States. In-stock AW2026 pieces ship in 3–5 business days, and unworn items can be returned within 30 days of delivery.',
+      'OTRACE ships worldwide. Delivery is free in the United States. In-stock AW2026 pieces ship in 3–5 business days. Unworn returns within 30 days.',
     content: shipping,
   },
   terms: {

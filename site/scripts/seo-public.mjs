@@ -72,10 +72,12 @@ export function robotsTxt(siteUrl) {
     lines.push(`User-agent: ${bot}`, 'Allow: /', ...hidden, '');
   }
   lines.push(
+    // Sitemap FIRST - see the note in api/theme/discovery.js. Bing's tester
+    // reports the two non-standard lines below as errors.
+    `Sitemap: ${origin}/sitemap.xml`,
+    '',
     `LLMs: ${origin}/llms.txt`,
     `Discovery: ${origin}/identity.json`,
-    '',
-    `Sitemap: ${origin}/sitemap.xml`,
     '',
   );
   return lines.join('\n');

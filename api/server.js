@@ -39,6 +39,7 @@ import { clientIp, receiveContact } from './spam.js';
 import { handleSignup, signupOffer } from './signup.js';
 import { klaviyoConfig } from './klaviyo.js';
 import { createThemeRenderer } from './theme/render-page.js';
+import { DEFAULT_DESCRIPTION } from './theme/seo.js';
 import { toShopifyProduct } from './theme/shopify-shape.js';
 import { PAGES, pageContent } from './theme/pages.js';
 import { mountStorefront, sendNotFound } from './theme/mount-storefront.js';
@@ -443,7 +444,7 @@ app.get('/api/theme-preview/', async (req, res) => {
     sendThemeHtml(res, await themeRenderer.renderPage('index', {
       title: 'OTRACE',
       page_title: 'OTRACE — Heavyweight Oversized Hoodies & Wide-Leg Sweatpants',
-      page_description: 'OTRACE AW2026: 450 GSM heavyweight fleece hoodies and wide-leg sweatpants, cut oversized and garment dyed in Onyx Black and Warm Cream. In stock, free US shipping.',
+      page_description: DEFAULT_DESCRIPTION,
       canonical_path: '/',
     }, 'index'));
   } catch (err) {
@@ -458,9 +459,27 @@ app.get('/api/theme-preview/', async (req, res) => {
  * `/shop` is the whole catalogue; `/shop/:handle` narrows it. The categories
  * come from the products themselves rather than a second list to keep in step.
  */
+/*
+ * /shop, /shop/hoodies and /shop/bottoms all carried the same 40-character
+ * description until 15 Nov 2026 - three indexable URLs telling a search
+ * engine the same thing, which is the shape of a duplicate-content problem
+ * and says nothing about what is on the page. One sentence each, naming
+ * what the page actually lists.
+ */
+const SHOP_DESCRIPTION =
+  'Every OTRACE AW2026 piece: 450 GSM garment-dyed heavyweight fleece in Onyx Black and Warm Cream. Hoodie and sweatpant $80 each, the set $140.';
+
 const COLLECTIONS = {
-  hoodies: { title: 'Hoodies', match: (p) => p.sku === 'OT-HOOD' },
-  bottoms: { title: 'Bottoms', match: (p) => p.sku === 'OT-PANT' },
+  hoodies: {
+    title: 'Hoodies',
+    description: 'The OTRACE Oversized Hoodie in 450 GSM garment-dyed fleece. Boxy cut, self-lined hood, split kangaroo pocket. Onyx Black or Warm Cream, $80.',
+    match: (p) => p.sku === 'OT-HOOD',
+  },
+  bottoms: {
+    title: 'Bottoms',
+    description: 'The OTRACE Wide-Leg Sweatpant in 450 GSM garment-dyed fleece. Relaxed through the thigh, straight to the hem. Onyx Black or Warm Cream, $80.',
+    match: (p) => p.sku === 'OT-PANT',
+  },
 };
 
 /**
@@ -494,7 +513,7 @@ app.get('/api/theme-preview/shop/:handle?', async (req, res) => {
     sendThemeHtml(res, await themeRenderer.renderCollection({
       handle: handle ?? 'all',
       title: group ? group.title : 'AW2026',
-      description: '450 GSM garment-dyed heavyweight fleece.',
+      description: group ? group.description : SHOP_DESCRIPTION,
       products,
     }));
   } catch (err) {

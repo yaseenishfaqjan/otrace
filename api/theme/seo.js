@@ -9,8 +9,11 @@ import { POSTS, journalBlurb } from '../../site/src/content/posts.mjs';
 export const ENTITY_SUMMARY =
   'OTRACE sells a 450 GSM garment-dyed Oversized Hoodie and a Wide-Leg Sweatpant in Onyx Black and Warm Cream, and ships worldwide, with free delivery in the United States.';
 
+// 163 characters until 15 Nov 2026, so Bing and Google both cut it mid-phrase.
+// "In stock, " went rather than anything describing the garment: a store page
+// implies stock, and the fleece weight is what somebody is searching for.
 export const DEFAULT_DESCRIPTION =
-  'OTRACE AW2026: 450 GSM heavyweight fleece hoodies and wide-leg sweatpants, cut oversized and garment dyed in Onyx Black and Warm Cream. In stock, free US shipping.';
+  'OTRACE AW2026: 450 GSM heavyweight fleece hoodies and wide-leg sweatpants, cut oversized and garment dyed in Onyx Black and Warm Cream. Free US shipping.';
 
 const esc = (s) => String(s ?? '')
   .replace(/&/g, '&amp;')

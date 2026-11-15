@@ -41,11 +41,18 @@ export function robotsTxt(siteUrl) {
   for (const bot of AI_CRAWLERS) {
     lines.push(`User-agent: ${bot}`, 'Allow: /', ...hidden, '');
   }
+  // Sitemap FIRST, then the non-standard lines.
+  //
+  // Bing's robots.txt tester reports `LLMs:` and `Discovery:` as 2 errors -
+  // measured 15 Nov 2026. Every real parser ignores a directive it does not
+  // know, so they are harmless where they are. But Sitemap: is the one line
+  // that has to be read, and leaving it underneath two lines a parser may
+  // choke on is a risk taken for nothing.
   lines.push(
+    `Sitemap: ${origin}/sitemap.xml`,
+    '',
     `LLMs: ${origin}/llms.txt`,
     `Discovery: ${origin}/identity.json`,
-    '',
-    `Sitemap: ${origin}/sitemap.xml`,
     '',
   );
   return lines.join('\n');

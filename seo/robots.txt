@@ -46,7 +46,7 @@ Allow: /api/theme-assets/
 Disallow: /api/
 Disallow: /admin
 
+Sitemap: https://otrace.co/sitemap.xml
+
 LLMs: https://otrace.co/llms.txt
 Discovery: https://otrace.co/identity.json
-
-Sitemap: https://otrace.co/sitemap.xml
