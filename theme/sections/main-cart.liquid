@@ -241,7 +241,7 @@
                             <div class="hdt-page-cart__imgtrust-svgs hdt-block lg:hdt-inline-block" style="--height-img:{{ block.settings.height }}px;">
                               {%- for img in arr -%}
                                 {%- if img == 'visa' or img == 'master' or img == 'american_express' -%}
-                                  <div class="hdt-payment-item hdt-inline-block"><img src="https://raw.githubusercontent.com/activemerchant/payment_icons/refs/heads/master/app/assets/images/payment_icons/{{ img }}.svg" height="{{ block.settings.height }}" class="hdt-icon-payment hdt-inline-block" alt="{{ img | replace: '_', ' ' | escape }}"></div>
+                                  <div class="hdt-payment-item hdt-inline-block"><img src="/brand/payment/{{ img }}.svg" height="{{ block.settings.height }}" class="hdt-icon-payment hdt-inline-block" alt="{{ img | replace: '_', ' ' | escape }}"></div>
                                 {%- endif -%}
                               {%- endfor -%}
                             </div>
@@ -849,7 +849,7 @@
           "id": "svg",
           "label": "t:sections.main-cart.blocks.img_trust.settings.svg.label",
           "default": "visa,master,american_express",
-          "info": "amazon,american_express,apple_pay,bitcoin,dankort,diners_club,discover,dogecoin,dwolla,forbrugsforeningen,interac,google_pay,jcb,klarna,klarna-pay-later,litecoin,maestro,master,paypal,shopify_pay,sofort,visa"
+          "info": "visa,master,american_express,discover,diners_club,jcb"
         },
         {
           "type": "range",

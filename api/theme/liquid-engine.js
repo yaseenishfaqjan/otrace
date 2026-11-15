@@ -559,6 +559,20 @@ export function createEngine(themeRoot, { assetBase = '/theme-assets', globals =
     return `<img ${attrs.join(' ')}>`;
   });
 
+  /**
+   * Shopify resolves this to a card icon on its own CDN. Ours resolves to the
+   * copies in site/public/brand/payment, which is where the theme's other
+   * payment markup now points too - the icons were hotlinked from
+   * raw.githubusercontent.com until 15 Nov 2026.
+   *
+   * A name with no file is a broken image, so only the six brands we actually
+   * accept are valid; see that folder's README.
+   */
+  engine.registerFilter('payment_type_img_url', (name) => {
+    const handle = String(name ?? '').trim().toLowerCase().replace(/[^a-z0-9_-]/g, '');
+    return handle ? `/brand/payment/${handle}.svg` : '';
+  });
+
   engine.registerFilter('stylesheet_tag', (href) => `<link rel="stylesheet" href="${href}">`);
   engine.registerFilter('script_tag', (src) => `<script src="${src}"></script>`);
   engine.registerFilter('preload_tag', () => '');

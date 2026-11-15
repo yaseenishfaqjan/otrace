@@ -647,10 +647,10 @@ function assertCartTrust(html, label) {
   assert.match(html, /<a href="\/shipping">30-day returns<\/a>/, label);
   assert.match(html, /Secure checkout \(Stripe\)/, label);
   assert.doesNotMatch(html, /ShippingCountry_|Estimate shipping|<select[^>]*name="address\[country\]"/, label);
-  assert.match(html, /payment_icons\/visa\.svg/, label);
-  assert.match(html, /payment_icons\/master\.svg/, label);
-  assert.match(html, /payment_icons\/american_express\.svg/, label);
-  assert.doesNotMatch(html, /payment_icons\/(?:paypal|discover|diners_club|jcb|amazon_payments)\.svg/, label);
+  assert.match(html, /\/brand\/payment\/visa\.svg/, label);
+  assert.match(html, /\/brand\/payment\/master\.svg/, label);
+  assert.match(html, /\/brand\/payment\/american_express\.svg/, label);
+  assert.doesNotMatch(html, /\/brand\/payment\/(?:paypal|discover|diners_club|jcb|amazon_payments)\.svg/, label);
   assert.match(html, /\$80\.00/, label);
   assert.doesNotMatch(html, /\$148/, label);
 }
@@ -717,7 +717,7 @@ test('an empty cart and drawer offer shopping, not checkout', async () => {
   assert.doesNotMatch(cartSection, /Add Order Note/);
   assert.doesNotMatch(cartSection, /hdt-page-cart__coupon/);
   assert.doesNotMatch(cartSection, /hdt-page-cart__totals/);
-  assert.doesNotMatch(cartSection, /payment_icons\/visa\.svg/);
+  assert.doesNotMatch(cartSection, /\/brand\/payment\/visa\.svg/);
 
   const sections = await renderer.renderCartSections(empty, ['cart-drawer']);
   const drawer = sections['cart-drawer'] || '';
@@ -727,7 +727,7 @@ test('an empty cart and drawer offer shopping, not checkout', async () => {
   assert.doesNotMatch(drawer, /hdt-mini-cart__btn-checkout/);
   assert.doesNotMatch(drawer, /hdt-mini-cart__btn-viewcart/);
   assert.doesNotMatch(drawer, /hdt-mini-cart__totals/);
-  assert.doesNotMatch(drawer, /payment_icons\/visa\.svg/);
+  assert.doesNotMatch(drawer, /\/brand\/payment\/visa\.svg/);
   assert.doesNotMatch(drawer, /is--addNote/);
 
   const css = readFileSync(fileURLToPath(new URL('./otrace-overrides.css', import.meta.url)), 'utf8');

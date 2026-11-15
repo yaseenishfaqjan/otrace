@@ -6,9 +6,14 @@
         {%- assign getIMG = img | remove_first: "cust4__" -%}
         {%- assign image = images[getIMG] -%}
         {%- if image == blank %}{% continue %}{% endif -%}
-        <img loading="lazy" class="lazyloadhdt" src="https://cdn.shopify.com/s/assets/payment_icons/generic-dfdcaf09b6731ca14dd7441354c0ad8bc934184eb15ae1fda6a6b9e307675485.svg" data-src="{{ image | image_url: width: 100 }}" width="{{ image.width }}" height="{{ image.height }}"  alt="{{ image.alt | escape }}" />
+        {%- comment -%}
+          The lazyload stand-in here was a generic icon on cdn.shopify.com.
+          Nothing else on this store loads from Shopify and the real image is
+          local, so the placeholder was the only external request in the block.
+        {%- endcomment -%}
+        <img loading="lazy" src="{{ image | image_url: width: 100 }}" width="{{ image.width }}" height="{{ image.height }}" alt="{{ image.alt | escape }}" />
       {%- else -%}
-        <img loading="lazy" class="lazyloadhdt" src="https://raw.githubusercontent.com/activemerchant/payment_icons/refs/heads/master/app/assets/images/payment_icons/{{ img }}.svg" width="{{ img.width }}" height="{{ img.height }}"  alt="{{ img | replace: '_', ' ' }}" />
+        <img loading="lazy" class="lazyloadhdt" src="/brand/payment/{{ img }}.svg" width="{{ img.width }}" height="{{ img.height }}"  alt="{{ img | replace: '_', ' ' }}" />
       {%- endif -%}
     {%- endfor -%}
   </div>
@@ -27,8 +32,8 @@
         "type": "textarea",
         "id": "svg",
         "label": "t:blocks.payment.settings.svg",
-        "default": "amazon,american_express,apple_pay,bitcoin",
-        "info": "amazon,american_express,apple_pay,bitcoin,dankort,diners_club,discover,dogecoin,dwolla,forbrugsforeningen,interac,google_pay,jcb,klarna,klarna-pay-later,litecoin,maestro,master,paypal,shopify_pay,sofort,visa",
+        "default": "visa,master,american_express,discover,diners_club,jcb",
+        "info": "visa,master,american_express,discover,diners_club,jcb",
       },
       {
         "type": "paragraph",
