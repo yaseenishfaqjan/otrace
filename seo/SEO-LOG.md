@@ -615,3 +615,75 @@ Sizing FAQPage answers are the same strings as the first paragraph under each qu
 **Not done:** No deploy. Nginx 404 and `/faq` apply only after `deploy/apply-nginx-routes.mjs`. No Klaviyo, WhatsApp, chat, `sameAs`, reviews, price change, colour gallery, GA, or Clarity edit. Theme sticky ATC on the two product templates was left in place. `site/src/lib/structured-data.ts` is not on the request path and was not edited.
 
 **Checked:** `node --test` on `api/theme/seo-audit.test.mjs`, `gaps.test.mjs`, `theme.test.mjs`, `cart.test.mjs`, and `api/leads.test.mjs`. Local preview of `/product/oversized-hoodie`, `/product/complete-set`, `/faq`, and an unknown path (HTTP 404). Prices on those pages stayed `$80.00`, `$100.00`, `$140.00`, `$200.00`.
+
+## [2026-11-16] Titles that use the space a result gives them
+
+**Why:** Every title on the site was valid and short, so no audit flagged any
+of them. A result shows about 60 characters; the pages that sell were using
+12 to 28. `/product/oversized-hoodie` is the most valuable URL on the domain
+and its title named neither 450 GSM nor garment dyed - the two things a buyer
+searches and the two this brand competes on.
+
+**Before:** `Oversized Hoodie - OTRACE` 25, `Wide-Leg Sweatpant - OTRACE` 27,
+`Complete set - OTRACE` 21, `FAQ - OTRACE` 12, `Size guide - OTRACE` 19,
+`Journal - OTRACE` 16, `Wide-Leg Sweatpants - OTRACE` 28. `/contact`
+description 64 characters.
+
+**After, measured live:** `450 GSM Garment-Dyed Oversized Hoodie - OTRACE` 46,
+`Wide-Leg Sweatpant, 450 GSM Garment-Dyed - OTRACE` 49,
+`Oversized Hoodie + Sweatpant Set, 450 GSM - OTRACE` 50,
+`FAQ: Sizing, Shipping, Returns & Fabric - OTRACE` 48,
+`Size Guide: Oversized Hoodie & Sweatpant Fit - OTRACE` 53,
+`Journal: Heavyweight Fleece, Fit & Garment Dye - OTRACE` 55,
+`450 GSM Wide-Leg Sweatpants, Garment Dyed - OTRACE` 50,
+`Contact OTRACE - Orders, Sizing & Returns` 41 with a 142-character
+description. 0 titles over 60 across all 16 pages checked.
+
+Products carry an optional `seoTitle`; `render-page.js` falls back to
+`${shaped.title} - OTRACE` when absent, so a product without one is
+byte-identical. The product NAME is untouched - it prints in the cart, the buy
+box and Stripe, and the live PDP still shows `OTRACE Oversized Hoodie`,
+h1 `Oversized Hoodie`, and $80.00 / $100.00 / $140.00 / $200.00.
+
+The specs were verified in three places before going into a title -
+`api/catalog.js` descriptions, `shared/faqs.json` answers, and the live pages -
+because a spec in a title is a product claim.
+
+**Not done:** `/privacy` 16 and `/terms` 14 left short on purpose; legal pages,
+no search value in padding them. `/about` 24 and `/lookbook` 24 left alone.
+No change to h1s, descriptions other than `/contact`, prices, JSON-LD, images,
+nginx, or the React site under `site/`. Google Search Console, Analytics and
+Clarity verification are still owner-blocked.
+
+**Checked:** `node --test` on `seo-audit.test.mjs`, `gaps.test.mjs`,
+`theme.test.mjs`, `cart.test.mjs`, `leads.test.mjs` - **74 tests, 74 pass, 0
+fail** (was 72 pass / 2 fail).
+
+Two assertions needed updating and only one was caused by this change. The
+complete-set and FAQ titles were pinned to the exact old strings, which is the
+suite working; both are updated with a comment recording the old value so a
+future shortening is noticed rather than accepted. The `BingSiteAuth.xml`
+assertion compared against an LF literal and was failing **before** this work -
+verified by stashing every change and running on clean HEAD. The repo runs
+`core.autocrlf=true` with no `.gitattributes`, so that file is CRLF on a
+Windows checkout and LF in CI: the assertion passed in CI and failed for anyone
+running the suite by hand. The comparison normalises line endings now; what
+ships is unchanged.
+
+**Verified live:** yes. All 16 titles read back from `https://otrace.co`, and
+`/product/oversized-hoodie` opened in a browser - new `<title>`, h1 and prices
+unchanged, Add to cart present, no console errors.
+
+**Deploy note worth keeping:** `api` is **built from an image**, not
+bind-mounted. `docker restart otrace-api` picked up nothing - the files on
+`/opt/otrace` were new while the container still served the old titles, with
+no error anywhere. It needs `docker compose up -d --build api`. A rollback
+tarball of the five replaced files is at `/opt/otrace/api-before-titles-*.tgz`.
+
+**Discovery:** `node api/indexnow.js` on the VPS returned
+`{"ok":true,"status":200,"count":20}`. The eight changed URLs were also
+submitted in Bing Webmaster Tools URL Submission (quota 80 -> 72).
+
+**Screenshot:** taken, `/product/oversized-hoodie` on the live site.
+
+**Commit:** 3bef908
