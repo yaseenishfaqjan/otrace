@@ -1,40 +1,48 @@
 User-agent: *
 Allow: /
+Allow: /api/theme-assets/
 Disallow: /api/
 Disallow: /admin
 
 User-agent: GPTBot
 Allow: /
+Allow: /api/theme-assets/
 Disallow: /api/
 Disallow: /admin
 
 User-agent: OAI-SearchBot
 Allow: /
+Allow: /api/theme-assets/
 Disallow: /api/
 Disallow: /admin
 
 User-agent: ClaudeBot
 Allow: /
+Allow: /api/theme-assets/
 Disallow: /api/
 Disallow: /admin
 
 User-agent: PerplexityBot
 Allow: /
+Allow: /api/theme-assets/
 Disallow: /api/
 Disallow: /admin
 
 User-agent: Google-Extended
 Allow: /
+Allow: /api/theme-assets/
 Disallow: /api/
 Disallow: /admin
 
 User-agent: Applebot-Extended
 Allow: /
+Allow: /api/theme-assets/
 Disallow: /api/
 Disallow: /admin
 
 User-agent: Bingbot
 Allow: /
+Allow: /api/theme-assets/
 Disallow: /api/
 Disallow: /admin
 

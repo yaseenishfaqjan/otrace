@@ -28,7 +28,15 @@ export const AI_CRAWLERS = [
 export function robotsTxt(siteUrl) {
   const origin = String(siteUrl).replace(/\/$/, '');
   // /admin is the private orders desk. Named bots do not inherit the * group.
-  const hidden = ['Disallow: /api/', 'Disallow: /admin'];
+  //
+  // The theme renders through the API, so every stylesheet and script the
+  // storefront loads is served from /api/theme-assets/. A bare Disallow: /api/
+  // therefore told Google and every AI crawler not to fetch any CSS or JS, and
+  // they rendered the shop unstyled. The longest matching rule wins, so this
+  // Allow re-opens that one subtree while /api/ stays shut for the cart and
+  // checkout endpoints, which must never be crawled. It is listed BEFORE the
+  // Disallow for readability only - precedence is by length, not order.
+  const hidden = ['Allow: /api/theme-assets/', 'Disallow: /api/', 'Disallow: /admin'];
   const lines = ['User-agent: *', 'Allow: /', ...hidden, ''];
   for (const bot of AI_CRAWLERS) {
     lines.push(`User-agent: ${bot}`, 'Allow: /', ...hidden, '');
