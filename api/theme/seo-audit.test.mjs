@@ -211,7 +211,10 @@ test('complete-set is one product URL, and the short path redirects', async () =
     ],
   }, 'page');
   assertClean(html, 'complete-set');
-  assert.match(html, /<title>[\s\S]*Complete set — OTRACE/);
+  // Pinned to the full string on purpose. This was the bare "Complete set"
+  // - 21 characters of the ~60 a result gets, naming neither garment nor
+  // the 450 GSM fabric. The assertion is what notices a shortening.
+  assert.match(html, /<title>[\s\S]*Oversized Hoodie \+ Sweatpant Set, 450 GSM — OTRACE/);
   assert.doesNotMatch(html, EMPTY_PAGE_SUFFIX);
   const canonicals = [...html.matchAll(/<link rel="canonical" href="([^"]+)"/g)].map((match) => match[1]);
   assert.deepEqual(canonicals, ['https://otrace.co/product/complete-set']);
@@ -363,7 +366,10 @@ test('discovery files list the complete set, keep markdown out of the sitemap, a
   const bing = publicBody('/BingSiteAuth.xml', SITE);
   assert.equal(bing?.type, 'application/xml; charset=utf-8');
   assert.equal(
-    String(bing.body),
+    // Line endings normalised: core.autocrlf=true and no .gitattributes
+    // means this file is CRLF on a Windows checkout and LF in CI, so the
+    // raw comparison passed on CI and failed for anyone running it here.
+    String(bing.body).replace(/\r\n/g, '\n'),
     '<?xml version="1.0"?>\n<users>\n\t<user>B84578EA798497426806EE05427AAD83</user>\n</users>',
   );
   assert.doesNotMatch(sitemap, /BingSiteAuth/);
@@ -470,7 +476,10 @@ test('the FAQ page repeats faq-ai.txt answers and the unknown-path page is a 404
   const page = pageContent('faq');
   const html = await theme.renderPage('page', page, 'page');
   assertClean(html, 'faq');
-  assert.match(html, /<title>[\s\S]*FAQ — OTRACE/);
+  // Pinned to the full string on purpose. The title used to be the bare
+  // "FAQ — OTRACE" - 12 characters of the ~60 a result gets - and this
+  // assertion is what notices if it is shortened back.
+  assert.match(html, /<title>[\s\S]*FAQ: Sizing, Shipping, Returns & Fabric — OTRACE/);
   assert.match(html, /rel="canonical" href="https:\/\/otrace\.co\/faq"/);
   assert.match(html, /type="text\/markdown" href="https:\/\/otrace\.co\/faq\.md"/);
   const faqLd = ldNodes(html).find((node) => node['@type'] === 'FAQPage');

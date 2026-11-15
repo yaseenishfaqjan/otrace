@@ -61,7 +61,7 @@ export function mountStorefront(app, {
     try {
       const html = await themeRenderer.renderPage('page', {
         title: 'Journal',
-        page_title: 'Journal — OTRACE',
+        page_title: 'Journal: Heavyweight Fleece, Fit & Garment Dye — OTRACE',
         page_description: journalBlurb,
         content: journalIndexHtml(),
         handle: 'blog',

@@ -54,6 +54,12 @@ export const PRODUCTS = {
     sku: 'OT-HOOD',
     slug: 'oversized-hoodie',
     name: 'OTRACE Oversized Hoodie',
+    // Title for the <title> tag only. The product NAME stays as it is -
+    // it prints in the cart, the buy box and Stripe. 450 GSM and garment
+    // dyed are what a buyer searches and what this brand competes on, and
+    // the old title ('Oversized Hoodie') spent 25 of about 60 characters
+    // without naming either.
+    seoTitle: '450 GSM Garment-Dyed Oversized Hoodie',
     description:
       'Boxy oversized hoodie in 450 GSM garment-dyed heavyweight fleece. Self-lined hood, split kangaroo pocket, white moulded plastic drawcord tips.',
     listPriceCents: 10000,
@@ -67,6 +73,7 @@ export const PRODUCTS = {
     sku: 'OT-PANT',
     slug: 'wide-leg-sweatpant',
     name: 'OTRACE Wide-Leg Sweatpant',
+    seoTitle: 'Wide-Leg Sweatpant, 450 GSM Garment-Dyed',
     description:
       'Wide-leg sweatpant in the same 450 GSM garment-dyed fleece. Drawcord waist with white moulded plastic tips, ribbed ankle cuff.',
     listPriceCents: 10000,

@@ -632,7 +632,7 @@ export function standalonePage(kind) {
     },
     'complete-set': {
       title: 'Complete set',
-      page_title: 'Complete set — OTRACE',
+      page_title: 'Oversized Hoodie + Sweatpant Set, 450 GSM — OTRACE',
       description: `One OTRACE hoodie and one sweatpant together for ${formatMoney(SET_TOTAL_CENTS)}, was ${formatMoney(SET_LIST_CENTS)}. Each piece alone is ${price('OT-HOOD')}.`,
       noindex: false,
       content: completeSet,
@@ -668,7 +668,7 @@ const faqPage = () => [
 export const PAGES = {
   sizing: {
     title: 'Sizing',
-    page_title: 'Size guide — OTRACE',
+    page_title: 'Size Guide: Oversized Hoodie & Sweatpant Fit — OTRACE',
     description:
       'Oversized hoodie size chart and wide-leg sweatpant measurements for OTRACE, garment-flat in centimetres.',
     content: sizing,
@@ -688,8 +688,8 @@ export const PAGES = {
   },
   contact: {
     title: 'Contact',
-    page_title: 'Contact — OTRACE',
-    description: 'Questions about fit, an order or a return. Email info@otrace.co.',
+    page_title: 'Contact OTRACE — Orders, Sizing & Returns',
+    description: 'Questions about fit, sizing, an order or a return on an OTRACE hoodie or sweatpant. Email info@otrace.co and we answer within one working day.',
     content: contact,
   },
   about: {
@@ -701,7 +701,7 @@ export const PAGES = {
   },
   faq: {
     title: 'FAQ',
-    page_title: 'FAQ — OTRACE',
+    page_title: 'FAQ: Sizing, Shipping, Returns & Fabric — OTRACE',
     description:
       'OTRACE answers on 450 GSM, shrink, unisex and boxy fit, garment dye, and the 30-day return.',
     content: faqPage,

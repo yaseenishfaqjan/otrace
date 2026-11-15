@@ -450,7 +450,9 @@ export function createThemeRenderer({
       product: shaped,
       request: globals.request,
       template: globals.template,
-      page_title: `${shaped.title} — OTRACE`,
+      // seoTitle is optional: a product without one keeps the old title
+      // exactly, so this cannot change a page nobody opted in.
+      page_title: `${product.seoTitle || shaped.title} — OTRACE`,
       page_description: shaped.description,
       canonical_url: url,
       canonical_path: path,
@@ -578,7 +580,7 @@ export function createThemeRenderer({
   function extraPageTitle(handle, title) {
     if (handle === 'all') return 'Shop Heavyweight Hoodies & Sweatpants — OTRACE';
     if (handle === 'hoodies') return 'Heavyweight Oversized Hoodies — OTRACE';
-    if (handle === 'bottoms') return 'Wide-Leg Sweatpants — OTRACE';
+    if (handle === 'bottoms') return '450 GSM Wide-Leg Sweatpants, Garment Dyed — OTRACE';
     return `${title} — OTRACE`;
   }
 
