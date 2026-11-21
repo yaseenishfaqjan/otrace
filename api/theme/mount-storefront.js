@@ -5,9 +5,23 @@
 import { loadVerifiedPurchase, readCookie, sendMetaPurchase } from './ads.js';
 import { clearThemeCart } from './cart.js';
 import { publicBody } from './discovery.js';
+import { PRODUCTS } from '../catalog.js';
+import { searchProducts } from './search.js';
 import { findPost, journalBlurb, journalIndexHtml, journalPostHtml } from './journal.js';
 import { notFoundPage, pageContent, questionFaqs, standalonePage } from './pages.js';
 import { blogIndexLd, blogPostLd, breadcrumbLd, faqLd, setLd, speakableLd } from './seo.js';
+
+/**
+ * The search query is the only user-controlled string that reaches a rendered
+ * page here, and it lands in the <title>. Escape it at the boundary rather
+ * than trusting the renderer to do it.
+ */
+const escapeHtml = (value) =>
+  String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 
 export async function sendNotFound(res, { themeRenderer, sendThemeHtml }) {
   if (!themeRenderer) return res.status(404).type('text').send('No such page.');
@@ -184,9 +198,50 @@ export function mountStorefront(app, {
   };
   app.get(['/lookbook', '/lookbook/'], (req, res) => renderLookbook(res));
 
+  /**
+    * A real results page. This threw the query away and 302'd to /shop, so a
+    * shopper who searched "sweatpants" landed on the whole catalogue with
+    * nothing to say their search had been read - and a search that genuinely
+    * matched nothing looked identical to one that matched everything.
+    *
+    * noindex: a results page is not a page we want in the index, and an
+    * indexable one invites a crawler to enumerate query strings.
+    */
   const searchPage = async (req, res) => {
     if (req.query.view === 'wishlist') return renderStandalone(res, 'wishlist');
-    res.redirect(302, '/shop');
+    const query = String(req.query.q ?? '').slice(0, 80).trim();
+    if (!query) return res.redirect(302, '/shop');
+    if (!themeRenderer) return res.status(503).send('Theme preview is not available.');
+
+    const hits = searchProducts(query);
+    // The Complete Set is a page, not a row in PRODUCTS, so it has no card to
+    // render. It IS both garments, so a match on it shows both rather than an
+    // empty page - "tracksuit" matches only the set and must not look like a
+    // miss.
+    const products = [];
+    for (const hit of hits) {
+      for (const product of hit.product ? [hit.product] : Object.values(PRODUCTS)) {
+        if (!products.includes(product)) products.push(product);
+      }
+    }
+
+    try {
+      sendThemeHtml(res, await themeRenderer.renderCollection({
+        handle: 'search',
+        title: products.length
+          ? `Results for “${escapeHtml(query)}”`
+          : `No results for “${escapeHtml(query)}”`,
+        description: products.length
+          ? 'Every OTRACE piece is 450 GSM garment-dyed heavyweight fleece.'
+          : 'Nothing matched that. AW2026 is an oversized hoodie and a wide-leg sweatpant, in Onyx Black and Warm Cream.',
+        products,
+        canonical_path: '/shop',
+        noindex: true,
+      }), { noindex: true });
+    } catch (err) {
+      console.error('[theme] search render failed:', err.message);
+      res.status(500).send('Theme render failed: ' + err.message);
+    }
   };
   app.get(['/api/theme-preview/search', '/search'], searchPage);
   app.get(['/api/theme-preview/search/', '/search/'], searchPage);
@@ -194,13 +249,13 @@ export function mountStorefront(app, {
   app.get(['/api/theme-preview/search/suggest', '/search/suggest'], (req, res) => {
     const id = String(req.query.section_id || 'predictive-search').replace(/[^a-zA-Z0-9_-]/g, '') || 'predictive-search';
     const q = String(req.query.q || '').slice(0, 80);
-    const wanted = q.toLowerCase();
-    const hits = [
-      ['Oversized Hoodie', '/product/oversized-hoodie'],
-      ['Wide-Leg Sweatpant', '/product/wide-leg-sweatpant'],
-      ['Complete set', '/product/complete-set'],
-    ].filter(([label]) => !wanted || label.toLowerCase().includes(wanted));
-    const list = hits.map(([label, href]) => `<a href="${href}">${label}</a>`).join('');
+    // Same index as the results page. Two matchers would eventually disagree,
+    // and the dropdown saying "No matches" over a page that lists two is the
+    // version of that nobody would report.
+    const hits = searchProducts(q);
+    const list = hits
+      .map(({ label, href }) => `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`)
+      .join('');
     res.type('html').send(
       `<div id="shopify-section-${id}"><div class="hdt-search-suggests-results">${list || '<p>No matches.</p>'}</div></div>`,
     );
