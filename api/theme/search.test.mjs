@@ -108,3 +108,52 @@ test('stemming keeps short words whole', () => {
   assert.equal(stem('dress'), 'dress');
   assert.deepEqual(words('Wide-Leg Sweatpant'), ['wide', 'leg', 'sweatpant']);
 });
+
+test('a size in the index cannot swallow a long query', () => {
+  // The index carries SIZES so "xl" is not a dead end. That added the
+  // one-letter tokens s, m and l - and the token-is-a-prefix-of-query
+  // direction then made EVERY query starting with those letters match EVERY
+  // product. Measured live: "sweatpant" returned the hoodie.
+  assert.deepEqual(labels('sweatpant'), ['Wide-Leg Sweatpant', 'Complete Set']);
+  assert.deepEqual(labels('sweatpants'), ['Wide-Leg Sweatpant', 'Complete Set']);
+  assert.deepEqual(labels('set'), ['Complete Set']);
+  assert.ok(!labels('logo').includes('Oversized Hoodie'), '"logo" matched via the L size');
+
+  // ...while the sizes themselves still work, which is why they are indexed.
+  const xl = labels('xl');
+  assert.ok(xl.includes('Oversized Hoodie') && xl.includes('Wide-Leg Sweatpant'), 'xl lost the garments');
+});
+
+test('the results page canonicals to /shop and says noindex in the markup too', async () => {
+  const { createThemeRenderer } = await import('./render-page.js');
+  const { fileURLToPath } = await import('node:url');
+  const theme = createThemeRenderer({
+    themeRoot: fileURLToPath(new URL('../../theme', import.meta.url)),
+    siteUrl: 'https://otrace.co',
+    assetBase: '/api/theme-assets',
+    routesRoot: '/',
+  });
+  const html = await theme.renderCollection({
+    handle: 'search',
+    title: 'Results for “sweatpants”',
+    description: 'x',
+    products: [PRODUCTS['OT-PANT']],
+    canonicalPath: '/shop',
+    noindex: true,
+  });
+  // /shop/search does not exist. A canonical pointing at a 404 is worse than
+  // no canonical at all.
+  assert.match(html, /rel="canonical"[^>]*href="https:\/\/otrace\.co\/shop"/);
+  assert.doesNotMatch(html, /canonical[^>]*\/shop\/search/);
+  // The HTML said `index, follow` while the response header said noindex.
+  // The restrictive one wins so it worked, but the two must not disagree.
+  assert.match(html, /name="robots"[^>]*content="[^"]*noindex/);
+  assert.doesNotMatch(html, /name="robots"[^>]*content="index/);
+
+  // A real collection is unaffected.
+  const shop = await theme.renderCollection({
+    handle: 'all', title: 'AW2026', description: 'x', products: [PRODUCTS['OT-PANT']],
+  });
+  assert.match(shop, /rel="canonical"[^>]*href="https:\/\/otrace\.co\/shop"/);
+  assert.match(shop, /name="robots"[^>]*content="index/);
+});

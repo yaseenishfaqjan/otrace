@@ -534,7 +534,15 @@ export function createThemeRenderer({
   }
 
   /** The shop listing. One card per colourway, front flat first. */
-  async function renderCollection({ handle, title, description, products }) {
+  /**
+   * `canonicalPath` and `noindex` exist for /search, which renders through
+   * here but is not a collection URL. Without them the search page pointed
+   * its canonical at /shop/search - a path that 404s - and emitted
+   * `robots: index, follow` in the HTML while the response carried
+   * `X-Robots-Tag: noindex`. The restrictive one wins, so it worked, but a
+   * page whose markup and headers disagree is a trap left for later.
+   */
+  async function renderCollection({ handle, title, description, products, canonicalPath = null, noindex = false }) {
     const shaped = colourwayCards(products);
     const collection = {
       id: handle,
@@ -554,7 +562,7 @@ export function createThemeRenderer({
       image: shaped[0]?.featured_image ?? null,
       filters: [],
     };
-    const path = handle === 'all' ? '/shop' : `/shop/${handle}`;
+    const path = canonicalPath ?? (handle === 'all' ? '/shop' : `/shop/${handle}`);
     return renderPage(
       'collection',
       {
@@ -564,12 +572,13 @@ export function createThemeRenderer({
         page_description: description ?? '',
         handle,
         canonical_path: path,
+        noindex,
         json_ld: [
           collectionLd(siteUrl, { name: title, path, products }),
           breadcrumbLd(siteUrl, [
             { name: 'Home', path: '/' },
             { name: 'Shop', path: '/shop' },
-            ...(handle === 'all' ? [] : [{ name: title, path }]),
+            ...(handle === 'all' || canonicalPath ? [] : [{ name: title, path }]),
           ]),
         ],
       },

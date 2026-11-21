@@ -235,7 +235,10 @@ export function mountStorefront(app, {
           ? 'Every OTRACE piece is 450 GSM garment-dyed heavyweight fleece.'
           : 'Nothing matched that. AW2026 is an oversized hoodie and a wide-leg sweatpant, in Onyx Black and Warm Cream.',
         products,
-        canonical_path: '/shop',
+        // /search is not a collection URL. Canonical to /shop so the shelf
+        // this page is a view of is what gets indexed, and noindex so the
+        // markup agrees with the header rather than contradicting it.
+        canonicalPath: '/shop',
         noindex: true,
       }), { noindex: true });
     } catch (err) {

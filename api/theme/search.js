@@ -94,9 +94,19 @@ export function buildIndex(products = PRODUCTS) {
  * widening - an any-token match would return the whole catalogue for every
  * two-word query and read as if search were ignoring you.
  */
+const MIN_LOOSE = 3;
+
 const matches = (entry, queryTokens) =>
   queryTokens.every((q) => {
-    for (const t of entry.tokens) if (t.startsWith(q) || q.startsWith(t)) return true;
+    for (const t of entry.tokens) {
+      // The query is a prefix of the token: "sweat" reaches "sweatpant".
+      if (t.startsWith(q)) return true;
+      // The token is a prefix of the query: "hood" reaches "hoodies". Only
+      // for tokens of real length - the index carries the SIZES, so a
+      // one-letter `s` would otherwise make every query beginning with s
+      // match every product. It did: "sweatpant" returned the hoodie.
+      if (t.length >= MIN_LOOSE && q.startsWith(t)) return true;
+    }
     return false;
   });
 
