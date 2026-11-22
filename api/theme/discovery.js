@@ -132,6 +132,28 @@ const colorHandle = (name) => name.toLowerCase().replace(/\s+/g, '-');
  * `g:id` is the variant. `g:item_group_id` is the SKU the pixel sends.
  * Each variant link selects that colour and size on the product page.
  */
+/**
+ * The Shopping title, which is not the on-site title.
+ *
+ * Google matches a Shopping query against this string before almost anything
+ * else, so it has to carry the brand and the thing that differentiates the
+ * garment. `productDisplayName` strips "OTRACE" on purpose - on our own
+ * product page the brand is already all over the screen - and the feed used
+ * it, so every one of the 24 rows went to Google as "Oversized Hoodie - Onyx
+ * Black - XS": no brand, no fabric, nothing a buyer searches.
+ *
+ * Brand, product, material, then colour and size, which is Google's own
+ * recommended order for apparel. The limit is 150 characters; the longest
+ * row here is about 72, so nothing truncates.
+ */
+export function feedTitle(product, colourName, size) {
+  const name = String(product?.name ?? '').trim();
+  const parts = [`${name}, 450 GSM Garment-Dyed Fleece`];
+  const tail = [colourName, size].filter(Boolean).join(', ');
+  if (tail) parts.push(tail);
+  return parts.join(' — ').slice(0, 150);
+}
+
 export function merchantFeedXml(siteUrl) {
   const origin = String(siteUrl).replace(/\/$/, '');
   const items = [];
@@ -154,7 +176,7 @@ export function merchantFeedXml(siteUrl) {
         items.push(`    <item>
       <g:id>${escapeXml(id)}</g:id>
       <g:item_group_id>${escapeXml(product.sku)}</g:item_group_id>
-      <title>${escapeXml(`${productDisplayName(product)} — ${colorway.name} — ${size}`)}</title>
+      <title>${escapeXml(feedTitle(product, colorway.name, size))}</title>
       <description>${escapeXml(product.description)}</description>
       <link>${escapeXml(`${origin}/product/${product.slug}?variant=${variantId}`)}</link>
       <g:image_link>${escapeXml(main)}</g:image_link>${extraXml}
