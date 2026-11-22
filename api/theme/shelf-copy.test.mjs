@@ -120,6 +120,13 @@ test('no page description runs past 160 characters', () => {
     if (!page?.page_description) continue;
     assert.ok(page.page_description.length <= 160,
       `/${handle} description is ${page.page_description.length}`);
-    assert.ok(page.page_title.length <= 60, `/${handle} title is ${page.page_title.length}`);
+    // The RENDERED title, not page_title. render-page appends " — OTRACE"
+    // to any title that does not already name the brand, so measuring
+    // page_title passes a 58 that Google receives as 67 - which is exactly
+    // what the first version of this check did to the lookbook.
+    const rendered = page.page_title.includes('OTRACE')
+      ? page.page_title
+      : `${page.page_title} — OTRACE`;
+    assert.ok(rendered.length <= 60, `/${handle} renders a ${rendered.length}-char title: ${rendered}`);
   }
 });

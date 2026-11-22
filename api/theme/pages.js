@@ -696,7 +696,9 @@ export const PAGES = {
     // 24-character title and a 76-character description until 22 Nov 2026 -
     // the shortest pair on the site, on the page where somebody is already
     // looking at the clothes.
-    page_title: 'AW2026 Lookbook — 450 GSM Hoodie & Wide-Leg Sweatpant Worn',
+    // 51 characters, not 60: render-page appends " — OTRACE" to any page
+    // title that does not already name the brand.
+    page_title: 'AW2026 Lookbook — 450 GSM Hoodie & Sweatpant Worn',
     description:
       'The OTRACE AW2026 collection photographed on the body: a 450 GSM garment-dyed oversized '
       + 'hoodie and wide-leg sweatpant, in Onyx Black and Warm Cream.',
