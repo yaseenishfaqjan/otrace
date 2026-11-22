@@ -49,6 +49,7 @@ import { purchaseFromStripeSession, sendMetaPurchase } from './theme/ads.js';
 import { createCheckoutSession } from './checkout-session.js';
 import { mountAdmin } from './admin-routes.js';
 import { createMysqlOrderStore, ensureAdminTables, recordCheckoutSession } from './admin-store.js';
+import { collectionBody } from './theme/collection-copy.js';
 
 const {
   PORT = 3000,
@@ -514,6 +515,7 @@ app.get('/api/theme-preview/shop/:handle?', async (req, res) => {
       handle: handle ?? 'all',
       title: group ? group.title : 'AW2026',
       description: group ? group.description : SHOP_DESCRIPTION,
+      bodyHtml: collectionBody(handle ?? 'all'),
       products,
     }));
   } catch (err) {

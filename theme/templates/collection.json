@@ -81,7 +81,7 @@
         "filter_KX6bJW"
       ],
       "settings": {
-        "show_description": false,
+        "show_description": true,
         "description_position": "before",
         "product_des": "1",
         "image_ratio": "adapt_image",

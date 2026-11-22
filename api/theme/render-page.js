@@ -542,14 +542,18 @@ export function createThemeRenderer({
    * `X-Robots-Tag: noindex`. The restrictive one wins, so it worked, but a
    * page whose markup and headers disagree is a trap left for later.
    */
-  async function renderCollection({ handle, title, description, products, canonicalPath = null, noindex = false }) {
+  async function renderCollection({ handle, title, description, products, canonicalPath = null, noindex = false, bodyHtml = null }) {
     const shaped = colourwayCards(products);
     const collection = {
       id: handle,
       handle,
       title,
       name: title,
-      description: description ?? '',
+      // `description` is the META description and must stay plain text.
+      // `bodyHtml` is what the template prints on the page. They were the
+      // same string, so the only way to put real copy on a shelf page was to
+      // put HTML tags in the meta description.
+      description: bodyHtml ?? description ?? '',
       url: handle === 'all' ? '/shop' : `/shop/${handle}`,
       products: shaped,
       all_products_count: shaped.length,

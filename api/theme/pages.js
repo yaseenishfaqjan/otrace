@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 
 import { PRODUCTS, SET_LIST_CENTS, SET_TOTAL_CENTS, formatMoney, productDisplayName } from '../catalog.js';
 import { spamFieldsHtml } from '../spam.js';
+import { lookCaption, lookbookIntro, lookbookOutro } from './collection-copy.js';
 
 const shared = (name) =>
   JSON.parse(fs.readFileSync(fileURLToPath(new URL(`../../shared/${name}`, import.meta.url)), 'utf8'));
@@ -413,16 +414,26 @@ const LOOKBOOK = [
   ['/lookbook/look-05.jpg', 1344, 1800],
 ];
 
+/*
+ * The lookbook was 200 words and eight images with one sentence between
+ * them - the thinnest page on the site, and the one page where somebody is
+ * already looking at the clothes and has nowhere to click.
+ *
+ * The caption is NOT the alt text. The alt describes the photograph for a
+ * reader who cannot see it; the caption names the pieces and links them.
+ */
 const lookbook = () =>
   [
-    `<p class="hdt-lookbook-lead">Two pieces, two colourways, photographed as they are worn. `,
-    `<a href="/shop">Shop AW2026</a>.</p>`,
+    `<div class="hdt-lookbook-lead">${lookbookIntro()}</div>`,
     `<div class="hdt-lookbook-grid">`,
-    ...LOOKBOOK.map(
-      ([src, width, height]) =>
-        `<figure><img src="${esc(src)}" alt="${esc(altForUrl(src))}" loading="lazy" width="${width}" height="${height}"></figure>`,
-    ),
+    ...LOOKBOOK.map(([src, width, height]) => {
+      const caption = lookCaption(src);
+      return `<figure><img src="${esc(src)}" alt="${esc(altForUrl(src))}" loading="lazy" width="${width}" height="${height}">`
+        + (caption ? `<figcaption>${caption}</figcaption>` : '')
+        + `</figure>`;
+    }),
     `</div>`,
+    `<div class="hdt-lookbook-outro">${lookbookOutro()}</div>`,
   ].join('');
 
 /* -------------------------------------------------------------- contact */
@@ -682,8 +693,13 @@ export const PAGES = {
   },
   lookbook: {
     title: 'Lookbook AW2026',
-    page_title: 'Lookbook AW2026 — OTRACE',
-    description: 'The OTRACE AW2026 collection, worn. Two pieces in Onyx Black and Warm Cream.',
+    // 24-character title and a 76-character description until 22 Nov 2026 -
+    // the shortest pair on the site, on the page where somebody is already
+    // looking at the clothes.
+    page_title: 'AW2026 Lookbook — 450 GSM Hoodie & Wide-Leg Sweatpant Worn',
+    description:
+      'The OTRACE AW2026 collection photographed on the body: a 450 GSM garment-dyed oversized '
+      + 'hoodie and wide-leg sweatpant, in Onyx Black and Warm Cream.',
     content: lookbook,
   },
   contact: {
